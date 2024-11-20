@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>DocSpace JavaScript SDK Example 1</title>
+        <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+        <style>
+            .roomWindow {
+                width: 100%;
+                height: 100%;
+            }
+            .taskManager {
+                font-size: larger;
+                width: fit-content;
+            }
+            #error {
+                display: none;
+                color: crimson;
+                margin: 0;
+            }
+            #tasks p{
+                cursor: pointer;
+                text-decoration: underline;
+            }
+            #new-task {
+                margin: 8px 0;
+            }
+            #room-view {
+                width: 40%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                right: 0;
+                display: none;
+                border: solid;
+                padding: 10px;
+            }
+            #close-room {
+                position: absolute;
+                top: 0;
+                right: 0;
+                z-index: 2;
+            }
+            #new-file {
+                position: relative;
+                bottom: 64px;
+                z-index: 2;
+                font-size: 20px;
+                margin-left: 32px;
+            }
+            #create-task {
+                display: none;
+                border: solid;
+                width: fit-content;
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+            #create-task :last-child {
+                margin-top: 10px;
+            }
+            #managerWindow {
+                display: block;
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="taskManager">
+            <h2>Tasks</h2>
+            <div id="tasks"></div>
+            <button id="new-task" disabled>New task</button>
+        </div>
+        <div id="create-task">
+            <input id="taskname" type="text">
+            <p id="error"></p>
+            <div>
+                <button id="create">Create</button>
+                <button id="cancel">Cancel</button>
+            </div>
+        </div>
+        <div id="room-view">
+            <div class="roomWindow">
+                <div id="ds-room"></div>
+            </div>
+            <button id="close-room">Close</button>
+            <button id="new-file">CreateFile</button>
+        </div>
+        <dialog id="managerWindow">
+            <div id="ds-frame"></div>
+        </dialog>
+    </body>
+    <script>
+        const createTaskDialog = document.getElementById("create-task")
+        const managerWindow = document.getElementById("managerWindow")
+        const roomViewDialog = document.getElementById("room-view")
+        const newTaskButton = document.getElementById("new-task")
+        const tasknameInput = document.getElementById("taskname")
+        const closeButton = document.getElementById("close-room")
+        const newFileButton = document.getElementById("new-file")
+        const createButton = document.getElementById("create")
+        const cancelButton = document.getElementById("cancel")
+        const error = document.getElementById("error")
+        const tasks = document.getElementById("tasks")
+
+        const onAppReady = function() {
+            newTaskButton.removeAttribute("disabled")
+            managerWindow.style.display = "none"
+        }
+
+        const docSpace = DocSpace.SDK.initManager({
+            frameId: "ds-frame",
+            events: {
+                onAppReady
+            }
+        })
+        
+        function resetView() {
+            createTaskDialog.style.display = "none"
+            tasknameInput.value = ""
+            error.innerText = ""
+            error.style.display = "none"
+            createButton.removeAttribute("disabled")
+            cancelButton.removeAttribute("disabled")
+        }
+
+        function showRoom(id) {
+            let ds = DocSpace.SDK.initManager({
+                frameId: "ds-room",
+                showMenu: false,
+                rootPath: "/rooms/shared/" + id,
+                width: "100%",
+                height: "100%",
+                filter: {
+                    folder: id
+                }
+            })
+
+            closeButton.addEventListener("click", function() {
+                ds.destroyFrame()
+                roomViewDialog.style.display = "none"
+            })
+
+            newFileButton.addEventListener("click", function() {
+                ds.openModal("CreateFile")
+            })
+
+            roomViewDialog.style.display = "block"
+        }
+
+        newTaskButton.addEventListener("click", function() {
+            createTaskDialog.style.display = "block"
+        })
+
+        cancelButton.addEventListener("click", function() {
+            resetView()
+        })
+        
+        createButton.addEventListener("click", async function() {
+            let taskname = tasknameInput.value
+            if (taskname.length === 0) {
+                error.innerText = "incorrect task name"
+                error.style.display = "block"
+                return
+            }
+
+            createButton.setAttribute("disabled", "true")
+            cancelButton.setAttribute("disabled", "true")
+
+            let room = await docSpace.createRoom(taskname, 2)
+            if (room.status && room.status != 200) {
+                cancelButton.removeAttribute("disabled")
+                error.innerText = room.message
+                error.style.display = "block"
+                return
+            }
+
+            let task = document.createElement("p")
+            task.innerText = taskname
+            task.addEventListener("click", () => showRoom(room.id))
+
+            tasks.appendChild(task)
+            resetView()
+        })
+    </script>
+</html>

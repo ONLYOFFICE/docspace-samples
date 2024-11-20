@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>DocSpace JavaScript SDK Example 2</title>
+        <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+        <style>
+            input {
+                width: 100%;
+            }
+            .selectorWindow {
+                height: 320px;
+            }
+            .taskManager {
+                font-size: larger;
+                width: fit-content;
+            }
+            #error {
+                display: none;
+                color: crimson;
+                margin: 0;
+            }
+            #new-task {
+                margin: 8px 0;
+            }
+            #create-task {
+                display: none;
+                border: solid;
+                width: fit-content;
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+            #managerWindow {
+                display: block;
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="taskManager">
+            <h2>Tasks</h2>
+            <div id="tasks"></div>
+            <button id="new-task" disabled>New task</button>
+        </div>
+        <div id="create-task">
+            <input id="taskname" placeholder="task name" type="text">
+            <div class="selectorWindow">
+                <div id="ds-selector"></div>
+            </div>
+            <p id="error"></p>
+        </div>
+        <dialog id="managerWindow">
+            <div id="ds-frame"></div>
+        </dialog>
+    </body>
+    <script>
+        const createTaskDialog = document.getElementById("create-task")
+        const managerWindow = document.getElementById("managerWindow")
+        const newTaskButton = document.getElementById("new-task")
+        const tasknameInput = document.getElementById("taskname")
+        const error = document.getElementById("error")
+        const tasks = document.getElementById("tasks")
+
+        const onAppReady = function() {
+            newTaskButton.removeAttribute("disabled")
+            managerWindow.style.display = "none"
+        }
+
+        const docSpace = DocSpace.SDK.initManager({
+            frameId: "ds-frame",
+            events: {
+                onAppReady
+            }
+        })
+        
+        function resetView() {
+            createTaskDialog.style.display = "none"
+            tasknameInput.value = ""
+            error.innerText = ""
+            error.style.display = "none"
+        }
+
+        newTaskButton.addEventListener("click", function() {
+            createTaskDialog.style.display = "block"
+
+            onSelectCallback = function(e) {
+                let taskname = tasknameInput.value
+                if (taskname.length === 0) {
+                    error.innerText = "incorrect task name"
+                    error.style.display = "block"
+                    return
+                }
+
+                let task = document.createElement("p")
+                task.innerText = taskname
+
+                tasks.appendChild(task)
+                resetView()
+                dsSelector.destroyFrame()
+            }
+
+            onCloseCallback = function() {
+                resetView()
+                dsSelector.destroyFrame()
+            }
+
+            let dsSelector = DocSpace.SDK.initRoomSelector({
+                frameId: "ds-selector",
+                showSelectorCancel: true,
+                events: {
+                    onSelectCallback,
+                    onCloseCallback
+                }
+            })
+        })
+    </script>
+</html>

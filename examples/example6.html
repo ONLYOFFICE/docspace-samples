@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>DocSpace JavaScript SDK Example 1</title>
+        <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+        <style>
+            .taskManager {
+                font-size: larger;
+                width: fit-content;
+            }
+            #error {
+                display: none;
+                color: crimson;
+                margin: 0;
+            }
+            #new-task {
+                margin: 8px 0;
+            }
+            #create-task {
+                display: none;
+                border: solid;
+                width: fit-content;
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+            #create-task :last-child {
+                margin-top: 10px;
+            }
+            #managerWindow {
+                display: block;
+                border: none;
+            }
+            #tasks div {
+                display: flex;
+                flex-direction: row;
+                margin-bottom: 8px;
+            }
+            #tasks p {
+                margin: 0;
+            }
+            #tasks button {
+                margin-left: 12px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="taskManager">
+            <h2>Tasks</h2>
+            <div id="tasks"></div>
+            <button id="new-task" disabled>New task</button>
+        </div>
+        <div id="create-task">
+            <input id="taskname" type="text">
+            <p id="error"></p>
+            <div>
+                <button id="create">Create</button>
+                <button id="cancel">Cancel</button>
+            </div>
+        </div>
+        <dialog id="managerWindow">
+            <div id="ds-frame"></div>
+        </dialog>
+    </body>
+    <script>
+        const createTaskDialog = document.getElementById("create-task")
+        const managerWindow = document.getElementById("managerWindow")
+        const newTaskButton = document.getElementById("new-task")
+        const tasknameInput = document.getElementById("taskname")
+        const createButton = document.getElementById("create")
+        const cancelButton = document.getElementById("cancel")
+        const error = document.getElementById("error")
+        const tasks = document.getElementById("tasks")
+
+        const onAppReady = function() {
+            newTaskButton.removeAttribute("disabled")
+            managerWindow.style.display = "none"
+        }
+
+        const docSpace = DocSpace.SDK.initManager({
+            frameId: "ds-frame",
+            events: {
+                onAppReady
+            }
+        })
+        
+        function resetView() {
+            createTaskDialog.style.display = "none"
+            tasknameInput.value = ""
+            error.innerText = ""
+            error.style.display = "none"
+            createButton.removeAttribute("disabled")
+            cancelButton.removeAttribute("disabled")
+        }
+
+        newTaskButton.addEventListener("click", function() {
+            createTaskDialog.style.display = "block"
+        })
+
+        cancelButton.addEventListener("click", function() {
+            resetView()
+        })
+
+        createButton.addEventListener("click", async function() {
+            let taskname = tasknameInput.value
+            if (taskname.length === 0) {
+                error.innerText = "incorrect task name"
+                error.style.display = "block"
+                return
+            }
+
+            createButton.setAttribute("disabled", "true")
+            cancelButton.setAttribute("disabled", "true")
+
+            let room = await docSpace.createRoom(taskname, 2)
+            if (room.status && room.status != 200) {
+                cancelButton.removeAttribute("disabled")
+                error.innerText = room.message
+                error.style.display = "block"
+                return
+            }
+
+            let task = document.createElement("p")
+            task.innerText = taskname
+
+            let close = document.createElement("button")
+            close.innerText = "close"
+            close.addEventListener("click", function() {
+                let t = document.getElementById(room.id)
+                t.remove()
+
+                console.log("moveToArchive method") // TODO: wait for this method
+            })
+
+            let d = document.createElement("div")
+            d.append(task, close)
+            d.id = room.id
+
+            tasks.appendChild(d)
+            resetView()
+        })
+    </script>
+</html>
