@@ -2,51 +2,69 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>DocSpace JavaScript SDK Example 1</title>
+        <title>DocSpace JavaScript SDK Example 3</title>
         <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
         <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            table {
+                width: 56%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .button {
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                margin-top: 12px;
+            }
+            .button:disabled {
+                background-color: #007bff52;
+                cursor: none;
+            }
+            .button.row {
+                margin-left: 12px;
+            }
             .roomWindow {
                 width: 100%;
                 height: 100%;
-            }
-            .taskManager {
-                font-size: larger;
-                width: fit-content;
             }
             #error {
                 display: none;
                 color: crimson;
                 margin: 0;
             }
-            #tasks p{
+            #tasks div{
                 cursor: pointer;
                 text-decoration: underline;
             }
-            #new-task {
-                margin: 8px 0;
-            }
             #room-view {
                 width: 40%;
-                height: 100%;
+                height: 94%;
                 position: absolute;
                 top: 0;
                 right: 0;
                 display: none;
                 border: solid;
-                padding: 10px;
+                padding: 24px 10px 10px 10px;
             }
             #close-room {
                 position: absolute;
-                top: 0;
+                top: -12px;
                 right: 0;
                 z-index: 2;
-            }
-            #create-task {
-                display: none;
-                border: solid;
-                width: fit-content;
-                margin-bottom: 10px;
-                padding: 10px;
             }
             #create-task :last-child {
                 margin-top: 10px;
@@ -59,23 +77,29 @@
     </head>
     <body>
         <div class="taskManager">
-            <h2>Tasks</h2>
-            <div id="tasks"></div>
-            <button id="new-task" disabled>New task</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tasks</th>
+                    </tr>
+                </thead>
+                <tbody id="tasks"></tbody>
+            </table>
+            <button id="new-task" disabled class="button">New task</button>
         </div>
-        <div id="create-task">
+        <dialog id="create-task">
             <input id="taskname" type="text">
             <p id="error"></p>
             <div>
-                <button id="create">Create</button>
-                <button id="cancel">Cancel</button>
+                <button id="create" class="button row">Create</button>
+                <button id="cancel" class="button row">Cancel</button>
             </div>
-        </div>
+        </dialog>
         <div id="room-view">
             <div class="roomWindow">
                 <div id="ds-room"></div>
             </div>
-            <button id="close-room">Close</button>
+            <button id="close-room" class="button">Close</button>
         </div>
         <dialog id="managerWindow">
             <div id="ds-frame"></div>
@@ -106,7 +130,7 @@
         })
         
         function resetView() {
-            createTaskDialog.style.display = "none"
+            createTaskDialog.close()
             tasknameInput.value = ""
             error.innerText = ""
             error.style.display = "none"
@@ -135,7 +159,7 @@
         }
 
         newTaskButton.addEventListener("click", function() {
-            createTaskDialog.style.display = "block"
+            createTaskDialog.showModal()
         })
 
         cancelButton.addEventListener("click", function() {
@@ -161,11 +185,17 @@
                 return
             }
 
-            let task = document.createElement("p")
+            let task = document.createElement("div")
             task.innerText = taskname
             task.addEventListener("click", () => showRoom(room.id))
 
-            tasks.appendChild(task)
+            let td = document.createElement("td")
+            td.appendChild(task)
+
+            let tr = document.createElement("tr")
+            tr.appendChild(td)
+
+            tasks.appendChild(tr)
             resetView()
         })
     </script>

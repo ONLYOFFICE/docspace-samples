@@ -5,24 +5,48 @@
         <title>DocSpace JavaScript SDK Example 1</title>
         <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
         <style>
-            .taskManager {
-                font-size: larger;
-                width: fit-content;
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            tbody tr :last-child {
+                background-color: #ff000052;
+                width: 60px;
+                padding: 10px;
+                cursor: pointer;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .button {
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                margin-top: 12px;
+            }
+            .button:disabled {
+                background-color: #007bff52;
+                cursor: none;
+            }
+            .button.row {
+                margin-left: 12px;
             }
             #error {
                 display: none;
                 color: crimson;
                 margin: 0;
-            }
-            #new-task {
-                margin: 8px 0;
-            }
-            #create-task {
-                display: none;
-                border: solid;
-                width: fit-content;
-                margin-bottom: 10px;
-                padding: 10px;
             }
             #create-task :last-child {
                 margin-top: 10px;
@@ -31,33 +55,29 @@
                 display: block;
                 border: none;
             }
-            #tasks div {
-                display: flex;
-                flex-direction: row;
-                margin-bottom: 8px;
-            }
-            #tasks p {
-                margin: 0;
-            }
-            #tasks button {
-                margin-left: 12px;
-            }
         </style>
     </head>
     <body>
         <div class="taskManager">
-            <h2>Tasks</h2>
-            <div id="tasks"></div>
-            <button id="new-task" disabled>New task</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tasks</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tasks"></tbody>
+            </table>
+            <button id="new-task" disabled class="button">New task</button>
         </div>
-        <div id="create-task">
+        <dialog id="create-task">
             <input id="taskname" type="text">
             <p id="error"></p>
             <div>
-                <button id="create">Create</button>
-                <button id="cancel">Cancel</button>
+                <button id="create" class="button row">Create</button>
+                <button id="cancel" class="button row">Cancel</button>
             </div>
-        </div>
+        </dialog>
         <dialog id="managerWindow">
             <div id="ds-frame"></div>
         </dialog>
@@ -85,7 +105,7 @@
         })
         
         function resetView() {
-            createTaskDialog.style.display = "none"
+            createTaskDialog.close()
             tasknameInput.value = ""
             error.innerText = ""
             error.style.display = "none"
@@ -94,7 +114,7 @@
         }
 
         newTaskButton.addEventListener("click", function() {
-            createTaskDialog.style.display = "block"
+            createTaskDialog.showModal()
         })
 
         cancelButton.addEventListener("click", function() {
@@ -120,11 +140,11 @@
                 return
             }
 
-            let task = document.createElement("p")
+            let task = document.createElement("td")
             task.innerText = taskname
 
-            let close = document.createElement("button")
-            close.innerText = "close"
+            let close = document.createElement("td")
+            close.innerText = "CLOSE"
             close.addEventListener("click", function() {
                 let t = document.getElementById(room.id)
                 t.remove()
@@ -132,11 +152,11 @@
                 console.log("moveToArchive method") // TODO: wait for this method
             })
 
-            let d = document.createElement("div")
-            d.append(task, close)
-            d.id = room.id
+            let tr = document.createElement("tr")
+            tr.append(task, close)
+            tr.id = room.id
 
-            tasks.appendChild(d)
+            tasks.appendChild(tr)
             resetView()
         })
     </script>
