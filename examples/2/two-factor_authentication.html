@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Factor Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0055b3;
+        }
+        .screen {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        #ds-frame {
+            width: 100%;
+            height: 80vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="phone-screen" class="container screen active">
+        <h2>Enter Phone Number</h2>
+        <input type="tel" id="phone-input" placeholder="Phone Number">
+        <button id="phone-button">Continue</button>
+    </div>
+
+    <div id="code-screen" class="container screen">
+        <h2>Enter Verification Code</h2>
+        <input type="text" id="code-input" placeholder="4-digit Code" maxlength="4">
+        <button id="code-button">Verify</button>
+    </div>
+
+    <div id="docspace-screen" class="screen">
+        <iframe id="ds-frame"></iframe>
+    </div>
+
+    <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+    <script>
+        const phoneScreen = document.getElementById('phone-screen');
+        const codeScreen = document.getElementById('code-screen');
+        const docspaceScreen = document.getElementById('docspace-screen');
+        
+        const phoneInput = document.getElementById('phone-input');
+        const phoneButton = document.getElementById('phone-button');
+        
+        const codeInput = document.getElementById('code-input');
+        const codeButton = document.getElementById('code-button');
+        
+        let verificationCode = '';
+        
+        phoneButton.addEventListener('click', function() {
+            if (phoneInput.value.trim() === '') {
+                alert('Please enter a phone number');
+                return;
+            }
+            
+            verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+            alert('Your verification code is: ' + verificationCode);
+            
+            phoneScreen.classList.remove('active');
+            codeScreen.classList.add('active');
+        });
+        
+        codeButton.addEventListener('click', function() {
+            if (codeInput.value.trim() === '') {
+                alert('Please enter the verification code');
+                return;
+            }
+            
+            if (codeInput.value === verificationCode) {
+                codeScreen.classList.remove('active');
+                docspaceScreen.classList.add('active');
+                document.body.style.display = 'block';
+                
+                const docSpace = DocSpace.SDK.initManager({
+                    frameId: "ds-frame",
+                    width: "100%",
+                    height: "700px",
+                });
+            } else {
+                alert('Authorization error: Invalid verification code');
+            }
+        });
+    </script>
+</body>
+</html>

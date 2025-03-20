@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Page</title>
+    <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: #f8f9fa;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        section {
+            padding: 4rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .event-info {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+        
+        .info-item {
+            text-align: center;
+            margin: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .info-item i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .iframe-container {
+            width: 100%;
+            margin: 2rem auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        iframe {
+            width: 100%;
+            border: none;
+            display: block;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #4a6ee0;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        
+        footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Event Name</h1>
+            <p>Join us for an amazing experience</p>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <section>
+                <div class="event-info">
+                    <div class="info-item">
+                        <i>📅</i>
+                        <h3>Date</h3>
+                        <p>Event Date</p>
+                    </div>
+                    <div class="info-item">
+                        <i>📍</i>
+                        <h3>Location</h3>
+                        <p>Event Location</p>
+                    </div>
+                    <div class="info-item">
+                        <i>⏱️</i>
+                        <h3>Time</h3>
+                        <p>Event Time</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="presentation">
+                <h2>Event Presentation</h2>
+                <div class="iframe-container" style="height: 500px;">
+                    <iframe id="ds-presentation" src="about:blank"></iframe>
+                </div>
+            </section>
+            
+            <section id="pricing">
+                <h2>Event Pricing</h2>
+                <div class="iframe-container" style="height: 400px;">
+                    <iframe id="ds-spredsheet" src="about:blank"></iframe>
+                </div>
+            </section>
+            
+            <section id="registration">
+                <h2>Registration Form</h2>
+                <div class="iframe-container" style="height: 600px;">
+                    <iframe id="ds-pdf-form" src="about:blank"></iframe>
+                </div>
+                <div style="text-align: center;">
+                    <a href="#" class="btn">Register Now</a>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>Contact us: <a href="mailto:event@example.com">event@example.com</a></p>
+        </div>
+    </footer>
+</body>
+<script>
+    const files = {
+        presentation: 1182335,
+        spreadsheet: 1182542,
+        pdfForm: 1181896,
+    }
+    const presentation = DocSpace.SDK.initViewer({
+        frameId: 'ds-presentation',
+        editorType: 2,
+        id: files.presentation,
+        editorCustomization: {
+            close: {
+                visible: false
+            }
+        },
+    })
+
+    const spreadsheet = DocSpace.SDK.initViewer({
+        frameId: 'ds-spredsheet',
+        editorType: 2,
+        id: files.spreadsheet,
+        editorCustomization: {
+            close: {
+                visible: false
+            }
+        },
+    })
+
+    const pdfForm = DocSpace.SDK.initEditor({
+        frameId: 'ds-pdf-form',
+        editorType: 1,
+        id: files.pdfForm,
+        editorCustomization: {
+            close: {
+                visible: false
+            }
+        },
+    })
+</script>
+</html>

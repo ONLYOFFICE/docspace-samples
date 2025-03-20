@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+        .chat-container {
+            width: 350px;
+            height: 450px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .infoBlock {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: #f0f2f5;
+            border-radius: 16px;
+            max-width: 70%;
+            word-break: break-word;
+        }
+        .message a {
+            color: #0066cc;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .message a:hover {
+            text-decoration: underline;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+        }
+        button {
+            padding: 8px 16px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .selector-modal {
+            width: 350px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            z-index: 1001;
+            display: none;
+        }
+        .selector-options {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .selector-frame {
+            width: 100%;
+            height: 400px;
+            border: none;
+        }
+        #ds-frame-container {
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="infoBlock">
+        <p><b>/docspace room</b> to open room selector</p>
+        <p><b>/docspace file</b> to open file selector</p>
+    </div>
+    <div class="chat-container">
+        <div class="chat-messages" id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type a message">
+            <button onclick="sendMessage()">Send</button>
+            <button onclick="openSelectorChoice()">DocS</button>
+        </div>
+    </div>
+
+    <div class="selector-modal" id="selectorChoiceModal">
+        <div class="selector-options">
+            <button onclick="openRoomSelector()">Select Room</button>
+            <button onclick="openFileSelector()">Select File</button>
+            <button onclick="returnToChat()">Cancel</button>
+        </div>
+    </div>
+
+    <div class="selector-modal" id="selectorModal">
+        <iframe id="ds-selector" class="selector-frame"></iframe>
+    </div>
+
+    <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+    <script>
+        let docSpace;
+        const portalSrc = "{{PORTAL_SRC}}";
+
+        function addMessage(text, isLink = false) {
+            const messages = document.getElementById('messages');
+            const message = document.createElement('div');
+            message.className = 'message';
+            
+            if (isLink) {
+                const link = document.createElement('a');
+                link.href = text;
+                link.target = '_blank';
+                link.textContent = text;
+                message.appendChild(link);
+            } else {
+                message.textContent = text;
+            }
+            
+            messages.appendChild(message);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                input.value = '';
+                if (text.startsWith('/docspace room')) {
+                    openRoomSelector();
+                    return;
+                }
+                if (text.startsWith('/docspace file')) {
+                    openFileSelector();
+                    return;
+                }
+                addMessage(text);
+            }
+        }
+
+        function openSelectorChoice() {
+            document.getElementById('selectorChoiceModal').style.display = 'block';
+        }
+
+        function returnToChat() {
+            if (docSpace) {
+                docSpace.destroyFrame();
+            }
+            document.getElementById('selectorChoiceModal').style.display = 'none';
+            document.getElementById('selectorModal').style.display = 'none';
+        }
+
+        function openRoomSelector() {
+            document.getElementById('selectorChoiceModal').style.display = 'none';
+            document.getElementById('selectorModal').style.display = 'block';
+            
+            docSpace = DocSpace.SDK.initRoomSelector({
+                height: "430px",
+                frameId: "ds-selector",
+                showSelectorCancel: true,
+                events: {
+                    onSelectCallback: onRoomSelectCallback,
+                    onCloseCallback: returnToChat
+                }
+            });
+        }
+
+        function openFileSelector() {
+            document.getElementById('selectorChoiceModal').style.display = 'none';
+            document.getElementById('selectorModal').style.display = 'block';
+            
+            docSpace = DocSpace.SDK.initFileSelector({
+                frameId: "ds-selector",
+                height: "430px",
+                showSelectorCancel: true,
+                events: {
+                    onSelectCallback: onFileSelectCallback,
+                    onCloseCallback: returnToChat
+                }
+            });
+        }
+
+        function onRoomSelectCallback(e) {
+            const id = e[0].id;
+            const link = `${portalSrc}rooms/shared/${id}/filter?folder=${id}`;
+            addMessage(link, true);
+            returnToChat();
+        }
+
+        function onFileSelectCallback(e) {
+            addMessage(e.viewUrl, true);
+            returnToChat();
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
