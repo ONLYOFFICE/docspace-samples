@@ -8,8 +8,13 @@ const app = express();
 const PORT = process.env.PORT;
 const config = {
     PORTAL_SRC: process.env.PORTAL_SRC,
-    FILE_ID: process.env.FILE_ID,
-    ROOM_ID: process.env.ROOM_ID,
+    PUBLIC_DOCX_ID: process.env.PUBLIC_DOCX_ID,
+    PUBLIC_XLSX_ID: process.env.PUBLIC_XLSX_ID,
+    PUBLIC_PPTX_ID: process.env.PUBLIC_PPTX_ID,
+    PUBLIC_PDF_ID: process.env.PUBLIC_PDF_ID,
+    FILLFORM_PDF_ID: process.env.FILLFORM_PDF_ID,
+    PUBLIC_ROOM_ID: process.env.PUBLIC_ROOM_ID,
+    COLLABORATION_ROOM_ID: process.env.COLLABORATION_ROOM_ID,
     LOGIN: process.env.LOGIN,
     PASSWORD: process.env.PASSWORD,
 }

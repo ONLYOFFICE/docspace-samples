@@ -157,9 +157,9 @@
 </body>
 <script>
     const files = {
-        presentation: 1182335,
-        spreadsheet: 1182542,
-        pdfForm: 1181896,
+        presentation: "{{ PUBLIC_PPTX_ID }}",
+        spreadsheet: "{{ PUBLIC_XLSX_ID }}",
+        pdfForm: "{{ FILLFORM_PDF_ID }}",
     }
     const presentation = DocSpace.SDK.initViewer({
         frameId: 'ds-presentation',
@@ -185,7 +185,7 @@
 
     const pdfForm = DocSpace.SDK.initEditor({
         frameId: 'ds-pdf-form',
-        editorType: 1,
+        editorType: 2,
         id: files.pdfForm,
         editorCustomization: {
             close: {

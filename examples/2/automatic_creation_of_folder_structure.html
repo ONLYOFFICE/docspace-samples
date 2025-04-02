@@ -53,9 +53,9 @@
         let docSpace;
 
         const templates = {
-            instructions: 1181894,
-            priceList: 1181895,
-            contract: 1181896
+            instructions: "{{ PUBLIC_DOCX_ID }}",
+            priceList: "{{ PUBLIC_XLSX_ID }}",
+            contract: "{{ PUBLIC_PDF_ID }}"
         }
 
         function onAppReady() {
@@ -92,7 +92,7 @@
                 docSpace.createFile(instructionsRoom.id, 'Instructions.docx', templates.instructions);
 
                 const priceListRoom = await docSpace.createFolder(id, 'Price List');
-                docSpace.createFile(priceListRoom.id, 'Price List.docx', templates.priceList);
+                docSpace.createFile(priceListRoom.id, 'Price List.xlsx', templates.priceList);
 
                 const contractsRoom = await docSpace.createFolder(id, 'Contracts');
                 docSpace.createFile(contractsRoom.id, 'Contract template.pdf', templates.contract);
