@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelance Platform</title>
+    <script src="{{PORTAL_SRC}}/static/scripts/sdk/1.0.1/api.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: initial;
+        }
+        .hidden {
+            display: none;
+        }
+        .workspace {
+            display: flex;
+            margin-top: 20px;
+            height: 550px;
+        }
+        .workspace.hidden {
+            display: none;
+        }
+        .users-list {
+            width: 250px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-right: 20px;
+        }
+        .user-item {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .user-item:hover {
+            background-color: #e9e9e9;
+        }
+        .user-item.selected {
+            background-color: #e0f7e0;
+        }
+        .frame-container {
+            flex-grow: 1;
+            height: 94%;
+        }
+        .frame-title {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Freelance Platform</h1>
+
+        <div id="orderForm">
+            <div class="form-group">
+                <label for="title">Project Title</label>
+                <input type="text" id="title" placeholder="Enter project title">
+            </div>
+            <div class="form-group">
+                <label for="description">Project Description</label>
+                <textarea id="description" rows="4" placeholder="Describe your project"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="deadline">Deadline</label>
+                <input type="date" id="deadline">
+            </div>
+            <div class="form-group">
+                <label for="requirements">Requirements</label>
+                <textarea id="requirements" rows="4" placeholder="List your project requirements"></textarea>
+            </div>
+            <button id="createOrderBtn" disabled>Create Order</button>
+        </div>
+        
+        <div id="workspace" class="workspace hidden">
+            <div id="usersList" class="users-list">
+                <h3>Select Freelancer</h3>
+                <div id="usersContainer"></div>
+                <button id="confirmUserBtn">Confirm Freelancer</button>
+            </div>
+            
+            <div class="frame-container">
+                <div class="frame-title">Drag and drop files for the task</div>
+                <iframe id="ds-frame" style="width: 100%; height: 500px; border: 1px solid #ddd;"></iframe>
+                <button id="completeOrderBtn" style="display: none;">Complete Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let docSpace;
+        let token;
+        let roomId;
+        let selectedUserId = null;
+        let selectedUserName = null;
+
+        function setRoomAccessRights(access) {
+            fetch(`{{PORTAL_SRC}}api/2.0/files/rooms/${roomId}/share`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    "invitations": [
+                        {
+                        "email": selectedUserEmail,
+                        "id": selectedUserId,
+                        "access": access
+                        }
+                    ],
+                    "notify": true
+                })
+            })
+        }
+        
+        function initDocSpace(rootPath = null, filter = null) {
+            const config = {
+                frameId: "ds-frame",
+                events: {
+                    onAppReady: rootPath ? onWorkspaceReady : onInitialReady
+                }
+            };
+            
+            if (rootPath) {
+                config.rootPath = rootPath;
+                config.filter = filter;
+                config.showHeader = false;
+            }
+            
+            docSpace = DocSpace.SDK.initManager(config);
+        }
+        
+        function onInitialReady() {
+            fetchUsers();
+            const button = document.getElementById('createOrderBtn');
+            button.addEventListener('click', createOrder);
+            button.disabled = false;
+        }
+        
+        function onWorkspaceReady() {
+            document.getElementById('ds-frame').style.display = 'block';
+            document.getElementById('orderForm').classList.add('hidden');
+            document.getElementById('workspace').classList.remove('hidden');
+            
+            document.getElementById('confirmUserBtn').addEventListener('click', confirmUser);
+        }
+        
+        async function createOrder() {
+            document.getElementById('createOrderBtn').disabled = true;
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const deadline = document.getElementById('deadline').value;
+            const requirements = document.getElementById('requirements').value;
+            
+            if (!title) {
+                alert('Please enter a project title');
+                return;
+            }
+            
+            try {
+                const room = await docSpace.createRoom(title, 2);
+                
+                if (room.status && room.status !== 200) {
+                    alert('Error creating room: ' + (room.error || 'Unknown error'));
+                    return;
+                }
+                
+                roomId = room.id;
+                
+                initDocSpace("/rooms/shared/" + roomId, {
+                    folder: roomId
+                });
+                
+            } catch (error) {
+                alert('Error: ' + (error.message || 'Unknown error occurred'));
+                console.error(error);
+            }
+        }
+        
+        async function fetchUsers() {
+            try {
+                const response = await fetch("{{PORTAL_SRC}}api/2.0/people", {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.response && data.response.length > 0) {
+                    const usersContainer = document.getElementById('usersContainer');
+                    usersContainer.innerHTML = '';
+                    
+                    data.response.forEach(user => {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'user-item';
+                        userDiv.dataset.userId = user.id;
+                        userDiv.textContent = `${user.firstName} ${user.lastName}`;
+                        
+                        userDiv.addEventListener('click', function() {
+                            document.querySelectorAll('.user-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            this.classList.add('selected');
+                            selectedUserId = user.id;
+                            selectedUserEmail = user.email;
+                            selectedUserName = `${user.firstName} ${user.lastName}`;
+                        });
+                        
+                        usersContainer.appendChild(userDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        }
+        
+        function confirmUser() {
+            if (!selectedUserId) {
+                alert('Please select a freelancer');
+                return;
+            }
+            
+            document.getElementById('usersList').style.display = 'none';
+            document.getElementById('confirmUserBtn').textContent = 'Complete Order';
+            document.getElementById('confirmUserBtn').removeEventListener('click', confirmUser);
+            document.getElementById('completeOrderBtn').style.display = 'block';
+            document.getElementById('completeOrderBtn').addEventListener('click', completeOrder);
+
+            setRoomAccessRights('ContentCreator');
+        }
+        
+        function completeOrder() {
+            setRoomAccessRights(0);
+            fetch(`{{PORTAL_SRC}}api/2.0/files/rooms/${roomId}/archive`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    "deleteAfter": true
+                })
+            })
+                .then();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('{{PORTAL_SRC}}api/2.0/authentication', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    userName: '{{LOGIN}}',
+                    password: '{{PASSWORD}}'
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    token = data.response.token;
+                });
+            initDocSpace();
+        });
+    </script>
+</body>
+</html>
