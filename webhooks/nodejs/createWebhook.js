@@ -35,7 +35,7 @@ async function createWebhook(name, uri, secretKey, enabled, ssl, triggers, targe
 
     } catch (error) {
         console.log("Error creating webhook:");
-        console.log(JSON.stringify(error));
+        console.log(JSON.stringify(error.response ? error.response.data : error.message));
     }
 }
 
