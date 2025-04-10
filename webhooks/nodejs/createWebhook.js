@@ -6,7 +6,7 @@ require("dotenv").config();
 // Async function to create the webhook
 // Documentation: https://api.onlyoffice.com/docspace/api-backend/usage-api/create-webhook/
 async function createWebhook(name, uri, secretKey, enabled, ssl, triggers, targetId) {
-    const url = process.env.PORTAL_URL + "/api/2.0/settings/webhook";
+    const apiUrl = process.env.PORTAL_URL + "/api/2.0/settings/webhook";
     const apiKey = process.env.API_KEY;
 
     const data = {
@@ -21,7 +21,7 @@ async function createWebhook(name, uri, secretKey, enabled, ssl, triggers, targe
 
     try {
         const response = await axios.post(
-            url,
+            apiUrl,
             data,
             {
                 headers: {
