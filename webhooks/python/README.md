@@ -62,7 +62,7 @@ python server.py
 # TODO: Replace these values ​​with your own.
 name = "My Webhook" # Webhook name
 uri = "http://localhost:8080/webhook" # Webhook payload url
-ssl = true # SSL verification
+ssl = True # SSL verification
 triggers = 0 # All triggers are selected by default
 target_id= "" # Target ID
 ```
