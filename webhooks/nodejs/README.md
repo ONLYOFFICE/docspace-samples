@@ -61,7 +61,6 @@ npm start
 // TODO: Replace these values ​​with your own.
 const name = "My Webhook"; // Webhook name
 const uri = "http://localhost:8080/webhook"; // Webhook payload url
-const secretKey = process.env.WEBHOOK_SECRET_KEY;
 const ssl = true; // SSL verification
 const triggers = 0; // All triggers are selected by default
 const targetId= ""; // Target ID
