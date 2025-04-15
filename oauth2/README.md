@@ -34,7 +34,7 @@ PKCE (Proof Key for Code Exchange) is an extension to OAuth 2.0 designed to prot
 
 ### 1. Register Your Application in DocSpace
 
-1. Log in to your DocSpace account as an administrator
+1. Log in to your DocSpace account
 2. Navigate to Developer Tools > OAuth2
 3. Create a new application
 4. Set the redirect URI to `http://localhost:3000/callback` (or your custom URI)
