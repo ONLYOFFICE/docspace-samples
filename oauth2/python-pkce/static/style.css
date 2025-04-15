@@ -1,0 +1,48 @@
+.docspace-button {
+    width: auto;
+    padding: 0 20px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-decoration: none;
+    border-radius: 2px;
+
+    height: 40px;
+
+    border: none;
+    stroke: none;
+    background: #ffffff;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 1px 1px, rgba(0, 0, 0, 0.12) 0px 0px 1px;
+
+    color: #A3A9AE;
+
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 14px;
+    user-select: none;
+
+    font-family: Roboto, "Open Sans", sans-serif, Arial;
+}
+
+.docspace-button:hover {
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 1px 1px, rgba(0, 0, 0, 0.12) 0px 0px 1px;
+    cursor: pointer;
+    color: #333333;
+}
+
+.docspace-button:active {
+    background-color: #F8F9F9;
+    color: #333333;
+    cursor: pointer;
+}
+
+.logo-svg {
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    min-height: 18px;
+
+    margin: 11px 16px 11px 0px;
+}
+
