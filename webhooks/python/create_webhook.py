@@ -41,7 +41,7 @@ def create_webhook(name, uri, secret_key, enabled, ssl, triggers, target_id):
             print(str(e))
 
 
-# TODO: Replace these values ​​with your own.
+# TODO: Replace these values with your own.
 name = "My Webhook" # Webhook name
 uri = "http://localhost:8080/webhook" # Webhook payload url
 secret_key = os.getenv("WEBHOOK_SECRET_KEY")

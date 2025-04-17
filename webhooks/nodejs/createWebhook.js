@@ -39,7 +39,7 @@ async function createWebhook(name, uri, secretKey, enabled, ssl, triggers, targe
     }
 }
 
-// TODO: Replace these values ​​with your own.
+// TODO: Replace these values with your own.
 const name = "My Webhook"; // Webhook name
 const uri = "http://localhost:8080/webhook"; // Webhook payload url
 const secretKey = process.env.WEBHOOK_SECRET_KEY;

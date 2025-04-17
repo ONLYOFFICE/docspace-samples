@@ -46,7 +46,7 @@ WEBHOOK_SECRET_KEY=
 
 > **Note:** In a production environment, this value should be securely stored. For security reasons, ensure that you never commit or expose this value in a public repository.
 
-Enter your portal address, [API key](https://api.onlyoffice.com/docspace/api-backend/get-started/basic-concepts/) for authorization and secret key for webhook.
+Enter your portal address, [API key](https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/api-keys/) for authorization and secret key for webhook.
 
 For your convenience, a sample **.env.template** file is included in the root directory of this application.
 
@@ -59,7 +59,7 @@ python server.py
 5. Edit the **create_webhook.py** setup script to to include the information to [create](https://api.onlyoffice.com/docspace/api-backend/usage-api/create-webhook/) the webhook:
 
 ```python
-# TODO: Replace these values ​​with your own.
+# TODO: Replace these values with your own.
 name = "My Webhook" # Webhook name
 uri = "http://localhost:8080/webhook" # Webhook payload url
 ssl = True # SSL verification
