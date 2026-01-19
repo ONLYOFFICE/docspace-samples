@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DocSpace JS SDK samples</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* OnlyOffice-style clean corporate UI */
+    :root {
+      --bg: #f6f6f6;
+      --card: #ffffff;
+      --text: #333;
+      --muted: #6b7280;
+      --border: #e6e6e6;
+      --shadow: 0 3px 6px rgba(0,0,0,0.10);
+      --blue: #0073e6;
+      --blueHover: #005bb5;
+      --pillBasicBg: rgba(0,115,230,0.10);
+      --pillAdvBg: rgba(124,58,237,0.10);
+      --pillAdv: #6d28d9;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 8px 0 6px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      max-width: 900px;
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-weight: 700;
+      color: #111;
+      font-size: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-weight: 700;
+      color: #111;
+      font-size: 16px;
+    }
+
+    .hr {
+      height: 1px;
+      background: #eee;
+      margin: 10px 0 12px;
+    }
+
+    /* Config block */
+    label {
+      display: block;
+      margin: 12px 0 6px 0;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus {
+      border-color: rgba(0,115,230,0.6);
+      box-shadow: 0 0 0 3px rgba(0,115,230,0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button {
+      padding: 9px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--blue);
+      color: white;
+      transition: background-color 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    }
+
+    button:hover {
+      background-color: var(--blueHover);
+    }
+
+    .btn-secondary {
+      background: #eef2ff;
+      color: #1f3a8a;
+      box-shadow: none;
+      border: 1px solid rgba(31,58,138,0.15);
+    }
+
+    .btn-secondary:hover {
+      background: #e0e7ff;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 13px;
+      color: #111;
+    }
+
+    .toggle input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--blue);
+    }
+
+    .search {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    /* Sections */
+    .examples-wrap {
+      display: grid;
+      gap: 16px;
+    }
+
+    .examples-section {
+      padding: 15px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .section-meta {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 12px;
+    }
+
+    /* Grid of cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .example-card {
+      display: block;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: inherit;
+      background: #fff;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+      cursor: pointer;
+    }
+
+    .example-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+      border-color: rgba(0,0,0,0.12);
+    }
+
+    .example-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .example-title strong {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.25;
+    }
+
+    .pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .pill.basic {
+      color: var(--blue);
+      background: var(--pillBasicBg);
+      border-color: rgba(0,115,230,0.2);
+    }
+
+    .pill.advanced {
+      color: var(--pillAdv);
+      background: var(--pillAdvBg);
+      border-color: rgba(109,40,217,0.2);
+    }
+
+    .example-desc {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.45;
+      margin: 0 0 10px;
+    }
+
+    .example-path {
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-all;
+      margin-top: 6px;
+    }
+
+    .open-hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    .empty {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      background: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <h1>DocSpace JS SDK samples</h1>
+    <p class="subtitle">
+      The following examples will show you how to use ONLYOFFICE DocSpace 
+      SDK based on JavaScript to integrate ONLYOFFICE DocSpace into your own web application, allowing users to create and submit documents directly from your website.
+    </p>
+
+    <div class="layout">
+      <!-- LEFT: CONFIG -->
+      <div class="card" id="config">
+        <h2>Configuration</h2>
+
+        <label for="portalSrc">Portal URL:</label>
+        <input id="portalSrc" type="text" placeholder="https://your-docspace.example.com" />
+
+        <div class="actions">
+          <button id="saveConfig" type="button">Save Config</button>
+          <button id="clearConfig" class="btn-secondary" type="button">Clear</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3>Filters</h3>
+        <div class="filters">
+          <label class="toggle" title="Show Basic samples">
+            <input id="showBasic" type="checkbox" checked />
+            Basic
+          </label>
+
+          <label class="toggle" title="Show Advanced samples">
+            <input id="showAdvanced" type="checkbox" checked />
+            Advanced
+          </label>
+
+          <input id="search" class="search" type="search" placeholder="Search examples..." />
+        </div>
+      </div>
+
+      <!-- RIGHT: EXAMPLES -->
+      <div class="examples-wrap">
+        <div class="card examples-section">
+          <div class="section-head">
+            <h2>Basic samples</h2>
+            <div class="section-meta" id="basicCount"></div>
+          </div>
+          <p class="section-desc">
+            Small, focused examples demonstrating individual SDK actions.
+          </p>
+          <div class="grid" id="basicGrid"></div>
+          <div class="empty" id="basicEmpty" style="display:none;">No basic samples found.</div>
+        </div>
+
+        <div class="card examples-section">
+          <div class="section-head">
+            <h2>Advanced samples</h2>
+            <div class="section-meta" id="advancedCount"></div>
+          </div>
+          <p class="section-desc">
+            Larger scenarios combining multiple features and UI flows.
+          </p>
+          <div class="grid" id="advancedGrid"></div>
+          <div class="empty" id="advancedEmpty" style="display:none;">No advanced samples found.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Will be fetched dynamically
+    let examples = [];
+
+    // Load config from localStorage or get from /api/config
+    async function loadConfig() {
+      let config = localStorage.getItem('docspaceConfig');
+      if (config) {
+        try {
+          return JSON.parse(config);
+        } catch { return null; }
+      }
+      // Fetch from API
+      const response = await fetch('/api/config');
+      if (response.ok) {
+        return await response.json();
+      }
+      return null;
+    }
+
+    // Save config to localStorage
+    function saveConfig(config) {
+      localStorage.setItem('docspaceConfig', JSON.stringify(config));
+    }
+
+    function clearConfig() {
+      localStorage.removeItem('docspaceConfig');
+    }
+
+    // Apply config values to inputs
+    function applyConfigToInputs(config) {
+      if (!config) return;
+      document.getElementById('portalSrc').value = config.portalSrc || '';
+    }
+
+    function buildExampleUrl(ex) {
+      const portalSrc = document.getElementById('portalSrc').value.trim();
+      if (!portalSrc) {
+        alert('Please enter Portal URL');
+        return null;
+      }
+
+      // IMPORTANT:
+      // ex.file must be like: "/example?file=/basic-samples/xxx/init-system.html"
+      let exampleUrl = ex.file || "";
+
+      // If backend still returns plain html path, fallback (optional but helpful during transition)
+      if (!exampleUrl.startsWith("/example?file=")) {
+        exampleUrl = `/example?file=${encodeURIComponent(ex.file || "")}`;
+      }
+
+      // pass portalSrc to the server so it can inject into HTML before it loads sdk script
+      exampleUrl += `&portalSrc=${encodeURIComponent(portalSrc)}`;
+
+
+      return exampleUrl;
+    }
+
+
+    function getGroup(ex) {
+      const g = (ex.group || '').toLowerCase();
+      if (g === 'basic' || g === 'advanced') return g;
+
+      const file = (ex.file || '').toLowerCase();
+      if (file.includes('advanced-samples')) return 'advanced';
+      return 'basic';
+    }
+
+    function makeCard(ex) {
+      const card = document.createElement('div');
+      card.className = 'example-card';
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+
+      const titleRow = document.createElement('div');
+      titleRow.className = 'example-title';
+
+      const title = document.createElement('strong');
+      title.textContent = ex.name || 'Untitled example';
+
+      const group = getGroup(ex);
+      const pill = document.createElement('span');
+      pill.className = 'pill ' + group;
+      pill.textContent = group === 'advanced' ? 'Advanced' : 'Basic';
+
+      titleRow.appendChild(title);
+      titleRow.appendChild(pill);
+
+      const desc = document.createElement('div');
+      desc.className = 'example-desc';
+      desc.textContent = ex.description ? ex.description : 'No description provided.';
+
+      const path = document.createElement('div');
+      path.className = 'example-path';
+      path.textContent = ex.file || '';
+
+      const hint = document.createElement('div');
+      hint.className = 'open-hint';
+      hint.textContent = 'Open sample →';
+
+      card.appendChild(titleRow);
+      card.appendChild(desc);
+      card.appendChild(hint);
+
+
+      const open = () => {
+        const url = buildExampleUrl(ex);
+        if (!url) return;
+        window.open(url, '_blank');
+      };
+
+      card.onclick = open;
+      card.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open();
+        }
+      };
+
+      return card;
+    }
+
+    function renderCards() {
+      const basicGrid = document.getElementById('basicGrid');
+      const advGrid = document.getElementById('advancedGrid');
+      const basicCount = document.getElementById('basicCount');
+      const advCount = document.getElementById('advancedCount');
+      const basicEmpty = document.getElementById('basicEmpty');
+      const advEmpty = document.getElementById('advancedEmpty');
+
+      const showBasic = document.getElementById('showBasic').checked;
+      const showAdv = document.getElementById('showAdvanced').checked;
+      const q = (document.getElementById('search').value || '').trim().toLowerCase();
+
+      basicGrid.innerHTML = '';
+      advGrid.innerHTML = '';
+
+      const filtered = examples.filter(ex => {
+        if (!q) return true;
+        const hay = ((ex.name || '') + ' ' + (ex.description || '') + ' ' + (ex.file || '')).toLowerCase();
+        return hay.includes(q);
+      });
+
+      const basic = [];
+      const advanced = [];
+
+      filtered.forEach(ex => {
+        if (getGroup(ex) === 'advanced') advanced.push(ex);
+        else basic.push(ex);
+      });
+
+      if (showBasic) basic.forEach(ex => basicGrid.appendChild(makeCard(ex)));
+      if (showAdv) advanced.forEach(ex => advGrid.appendChild(makeCard(ex)));
+
+      basicCount.textContent = `${basic.length} items`;
+      advCount.textContent = `${advanced.length} items`;
+
+      basicEmpty.style.display = (showBasic && basic.length === 0) ? 'block' : 'none';
+      advEmpty.style.display = (showAdv && advanced.length === 0) ? 'block' : 'none';
+
+      if (!showBasic) basicEmpty.style.display = 'none';
+      if (!showAdv) advEmpty.style.display = 'none';
+    }
+
+    async function buildExamplesList() {
+      try {
+        const response = await fetch('/api/examples');
+        if (response.ok) {
+          examples = await response.json();
+          renderCards();
+        } else {
+          examples = [];
+          renderCards();
+        }
+      } catch (e) {
+        examples = [];
+        renderCards();
+        console.error(e);
+      }
+    }
+
+    // On load
+    window.onload = async () => {
+      const config = await loadConfig();
+      applyConfigToInputs(config);
+      await buildExamplesList();
+    };
+
+    // Save button
+    document.getElementById('saveConfig').onclick = () => {
+      const config = {
+        portalSrc: document.getElementById('portalSrc').value.trim()
+      };
+      saveConfig(config);
+      alert('Config saved');
+    };
+
+    // Clear button
+    document.getElementById('clearConfig').onclick = () => {
+      clearConfig();
+      document.getElementById('portalSrc').value = '';
+      renderCards();
+    };
+
+    // Re-render on filters/search changes
+    document.getElementById('showBasic').addEventListener('change', renderCards);
+    document.getElementById('showAdvanced').addEventListener('change', renderCards);
+    document.getElementById('search').addEventListener('input', renderCards);
+  </script>
+</body>
+</html>

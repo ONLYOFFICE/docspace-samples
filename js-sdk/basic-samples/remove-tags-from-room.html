@@ -1,0 +1,67 @@
+<!--
+Example: Remove tags from room
+
+This example demonstrates how to remove one or more tags from a room using the JavaScript SDK method.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.removeTagsFromRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#removetagsfromroom)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Remove tags from room" />
+    <meta name="example-description" content="Remove tags from a selected room." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Remove tags from room</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-remove-tags-from-room">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <button id="btn">Remove tags</button>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base"
+      });
+
+      btn.onclick = async () => {
+        try {
+          await manager.removeTagsFromRoom('ROOM_ID', ['tag']);
+        } catch (e) {
+          alert(e?.message || e);
+        }
+      };
+    </script>
+  </body>
+</html>

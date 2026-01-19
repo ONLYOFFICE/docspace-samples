@@ -1,0 +1,55 @@
+<!--
+Example: Initialize frame
+
+This example demonstrates how to initialize the DocSpace view-only frame using the JavaScript SDK method.
+
+Using methods:
+- DocSpace.SDK.initFrame (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initframe)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Init frame" />
+    <meta name="example-description" content="Initialize the DocSpace view-only frame using the JavaScript SDK." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Init Frame</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-init-frame">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <script>
+const config = {
+  frameId: "ds-frame",
+  width: "900px",
+  height: "520px",
+  theme: "base"
+};
+
+DocSpace.SDK.initFrame(config);
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,66 @@
+<!--
+Example: Initialize room selector
+
+This example demonstrates how to embed the room selection interface using the JavaScript SDK method.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Init room selector" />
+    <meta name="example-description" content="Embed the room selection interface using the JavaScript SDK." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Init Room Selector</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-init-room-selector">
+<div class="wrap">
+  <iframe id="ds-frame"></iframe>
+</div>
+
+<div class="card">
+  <textarea id="out" readonly placeholder="Selected room data will appear here..."></textarea>
+</div>
+
+    <script>
+const out = document.getElementById("out");
+
+const config = {
+  frameId: "ds-frame",
+  width: "900px",
+  height: "520px",
+  theme: "base",
+  events: {
+    onSelectCallback: (data) => {
+      out.value = JSON.stringify(data, null, 2);
+    }
+  }
+};
+
+DocSpace.SDK.initRoomSelector(config);
+
+    </script>
+  </body>
+</html>

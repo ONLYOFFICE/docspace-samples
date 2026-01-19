@@ -1,0 +1,67 @@
+<!--
+Example: Login
+
+This example demonstrates how to log in to DocSpace using the JavaScript SDK by hashing the password.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Login" />
+    <meta name="example-description" content="Log in to DocSpace using hashed password." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Login</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-login">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <button id="btn">Login</button>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base"
+      });
+
+      btn.onclick = async () => {
+        try {
+          await manager.login('user@example.com', 'hash');
+        } catch (e) {
+          alert(e?.message || e);
+        }
+      };
+    </script>
+  </body>
+</html>

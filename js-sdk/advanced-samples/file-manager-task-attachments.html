@@ -1,0 +1,164 @@
+<!--
+Example: File manager with task attachments
+
+This example demonstrates how to integrate the DocSpace file selector into a task management interface.
+Users can attach files to individual tasks by selecting a row and using a modal-based file selector.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="File Manager with Task Attachments" />
+    <meta name="example-description" content="Attach DocSpace files to tasks using a modal file selector." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Task Attachments</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-file-manager-task-attachments">
+    <div class="page">
+      <div class="card">
+        <h3 style="margin:0 0 10px;">Tasks</h3>
+        <table>
+          <thead>
+            <tr><th>Task</th><th>Description</th><th>Priority</th></tr>
+          </thead>
+          <tbody id="taskList">
+            <tr class="task-row">
+              <td>Prepare a sales analysis</td>
+              <td>Analyze sales data for the last six months and prepare a report</td>
+              <td>Low</td>
+            </tr>
+            <tr class="task-row">
+              <td>Conclude an agreement with partners</td>
+              <td>Sign contracts with new partners to expand the business</td>
+              <td>High</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 10px;">Attachments</h3>
+        <ul id="attachmentsList" style="list-style:none; padding:0; margin:0;"></ul>
+        <button id="attachButton" disabled>Attach file</button>
+      </div>
+    </div>
+
+    <dialog id="modal">
+      <iframe id="ds-frame"></iframe>
+    </dialog>
+
+    <script>
+      const taskRows = document.querySelectorAll(".task-row");
+      const attachmentsList = document.getElementById("attachmentsList");
+      const attachButton = document.getElementById("attachButton");
+      const modal = document.getElementById("modal");
+
+      let selectedTask = null;
+      let selector = null;
+
+      function renderAttachments(task) {
+        attachmentsList.innerHTML = "";
+        const items = task.attachments || [];
+        if (!items.length) {
+          const li = document.createElement("li");
+          li.style.color = "#6b7280";
+          li.textContent = "No attachments";
+          attachmentsList.appendChild(li);
+          return;
+        }
+        for (const a of items) attachmentsList.appendChild(a);
+      }
+
+      for (const row of taskRows) {
+        row.addEventListener("click", () => {
+          if (selectedTask) selectedTask.classList.remove("selected");
+          selectedTask = row;
+          row.classList.add("selected");
+          attachButton.disabled = false;
+          renderAttachments(row);
+        });
+      }
+
+      attachButton.addEventListener("click", () => {
+        if (!selectedTask) return;
+
+        modal.showModal();
+
+        selector = DocSpace.SDK.initFileSelector({
+          frameId: "ds-frame",
+          height: "560px",
+          width: "100%",
+          theme: "base",
+          showSelectorCancel: true,
+          events: {
+            onSelectCallback: (item) => {
+              modal.close(JSON.stringify(item));
+            },
+            onCloseCallback: () => {
+              modal.close("");
+            }
+          }
+        });
+      });
+
+      modal.addEventListener("close", () => {
+        if (selector && typeof selector.destroyFrame === "function") {
+          try { selector.destroyFrame(); } catch {}
+        }
+
+        const raw = modal.returnValue;
+        if (!raw || !selectedTask) return;
+
+        const item = JSON.parse(raw);
+        const linkUrl = item.viewUrl || (item.id ? ("{PORTAL_SRC}/doceditor?fileId=" + item.id) : "");
+        if (!linkUrl) return;
+
+        const li = document.createElement("li");
+        li.className = "attachment-item";
+
+        const a = document.createElement("a");
+        a.href = linkUrl;
+        a.target = "_blank";
+        a.textContent = item.title || item.name || ("File " + item.id);
+
+        const del = document.createElement("button");
+        del.className = "delete-button";
+        del.textContent = "Delete";
+        del.onclick = () => {
+          li.remove();
+          selectedTask.attachments = (selectedTask.attachments || []).filter(x => x !== li);
+          renderAttachments(selectedTask);
+        };
+
+        li.appendChild(a);
+        li.appendChild(del);
+
+        selectedTask.attachments ||= [];
+        selectedTask.attachments.push(li);
+        renderAttachments(selectedTask);
+      });
+    </script>
+  </body>
+</html>

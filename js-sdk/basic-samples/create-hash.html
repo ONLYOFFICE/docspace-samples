@@ -1,0 +1,132 @@
+<!--
+Example: Create password hash
+
+This example demonstrates how to generate a secure hash from a plain-text password using DocSpace SDK methods.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
+- manager.createHash (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createhash)
+-->
+
+<!-- Step 1: HTML Setup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Create hash" />
+    <meta
+      name="example-description"
+      content="Generate a secure hash from a plain-text password using DocSpace SDK methods."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Create Hash</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-create-hash">
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="page">
+      <div class="card">
+        <div class="title">Create password hash</div>
+        <p class="desc">
+          Enter a password and generate a secure hash using DocSpace SDK methods.
+        </p>
+
+        <label for="password">Password</label>
+        <input id="password" type="text" value="qwerty12345" autocomplete="off" />
+
+        <div class="row">
+          <button id="createBtn" type="button" disabled>Create Hash</button>
+          <button id="copyBtn" type="button" class="btn-secondary" disabled>Copy</button>
+        </div>
+
+        <label for="output">Hash</label>
+        <textarea id="output" readonly placeholder="Hash will appear here..."></textarea>
+
+        <div class="hint" id="status">Preparing SDK…</div>
+      </div>
+    </div>
+
+    <script>
+      const createBtn = document.getElementById("createBtn");
+      const copyBtn = document.getElementById("copyBtn");
+      const passwordInput = document.getElementById("password");
+      const output = document.getElementById("output");
+      const status = document.getElementById("status");
+
+      let sdkReady = false;
+
+      const docSpace = DocSpace.SDK.initManager({
+        frameId: "ds-manager-frame",
+        width: "0",
+        height: "0",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            sdkReady = true;
+            createBtn.disabled = false;
+            status.textContent = "SDK ready.";
+          },
+          onAppError: () => {
+            status.textContent = "SDK error. Please check portal URL / доступ.";
+          }
+        }
+      });
+
+      createBtn.onclick = async () => {
+        const password = (passwordInput.value || "").trim();
+        if (!sdkReady || !password) return;
+
+        createBtn.disabled = true;
+        copyBtn.disabled = true;
+        output.value = "";
+        status.textContent = "Generating hash…";
+
+        try {
+          const hashSettings = await docSpace.getHashSettings();
+          const passwordHash = await docSpace.createHash(password, hashSettings);
+
+          output.value = String(passwordHash || "");
+          copyBtn.disabled = !output.value;
+          status.textContent = "Done.";
+        } catch (e) {
+          status.textContent = "Failed to generate hash.";
+        } finally {
+          createBtn.disabled = false;
+        }
+      };
+
+      copyBtn.onclick = async () => {
+        if (!output.value) return;
+
+        try {
+          await navigator.clipboard.writeText(output.value);
+          status.textContent = "Copied to clipboard.";
+        } catch {
+          output.focus();
+          output.select();
+          status.textContent = "Copy failed. Selected text — press Ctrl/Cmd+C.";
+        }
+      };
+    </script>
+  </body>
+</html>

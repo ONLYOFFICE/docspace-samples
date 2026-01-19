@@ -1,0 +1,163 @@
+<!--
+Example: DocSpace chat commands
+
+This example shows how to integrate DocSpace SDK selectors into a chat interface.
+Users can enter special slash commands to open file or room selectors.
+Once an item is selected, the link is automatically added to the chat.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+    <meta name="example-title" content="Chat with DocSpace Selectors" />
+    <meta name="example-description" content="Use /docspace room or /docspace file commands to insert links into a chat." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Chat with DocSpace Selectors</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-insert-rooms-and-files-into-chat">
+    <div class="page">
+      <div class="card">
+        <p class="hint">
+          Commands: <b>/docspace room</b> or <b>/docspace file</b>
+        </p>
+
+        <div class="chat-messages" id="messages"></div>
+
+        <div class="input">
+          <input id="messageInput" type="text" placeholder="Type a message" />
+          <button class="btn" id="sendBtn" type="button">Send</button>
+          <button class="btn" id="dsBtn" type="button">DocSpace</button>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="modal">
+      <iframe id="ds-selector"></iframe>
+    </dialog>
+
+    <script>
+      const portalSrc = "{PORTAL_SRC}";
+      const messages = document.getElementById("messages");
+      const input = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const dsBtn = document.getElementById("dsBtn");
+      const modal = document.getElementById("modal");
+
+      let sdk = null;
+
+      function addMessage(text, isLink) {
+        const el = document.createElement("div");
+        el.className = "message";
+        if (isLink) {
+          const a = document.createElement("a");
+          a.href = text;
+          a.target = "_blank";
+          a.textContent = text;
+          el.appendChild(a);
+        } else {
+          el.textContent = text;
+        }
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function destroySdk() {
+        if (sdk && typeof sdk.destroyFrame === "function") {
+          try { sdk.destroyFrame(); } catch {}
+        }
+        sdk = null;
+      }
+
+      function openRoomSelector() {
+        modal.showModal();
+        sdk = DocSpace.SDK.initRoomSelector({
+          frameId: "ds-selector",
+          height: "520px",
+          width: "100%",
+          theme: "base",
+          showSelectorCancel: true,
+          events: {
+            onSelectCallback: (e) => {
+              const item = Array.isArray(e) ? e[0] : e;
+              if (!item || !item.id) return;
+              const link = `${portalSrc}rooms/shared/${item.id}/filter?folder=${item.id}`;
+              modal.close(JSON.stringify({ link }));
+            },
+            onCloseCallback: () => modal.close("")
+          }
+        });
+      }
+
+      function openFileSelector() {
+        modal.showModal();
+        sdk = DocSpace.SDK.initFileSelector({
+          frameId: "ds-selector",
+          height: "520px",
+          width: "100%",
+          theme: "base",
+          showSelectorCancel: true,
+          events: {
+            onSelectCallback: (e) => {
+              const link = e && e.viewUrl ? e.viewUrl : "";
+              modal.close(JSON.stringify({ link }));
+            },
+            onCloseCallback: () => modal.close("")
+          }
+        });
+      }
+
+      function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = "";
+
+        if (text.startsWith("/docspace room")) return openRoomSelector();
+        if (text.startsWith("/docspace file")) return openFileSelector();
+
+        addMessage(text, false);
+      }
+
+      sendBtn.onclick = sendMessage;
+      dsBtn.onclick = () => openFileSelector();
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+
+      modal.addEventListener("close", () => {
+        destroySdk();
+        const raw = modal.returnValue;
+        if (!raw) return;
+        try {
+          const data = JSON.parse(raw);
+          if (data.link) addMessage(data.link, true);
+        } catch {}
+      });
+    </script>
+  </body>
+</html>

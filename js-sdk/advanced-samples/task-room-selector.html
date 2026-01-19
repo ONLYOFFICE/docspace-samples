@@ -1,0 +1,241 @@
+<!--
+Example: Room selector
+
+This example shows how to use the DocSpace Room Selector within a custom task creation dialog. Each task is linked to a room selection via the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Room selector" />
+    <meta
+      name="example-description"
+      content="Use the DocSpace Room Selector inside a task creation modal. Each task is linked to a selected room."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Room selector</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-task-room-selector">
+    <!-- Task list -->
+    <div class="page">
+      <div class="card">
+        <div class="head">
+          <div>
+            <h1 class="title">Tasks</h1>
+            <p class="desc">Create a task and link it to a room selected via the SDK.</p>
+          </div>
+          <button id="new-task" type="button" class="btn" disabled>New task</button>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Room</th>
+            </tr>
+          </thead>
+          <tbody id="tasks"></tbody>
+        </table>
+
+        <div class="hint" id="status">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <dialog id="create-task" class="modal">
+      <div class="modalTop">
+        <strong>Create task</strong>
+        <button id="closeModal" type="button" class="btn secondary">Close</button>
+      </div>
+
+      <div class="modalBody">
+        <label for="taskname">Task name</label>
+        <input id="taskname" type="text" placeholder="e.g. Prepare contract draft" autocomplete="off" />
+
+        <div class="selectorHead">
+          <div>
+            <div class="label">Room</div>
+            <div class="muted" id="selectedRoomLabel">Not selected</div>
+          </div>
+          <button id="clearRoom" type="button" class="btn secondary" disabled>Clear</button>
+        </div>
+
+        <div class="selectorWindow">
+          <div id="ds-selector"></div>
+        </div>
+
+        <p id="error" class="error"></p>
+      </div>
+
+      <div class="modalActions">
+        <button id="createBtn" type="button" class="btn" disabled>Create task</button>
+      </div>
+    </dialog>
+
+    <!-- Hidden SDK container -->
+    <div class="hidden">
+      <div id="ds-frame"></div>
+    </div>
+
+    <script>
+      const createTaskDialog = document.getElementById("create-task");
+      const newTaskButton = document.getElementById("new-task");
+      const closeModalBtn = document.getElementById("closeModal");
+      const createBtn = document.getElementById("createBtn");
+
+      const tasknameInput = document.getElementById("taskname");
+      const tasks = document.getElementById("tasks");
+      const status = document.getElementById("status");
+
+      const error = document.getElementById("error");
+      const selectedRoomLabel = document.getElementById("selectedRoomLabel");
+      const clearRoomBtn = document.getElementById("clearRoom");
+
+      let dsSelector = null;
+      let selectedRoom = null;
+
+      function setError(text) {
+        if (!text) {
+          error.textContent = "";
+          error.style.display = "none";
+          return;
+        }
+        error.textContent = text;
+        error.style.display = "block";
+      }
+
+      function updateCreateState() {
+        const nameOk = tasknameInput.value.trim().length > 0;
+        const roomOk = !!selectedRoom;
+        createBtn.disabled = !(nameOk && roomOk);
+        clearRoomBtn.disabled = !selectedRoom;
+      }
+
+      function resetModal() {
+        tasknameInput.value = "";
+        selectedRoom = null;
+        selectedRoomLabel.textContent = "Not selected";
+        setError("");
+        updateCreateState();
+      }
+
+      function closeModal() {
+        createTaskDialog.close();
+        resetModal();
+
+        if (dsSelector) {
+          dsSelector.destroyFrame();
+          dsSelector = null;
+        }
+      }
+
+      // Init SDK manager to unlock UI
+      DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        events: {
+          onAppReady: () => {
+            newTaskButton.disabled = false;
+            status.textContent = "Ready";
+          },
+          onAppError: () => {
+            status.textContent = "Error";
+          }
+        }
+      });
+
+      // Open modal + render selector
+      newTaskButton.addEventListener("click", () => {
+        createTaskDialog.showModal();
+        resetModal();
+
+        // Ensure the container is clean
+        const selectorHost = document.getElementById("ds-selector");
+        selectorHost.innerHTML = "";
+
+        dsSelector = DocSpace.SDK.initRoomSelector({
+          frameId: "ds-selector",
+          showSelectorCancel: true,
+          events: {
+            onSelectCallback: (e) => {
+              // Usually contains selected room info. Keep it flexible.
+              // We store the whole payload to avoid guessing field names.
+              selectedRoom = e || {};
+
+              const title =
+                selectedRoom?.title ||
+                selectedRoom?.name ||
+                selectedRoom?.roomTitle ||
+                selectedRoom?.room?.title ||
+                selectedRoom?.room?.name ||
+                "Selected room";
+
+              selectedRoomLabel.textContent = title;
+              setError("");
+              updateCreateState();
+            },
+            onCloseCallback: () => {
+              closeModal();
+            }
+          }
+        });
+
+        tasknameInput.focus();
+        updateCreateState();
+      });
+
+      tasknameInput.addEventListener("input", updateCreateState);
+
+      clearRoomBtn.addEventListener("click", () => {
+        selectedRoom = null;
+        selectedRoomLabel.textContent = "Not selected";
+        updateCreateState();
+      });
+
+      closeModalBtn.addEventListener("click", closeModal);
+
+      createBtn.addEventListener("click", () => {
+        const taskname = tasknameInput.value.trim();
+        if (!taskname) {
+          setError("Enter a task name.");
+          tasknameInput.focus();
+          updateCreateState();
+          return;
+        }
+        if (!selectedRoom) {
+          setError("Select a room.");
+          updateCreateState();
+          return;
+        }
+        
+        const roomTitle =
+          selectedRoom[0].title;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${taskname}</td><td>${roomTitle}</td>`;
+        tasks.appendChild(tr);
+
+        closeModal();
+      });
+    </script>
+  </body>
+</html>

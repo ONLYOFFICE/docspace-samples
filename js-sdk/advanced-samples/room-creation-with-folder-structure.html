@@ -1,0 +1,127 @@
+<!--
+Example: Structured room creation
+
+This example demonstrates how to use the DocSpace JavaScript SDK to create a structured workspace for each new client.
+
+When a user adds a client, the system:
+
+- Creates a shared room with the clients name
+- Automatically generates a set of predefined folders inside that room
+- Inserts specific document templates (DOCX, XLSX, PDF) into the corresponding folders
+
+This allows for quick onboarding of clients into a standardized workspace environment.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createroom)
+- manager.createFolder (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfolder)
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Room Creation with Folder Structure" />
+    <meta name="example-description" content="Create a room, add a predefined folder structure, and show the result in the embedded manager." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Room Creation with Folder Structure</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-room-creation-with-folder-structure">
+    <div class="wrap">
+      <iframe id="ds-frame" class="frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <input id="roomTitle" type="text" placeholder="Project room title" style="width:240px;" />
+      <button id="createBtn" type="button" disabled>Create</button>
+      <div class="hint" id="status">Waiting…</div>
+    </div>
+
+    <script>
+      const titleInput = document.getElementById("roomTitle");
+      const createBtn = document.getElementById("createBtn");
+      const status = document.getElementById("status");
+
+      let roomId = null;
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            status.textContent = "Ready";
+            createBtn.disabled = !titleInput.value.trim();
+          },
+          onAppError: () => {
+            status.textContent = "Error";
+          }
+        }
+      });
+
+      titleInput.addEventListener("input", () => {
+        createBtn.disabled = !titleInput.value.trim();
+      });
+
+      async function createStructure(targetRoomId) {
+        // You can adjust structure here
+        const folders = ["Brief", "Design", "Contracts", "Deliverables"];
+
+        for (const name of folders) {
+          try {
+            await manager.createFolder(String(targetRoomId), name);
+          } catch {}
+        }
+      }
+
+      createBtn.onclick = async () => {
+        const title = titleInput.value.trim();
+        if (!title) return;
+
+        createBtn.disabled = true;
+        status.textContent = "Creating…";
+
+        try {
+          const room = await manager.createRoom(title, 2);
+          roomId = room && room.id ? String(room.id) : null;
+          if (!roomId) throw new Error("Room was not created");
+
+          await createStructure(roomId);
+
+          // Show new room
+          manager.setConfig({
+            rootPath: "/rooms/shared/" + roomId,
+            filter: { folder: roomId },
+            showHeader: false
+          });
+
+          status.textContent = "Done";
+        } catch (e) {
+          status.textContent = "Error";
+        } finally {
+          createBtn.disabled = !titleInput.value.trim();
+        }
+      };
+    </script>
+  </body>
+</html>

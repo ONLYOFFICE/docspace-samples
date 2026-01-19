@@ -1,0 +1,111 @@
+<!--
+Example: Get config
+
+This example demonstrates how to retrieve the configuration object of the embedded frame.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.getConfig (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getconfig)
+-->
+
+<!-- Step 1: HTML Setup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get config" />
+    <meta
+      name="example-description"
+      content="Retrieve and display the configuration object of the embedded DocSpace frame."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Get Config</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-config">
+    <!-- Hidden manager iframe -->
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="page">
+      <!-- Visible DocSpace frame -->
+      <div class="frame-wrap">
+        <iframe id="ds-frame"></iframe>
+      </div>
+
+      <!-- Controls + output -->
+      <div class="card">
+        <div class="title">Get frame configuration</div>
+        <p class="desc">
+          Click the button to retrieve the configuration object of the embedded
+          DocSpace frame.
+        </p>
+
+        <div class="row">
+          <button id="getBtn" disabled>Get Config</button>
+          <div class="status" id="status">Loading SDK…</div>
+        </div>
+
+        <pre id="output" style="display:none;"></pre>
+      </div>
+    </div>
+
+    <script>
+      const getBtn = document.getElementById("getBtn");
+      const status = document.getElementById("status");
+      const output = document.getElementById("output");
+
+      let sdkReady = false;
+
+      const docSpace = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "100%",
+        height: "520px",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            sdkReady = true;
+            getBtn.disabled = false;
+            status.textContent = "Frame is ready.";
+          },
+          onAppError: () => {
+            status.textContent = "SDK error. Check portal URL / access.";
+          }
+        }
+      });
+
+      getBtn.onclick = async () => {
+        if (!sdkReady) return;
+
+        status.textContent = "Fetching config…";
+        output.style.display = "none";
+
+        try {
+          const cfg = await docSpace.getConfig();
+          output.textContent = JSON.stringify(cfg, null, 2);
+          output.style.display = "block";
+          status.textContent = "Done.";
+        } catch (e) {
+          status.textContent = "Failed to retrieve config.";
+        }
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,118 @@
+<!--
+Example: Add Tags to Room
+
+Select a room in the selector, then add tags via button click.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- manager.createTag (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createtag)
+- manager.addTagsToRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#addtagstoroom)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Add Tags to Room" />
+    <meta
+      name="example-description"
+      content="Select a room in the selector and add tags via a button click using the DocSpace JavaScript SDK."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Add Tags to Room</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-add-tags-to-room">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="bar">
+      <button id="addBtn" disabled>Add Tags</button>
+      <div class="hint" id="hint">Select a room</div>
+    </div>
+
+    <script>
+      const tags = ["important", "team-docs"];
+
+      const addBtn = document.getElementById("addBtn");
+      const hint = document.getElementById("hint");
+
+      let roomId = null;
+      let managerReady = false;
+
+      // 1) UI: user selects a room
+      DocSpace.SDK.initRoomSelector({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "640px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            roomId = item?.roomId ?? item?.id ?? null;
+            updateUI();
+          }
+        }
+      });
+
+      // 2) Background: manager executes addTagsToRoom
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-manager-frame",
+        width: "0",
+        height: "0",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            managerReady = true;
+            updateUI();
+          }
+        }
+      });
+
+      function updateUI(text) {
+        if (text) hint.textContent = text;
+        else hint.textContent = !roomId ? "Select a room" : managerReady ? "Ready" : "Loading…";
+
+        addBtn.disabled = !roomId || !managerReady;
+      }
+
+      addBtn.onclick = async () => {
+        if (!roomId || !managerReady) return;
+
+        addBtn.disabled = true;
+        updateUI("Adding…");
+
+        try {
+          for (const name of tags) {
+            try { await manager.createTag(name); } catch {}
+          }
+          await manager.addTagsToRoom(String(roomId), tags);
+          updateUI("Done");
+        } finally {
+          updateUI();
+        }
+      };
+    </script>
+  </body>
+</html>

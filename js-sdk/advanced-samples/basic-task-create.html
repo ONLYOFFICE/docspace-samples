@@ -1,0 +1,130 @@
+<!--
+Example: Create basic task
+
+This example demonstrates how to create a task management table using the DocSpace JavaScript SDK.
+When a task is created, a corresponding room is automatically created in DocSpace.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Task Create with DocSpace Room" />
+    <meta name="example-description" content="Create a task and attach a DocSpace room link using the room selector." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Task Create</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-basic-task-create">
+    <div class="page">
+      <div class="card">
+        <h3 style="margin:0 0 8px;">Create Task</h3>
+        <div class="hint">Pick a room and attach its link to the task.</div>
+
+        <label for="title">Title</label>
+        <input id="title" type="text" placeholder="New task" />
+
+        <label for="desc">Description</label>
+        <textarea id="desc" placeholder="Task details…"></textarea>
+
+        <div class="row">
+          <button id="pickRoom" class="btn secondary" type="button">Pick room</button>
+          <div class="hint" id="roomHint">No room selected</div>
+        </div>
+
+        <div class="row">
+          <button id="createTask" class="btn" type="button" disabled>Create</button>
+          <div class="hint" id="status">Waiting…</div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <div class="hint">Result</div>
+          <div id="result" class="hint"></div>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="modal">
+      <iframe id="ds-frame"></iframe>
+    </dialog>
+
+    <script>
+      const modal = document.getElementById("modal");
+      const pickRoom = document.getElementById("pickRoom");
+      const createBtn = document.getElementById("createTask");
+      const roomHint = document.getElementById("roomHint");
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
+      let selector = null;
+      let selected = null;
+
+      function destroySelector() {
+        if (selector && typeof selector.destroyFrame === "function") {
+          try { selector.destroyFrame(); } catch {}
+        }
+        selector = null;
+      }
+
+      function updateState() {
+        createBtn.disabled = !selected;
+      }
+
+      pickRoom.onclick = () => {
+        modal.showModal();
+        selector = DocSpace.SDK.initRoomSelector({
+          frameId: "ds-frame",
+          height: "520px",
+          width: "100%",
+          theme: "base",
+          showSelectorCancel: true,
+          events: {
+            onSelectCallback: (e) => {
+              const item = Array.isArray(e) ? e[0] : e;
+              if (!item || !item.id) return;
+              selected = { id: String(item.id), title: item.title || item.label || "Room" };
+              modal.close("ok");
+            },
+            onCloseCallback: () => modal.close("")
+          }
+        });
+      };
+
+      modal.addEventListener("close", () => {
+        destroySelector();
+        if (!selected) return;
+        const link = `{PORTAL_SRC}/rooms/shared/${selected.id}/filter?folder=${selected.id}`;
+        roomHint.innerHTML = `<a href="${link}" target="_blank">${selected.title}</a>`;
+        updateState();
+      });
+
+      createBtn.onclick = () => {
+        status.textContent = "Done";
+        const link = `{PORTAL_SRC}/rooms/shared/${selected.id}/filter?folder=${selected.id}`;
+        result.innerHTML = `Task created. Attached room: <a href="${link}" target="_blank">${link}</a>`;
+      };
+
+      status.textContent = "Ready";
+    </script>
+  </body>
+</html>

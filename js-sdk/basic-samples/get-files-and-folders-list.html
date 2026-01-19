@@ -1,0 +1,223 @@
+<!--
+Example: Get files and folders list
+
+This example demonstrates how to retrieve both files and folders from a DocSpace room using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- manager.getList (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getlist)
+-->
+
+<!-- Step 1: HTML Setup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get files and folders list" />
+    <meta
+      name="example-description"
+      content="Select a room and retrieve both files and folders using getList() from the DocSpace JavaScript SDK."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Get List</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-files-and-folders-list">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="card">
+      <div class="row">
+        <button id="getBtn" disabled>Get List</button>
+        <div class="hint" id="hint">Select a room</div>
+      </div>
+
+      <div class="error" id="err"></div>
+
+      <div class="cols">
+        <div class="box">
+          <h3>Folders</h3>
+          <div class="muted" id="foldersCount"></div>
+          <ul id="folders"></ul>
+        </div>
+
+        <div class="box">
+          <h3>Files</h3>
+          <div class="muted" id="filesCount"></div>
+          <ul id="files"></ul>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top: 14px;">
+        <h3>Raw response</h3>
+        <textarea id="raw" readonly placeholder="Response will appear here..."></textarea>
+      </div>
+    </div>
+
+    <script>
+      const getBtn = document.getElementById("getBtn");
+      const hint = document.getElementById("hint");
+      const err = document.getElementById("err");
+      const raw = document.getElementById("raw");
+
+      const foldersUl = document.getElementById("folders");
+      const filesUl = document.getElementById("files");
+      const foldersCount = document.getElementById("foldersCount");
+      const filesCount = document.getElementById("filesCount");
+
+      let roomId = null;
+      let manager = null;
+
+      function clearOutput() {
+        err.textContent = "";
+        raw.value = "";
+        foldersUl.innerHTML = "";
+        filesUl.innerHTML = "";
+        foldersCount.textContent = "";
+        filesCount.textContent = "";
+      }
+
+      // 1) UI: select room
+      DocSpace.SDK.initRoomSelector({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            roomId = item?.roomId ?? item?.id ?? null;
+
+            clearOutput();
+            initManagerForRoom(roomId);
+          }
+        }
+      });
+
+      // 2) Background manager with room context (like your original sample)
+      function initManagerForRoom(id) {
+        getBtn.disabled = true;
+        hint.textContent = "Preparing…";
+
+        if (manager && typeof manager.destroyFrame === "function") {
+          try { manager.destroyFrame(); } catch {}
+        }
+
+        manager = DocSpace.SDK.initManager({
+          frameId: "ds-manager-frame",
+          width: "0",
+          height: "0",
+          theme: "base",
+          rootPath: "/rooms/shared/" + String(id),
+          filter: { folder: String(id) },
+          events: {
+            onAppReady: () => {
+              getBtn.disabled = false;
+              hint.textContent = "Ready";
+            },
+            onAppError: (e) => {
+              getBtn.disabled = true;
+              hint.textContent = "Error";
+              err.textContent = e && (e.message || e) ? String(e.message || e) : "Manager init failed.";
+            }
+          }
+        });
+      }
+
+      function findFirstArray(obj) {
+        if (!obj || typeof obj !== "object") return null;
+        if (Array.isArray(obj)) return obj;
+
+        const keys = ["items", "entries", "list", "result", "response", "data", "files", "folders"];
+        for (const k of keys) {
+          const v = obj[k];
+          if (Array.isArray(v)) return v;
+          if (v && typeof v === "object") {
+            const nested = findFirstArray(v);
+            if (nested) return nested;
+          }
+        }
+
+        for (const k of Object.keys(obj)) {
+          const v = obj[k];
+          if (Array.isArray(v)) return v;
+        }
+
+        return null;
+      }
+
+      function splitByIsFolder(arr) {
+        const folders = [];
+        const files = [];
+
+        for (const it of arr) {
+          const isFolder = !!(it && (it.isFolder === true || it.folder === true || it.type === "folder"));
+          if (isFolder) folders.push(it);
+          else files.push(it);
+        }
+
+        return { folders, files };
+      }
+
+      function renderItems(titleEl, ulEl, items) {
+        ulEl.innerHTML = "";
+        titleEl.textContent = items.length ? `Found: ${items.length}` : "Not found.";
+
+        for (const it of items) {
+          const li = document.createElement("li");
+          li.textContent = it?.title || it?.name || it?.label || `Item ${it?.id || ""}`;
+          ulEl.appendChild(li);
+        }
+      }
+
+      getBtn.onclick = async () => {
+        if (!roomId || !manager) return;
+
+        getBtn.disabled = true;
+        hint.textContent = "Loading…";
+        clearOutput();
+
+        try {
+          const data = await manager.getList();
+          raw.value = JSON.stringify(data, null, 2);
+
+          const arr = findFirstArray(data) || [];
+          const { folders, files } = splitByIsFolder(arr);
+
+          renderItems(foldersCount, foldersUl, folders);
+          renderItems(filesCount, filesUl, files);
+
+          hint.textContent = "Done";
+        } catch (e) {
+          hint.textContent = "Error";
+          err.textContent = e && (e.message || e) ? String(e.message || e) : "Failed to load list.";
+        } finally {
+          getBtn.disabled = false;
+          hint.textContent = "Ready";
+        }
+      };
+    </script>
+  </body>
+</html>
+

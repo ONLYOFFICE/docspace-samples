@@ -1,0 +1,215 @@
+<!--
+Example: Get folders
+
+This example demonstrates how to retrieve a list of folders from a shared DocSpace room using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- manager.getFolders (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfolders)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get folders" />
+    <meta
+      name="example-description"
+      content="Select a room in the selector and retrieve folders using the DocSpace JavaScript SDK."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Get Folders</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-foldes">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="bar">
+      <button id="btn" type="button" disabled>Get Folders</button>
+      <div class="hint" id="hint">Select a room</div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="box">
+          <h3>Folders</h3>
+          <div class="muted" id="count"></div>
+          <ul id="list"></ul>
+          <div class="muted" id="empty" style="display:none;">No folders found.</div>
+        </div>
+
+        <div class="box">
+          <h3>Raw response</h3>
+          <textarea id="raw" readonly placeholder="Response will appear here..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+      const hint = document.getElementById("hint");
+      const raw = document.getElementById("raw");
+      const list = document.getElementById("list");
+      const count = document.getElementById("count");
+      const empty = document.getElementById("empty");
+
+      let roomId = null;
+      let manager = null;
+      let managerReady = false;
+
+      function extractRoomId(data) {
+        const item = Array.isArray(data) ? data[0] : data;
+        return item?.roomId ?? item?.id ?? null;
+      }
+
+      function resetOutput() {
+        raw.value = "";
+        list.innerHTML = "";
+        count.textContent = "";
+        empty.style.display = "none";
+      }
+
+      function setState(text, enabled) {
+        hint.textContent = text;
+        btn.disabled = !enabled;
+      }
+
+      function destroyPrevManager() {
+        if (manager && typeof manager.destroyFrame === "function") {
+          try { manager.destroyFrame(); } catch {}
+        }
+      }
+
+      function initManagerForRoom(id) {
+        managerReady = false;
+        setState("Preparing…", false);
+        destroyPrevManager();
+
+        manager = DocSpace.SDK.initManager({
+          frameId: "ds-manager-frame",
+          width: "0",
+          height: "0",
+          theme: "base",
+          rootPath: "/rooms/shared/" + String(id),
+          filter: { folder: String(id) },
+          events: {
+            onAppReady: () => {
+              managerReady = true;
+              setState("Ready", !!roomId);
+            },
+            onAppError: (e) => {
+              managerReady = false;
+              setState("Error", false);
+              raw.value = String(e && (e.message || e) ? (e.message || e) : e);
+            }
+          }
+        });
+      }
+
+      function normalizeFoldersResponse(data) {
+        // Most reliable: if SDK returns array, use it.
+        if (Array.isArray(data)) return data;
+
+        // Common wrappers: { response: [...] }, { result: [...] }, { items: [...] }, { data: [...] }
+        if (data && typeof data === "object") {
+          const keys = ["response", "result", "items", "data", "folders", "entries", "list"];
+          for (const k of keys) {
+            const v = data[k];
+            if (Array.isArray(v)) return v;
+            if (v && typeof v === "object") {
+              // one level deeper
+              for (const kk of keys) {
+                const vv = v[kk];
+                if (Array.isArray(vv)) return vv;
+              }
+            }
+          }
+        }
+
+        return [];
+      }
+
+      function renderFolders(items) {
+        list.innerHTML = "";
+
+        count.textContent = items.length ? `Found: ${items.length}` : "";
+        empty.style.display = items.length ? "none" : "block";
+
+        for (const f of items) {
+          const name = f?.title || f?.name || f?.label || "Untitled folder";
+          const id = f?.id ?? f?.folderId ?? "";
+          const li = document.createElement("li");
+          li.textContent = id ? `${name} (id: ${id})` : name;
+          list.appendChild(li);
+        }
+      }
+
+      // Visible selector
+      DocSpace.SDK.initRoomSelector({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            roomId = extractRoomId(data);
+            resetOutput();
+
+            if (!roomId) {
+              setState("Select a room", false);
+              return;
+            }
+
+            initManagerForRoom(roomId);
+          }
+        }
+      });
+
+      btn.onclick = async () => {
+        if (!roomId || !manager || !managerReady) return;
+
+        btn.disabled = true;
+        hint.textContent = "Loading…";
+        resetOutput();
+
+        try {
+          const res = await manager.getFolders();
+          raw.value = JSON.stringify(res, null, 2);
+
+          const folders = normalizeFoldersResponse(res);
+          renderFolders(folders);
+
+          hint.textContent = "Done";
+        } catch (e) {
+          hint.textContent = "Error";
+          raw.value = String(e && (e.message || e) ? (e.message || e) : e);
+        } finally {
+          btn.disabled = false;
+          hint.textContent = "Ready";
+        }
+      };
+    </script>
+  </body>
+</html>
