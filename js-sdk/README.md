@@ -92,12 +92,6 @@ The `PORTAL_SRC` value is used to dynamically load the DocSpace JavaScript SDK a
 Run the local development server:
 
 ```
-npm run dev
-```
-
-or
-
-```
 npm start
 ```
 
@@ -131,19 +125,6 @@ All examples load the DocSpace SDK directly from your portal:
 ```
 
 No additional client-side SDK installation is required.
-
----
-
-### Navigation context
-
-For examples that create files or folders, the SDK uses the **current folder context** inside the embedded Manager:
-
-```js
-docSpace.getFolderInfo()
-```
-
-This means users navigate folders directly within the DocSpace UI, and all actions are applied to the currently opened location.  
-No additional folder selectors are required for these scenarios.
 
 ---
 
