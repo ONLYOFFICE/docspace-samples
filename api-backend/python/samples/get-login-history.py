@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Get login history
+
+This example automates the retrieval of the last login events in ONLYOFFICE DocSpace.
+It extracts unique user IDs from the latest login records, ensuring that duplicate entries are removed.
+
+Using methods:
+- GET /api/2.0/security/audit/login/last (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-last-login-events/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = 'yourportal.onlyoffice.com'

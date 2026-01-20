@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Delete backup schedule
+
+This example demonstrates how to delete the current portal’s backup schedule in ONLYOFFICE DocSpace using the API.
+
+Using methods:
+- DELETE /api/2.0/backup/deletebackupschedule (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-backup-schedule/)
+'''
+
+import requests
 
 API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'your_api_key'

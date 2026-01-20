@@ -1,4 +1,14 @@
-﻿// Config
+﻿/*
+Example: Get backup progress
+
+This example demonstrates how to check the progress of a backup process in ONLYOFFICE DocSpace using the API.
+The response includes information such as completion status, backup type, and download link if available.
+
+Using methods:
+- GET /api/2.0/backup/getbackupprogress (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-backup-progress/)
+*/
+
+// Config
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

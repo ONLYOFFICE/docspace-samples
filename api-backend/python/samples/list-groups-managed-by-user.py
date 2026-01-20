@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: List groups managed by a user
+
+This example demonstrates how to retrieve the list of groups in ONLYOFFICE DocSpace that are managed by a specific user.
+
+Using methods:
+- GET /api/2.0/group (https://api.onlyoffice.com/samples/docspace/api-backend/basic-samples/list-groups-managed-by-user/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and API key
 API_HOST = 'https://yourportal.onlyoffice.com'

@@ -1,4 +1,13 @@
-﻿
+﻿/*
+Example: Authenticate a user by code (2FA)
+
+This example shows how to authenticate in ONLYOFFICE DocSpace using a one-time code from an authenticator app (TOTP) via POST `/api/2.0/authentication/:code`.
+
+Using methods:
+- POST /api/2.0/authentication (https://api.onlyoffice.com/docspace/api-backend/usage-api/authenticate-me/)
+- POST /api/2.0/authentication/:code (https://api.onlyoffice.com/docspace/api-backend/usage-api/authenticate-me-from-body-with-code/)
+*/
+
 //Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 

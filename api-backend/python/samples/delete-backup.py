@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Delete a backup
+
+This example demonstrates how to delete a specific backup in ONLYOFFICE DocSpace using the API by providing its unique backup ID.
+
+Using methods:
+- DELETE /api/2.0/backup/deletebackup/{backupId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-backup/)
+'''
+
+import requests
 
 API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'your_api_key'

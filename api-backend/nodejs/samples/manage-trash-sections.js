@@ -1,4 +1,15 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage the Trash section
+
+This example demonstrates how to retrieve, restore, and empty the contents of the Trash section in ONLYOFFICE DocSpace using the API.
+
+Using methods:
+- GET /api/2.0/files/@trash (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-trash-folder/)
+- PUT /api/2.0/files/fileops/emptytrash (https://api.onlyoffice.com/docspace/api-backend/usage-api/empty-trash/)
+- PUT /api/2.0/files/fileops/move (https://api.onlyoffice.com/docspace/api-backend/usage-api/move-batch-items/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

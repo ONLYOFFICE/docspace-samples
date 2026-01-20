@@ -1,4 +1,17 @@
-﻿import requests
+﻿'''
+Example: Reassign a user’s content to another user
+
+This example demonstrates how to reassign a user’s data to another user in ONLYOFFICE DocSpace via the API:
+check if reassignment is required, start the reassignment, monitor progress, and optionally terminate the task.
+
+Using methods:
+- GET /api/2.0/people/reassign/necessary (https://api.onlyoffice.com/docspace/api-backend/usage-api/necessary-reassign/)
+- POST /api/2.0/people/reassign/start (https://api.onlyoffice.com/docspace/api-backend/usage-api/start-reassign/)
+- GET /api/2.0/people/reassign/progress/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-reassign-progress/)
+- PUT /api/2.0/people/reassign/terminate (https://api.onlyoffice.com/docspace/api-backend/usage-api/terminate-reassign/)
+'''
+
+import requests
 import time
 
 API_HOST = 'https://yourportal.onlyoffice.com'

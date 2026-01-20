@@ -1,4 +1,15 @@
-﻿import requests
+﻿'''
+Example: Manage room links
+
+This example demonstrates how to set and retrieve room invitation or external links in ONLYOFFICE DocSpace using the API.
+These links provide access to rooms based on specified permissions.
+
+Using methods:
+- PUT /api/2.0/files/rooms/{roomId}/links (https://api.onlyoffice.com/docspace/api-backend/usage-api/set-room-link/)
+- GET /api/2.0/files/rooms/{roomId}/links (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-room-links/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = 'https://yourportal.onlyoffice.com'

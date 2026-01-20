@@ -1,4 +1,13 @@
-﻿// Config
+﻿/*
+Example: Get the restoring progress
+
+This example demonstrates how to retrieve the progress of an ongoing portal restoration process in ONLYOFFICE DocSpace using the API.
+
+Using methods:
+- GET /api/2.0/backup/getrestoreprogress (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-restore-progress/)
+*/
+
+// Config
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

@@ -1,4 +1,14 @@
-﻿// Set API base URL
+﻿/*
+Example: Lock and unlock a file
+
+This example demonstrates how to lock or unlock the specified file in ONLYOFFICE DocSpace and get a list of users and their access levels for the file.
+
+Using methods:
+- PUT /api/2.0/files/file/{fileId}/lock (https://api.onlyoffice.com/docspace/api-backend/usage-api/lock-file/)
+- GET /api/2.0/files/file/{fileId}/protectusers (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-protected-file-users/)
+*/
+
+// Set API base URL
 const API_HOST = 'yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

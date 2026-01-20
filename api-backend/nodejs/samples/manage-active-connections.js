@@ -1,4 +1,17 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage active portal connections
+
+This example shows how to manage active user sessions in ONLYOFFICE DocSpace.
+You can retrieve active sessions, log out all users except the current one, terminate a specific session, or revoke all sessions for a particular user.
+
+Using methods:
+- GET /api/2.0/security/activeconnections (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-all-active-connections/)
+- PUT /api/2.0/security/activeconnections/logoutallexceptthis (https://api.onlyoffice.com/docspace/api-backend/usage-api/log-out-all-except-this-connection/)
+- PUT /api/2.0/security/activeconnections/logout/{loginEventId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/log-out-active-connection/)
+- PUT /api/2.0/security/activeconnections/logoutall/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/log-out-all-active-connections-for-user/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

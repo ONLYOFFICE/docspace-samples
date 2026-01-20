@@ -1,4 +1,17 @@
-﻿import requests
+﻿'''
+Example: Manage folders
+
+This example demonstrates how to manage folders in ONLYOFFICE DocSpace using the API.
+It covers creating, retrieving, renaming, and deleting folders through API requests.
+
+Using methods:
+- POST /api/2.0/files/folder/{parentFolderId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-folder/)
+- GET /api/2.0/files/folder/{folderId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-folder-info/)
+- PUT /api/2.0/files/folder/{folderId}/rename (https://api.onlyoffice.com/docspace/api-backend/usage-api/rename-folder/)
+- DELETE /api/2.0/files/folder/{folderId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-folder/)
+'''
+
+import requests
 
 # Set API base URL
 BASE_URL = 'https://yourportal.onlyoffice.com'

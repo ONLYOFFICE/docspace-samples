@@ -1,4 +1,13 @@
-﻿// Set your DocSpace portal URL and API key
+﻿/*
+Example: List groups managed by a user
+
+This example demonstrates how to retrieve the list of groups in ONLYOFFICE DocSpace that are managed by a specific user.
+
+Using methods:
+- GET /api/2.0/group (https://api.onlyoffice.com/samples/docspace/api-backend/basic-samples/list-groups-managed-by-user/)
+*/
+
+// Set your DocSpace portal URL and API key
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

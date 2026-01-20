@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Search users
+
+This example demonstrates how to search for users in ONLYOFFICE DocSpace by a text query,
+with optional filters for specific fields such as type, department, or role.
+
+Using methods:
+- GET /api/2.0/people/@search/{query} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-search/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and access token
 API_HOST = 'https://yourportal.onlyoffice.com'

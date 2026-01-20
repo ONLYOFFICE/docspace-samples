@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Set developer tools access
+
+This example demonstrates how to configure Developer Tools access settings in ONLYOFFICE DocSpace. You can allow full access or limit it for regular users.
+
+Using methods:
+- POST /api/2.0/settings/devtoolsaccess (https://api.onlyoffice.com/docspace/api-backend/usage-api/set-tenant-dev-tools-access-settings/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and token
 API_HOST = 'https://yourportal.onlyoffice.com'

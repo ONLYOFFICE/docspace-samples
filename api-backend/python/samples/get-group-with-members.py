@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Get a group with members
+
+This example demonstrates how to retrieve a group by ID in ONLYOFFICE DocSpace and include its members in the response.
+
+Using methods:
+- GET /api/2.0/group/{groupId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-group/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and API key
 API_HOST = 'https://yourportal.onlyoffice.com'

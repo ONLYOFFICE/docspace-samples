@@ -1,4 +1,15 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage user photo
+
+This example demonstrates how to upload and delete user profile photos in ONLYOFFICE DocSpace using API requests.
+Managing user profile pictures helps create a personalized and professional experience within the system.
+
+Using methods:
+- PUT /api/2.0/people/{userId}/photo (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-member-photo/)
+- DELETE /api/2.0/people/{userId}/photo (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-member-photo/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

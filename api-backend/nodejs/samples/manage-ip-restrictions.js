@@ -1,4 +1,15 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage IP restrictions
+
+This example demonstrates how to retrieve and update IP restriction settings in ONLYOFFICE DocSpace using API requests.
+IP restrictions enhance security by controlling which IP addresses are allowed access, ensuring that only authorized users can log in from designated networks.
+
+Using methods:
+- PUT /api/2.0/settings/iprestrictions (https://api.onlyoffice.com/docspace/api-backend/usage-api/save-ip-restrictions/)
+- GET /api/2.0/settings/iprestrictions (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-ip-restrictions/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

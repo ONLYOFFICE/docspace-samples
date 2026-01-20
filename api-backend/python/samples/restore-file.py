@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Restore file to previous version
+
+This example demonstrates how to retrieve the edit history of a file in ONLYOFFICE DocSpace and restore it to a specific previous version using the API.
+
+Using methods:
+- GET /api/2.0/files/file/{fileId}/edit/history (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-edit-history/)
+- GET /api/2.0/files/file/{fileId}/restoreversion (https://api.onlyoffice.com/docspace/api-backend/usage-api/restore-file-version/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = "https://yourportal.onlyoffice.com"

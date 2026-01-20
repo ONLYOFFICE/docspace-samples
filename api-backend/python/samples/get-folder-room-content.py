@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Get folder and room contents
+
+This example demonstrates how to retrieve the contents of a folder or room in ONLYOFFICE DocSpace. The same API endpoint returns both files and subfolders.
+
+Using methods:
+- GET /api/2.0/files/{folderId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-folder-by-folder-id/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = 'https://yourportal.onlyoffice.com'

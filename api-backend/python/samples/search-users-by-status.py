@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Search users by status
+
+This example demonstrates how to search for users in ONLYOFFICE DocSpace based on their status (e.g., active, pending, disabled) using the API.
+Additional filters such as query text, department, or custom fields can be applied.
+
+Using methods:
+- GET /api/2.0/people/status/{status}/search (https://api.onlyoffice.com/docspace/api-backend/usage-api/search-users-by-status/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and access token
 API_HOST = 'https://yourportal.onlyoffice.com'

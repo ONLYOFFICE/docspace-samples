@@ -1,4 +1,14 @@
-﻿// Set your DocSpace portal URL and access token
+﻿/*
+Example: Delete an API Key
+
+This example demonstrates how to delete an existing API key in ONLYOFFICE DocSpace by its unique identifier (UUID). 
+Use this operation to revoke a key that is no longer needed or compromised.
+
+Using methods:
+- DELETE /api/2.0/keys/{keyId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-api-key/)
+*/
+
+// Set your DocSpace portal URL and access token
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

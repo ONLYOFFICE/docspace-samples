@@ -1,4 +1,15 @@
-﻿// Set API base URL
+﻿/*
+Example: Retrieve user login audit events
+
+This example demonstrates how to retrieve user login audit activities in ONLYOFFICE DocSpace.
+You can either fetch the most recent login records or apply filters such as user ID, action type, and time period.
+
+Using methods:
+- GET /api/2.0/security/audit/login/last (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-last-login-events/)
+- GET /api/2.0/security/audit/login/filter (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-login-events-by-filter/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

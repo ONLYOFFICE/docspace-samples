@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Create a backup schedule
+
+This example demonstrates how to create a daily backup schedule in ONLYOFFICE DocSpace using the API (e.g., run every day at 03:00, keep the last 7 backups, optionally include a full portal dump).
+
+Using methods:
+- POST /api/2.0/backup/createbackupschedule (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-backup-schedule/)
+'''
+
+import requests
 
 API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'your_api_key'

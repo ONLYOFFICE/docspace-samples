@@ -1,4 +1,14 @@
-﻿// Set API base URL
+﻿/*
+Example: Copy or move a file to a folder
+
+This example demonstrates how to copy or move a file in ONLYOFFICE DocSpace.
+
+Using methods:
+- PUT /api/2.0/files/fileops/copy (https://api.onlyoffice.com/docspace/api-backend/usage-api/copy-batch-items/)
+- PUT /api/2.0/files/fileops/move (https://api.onlyoffice.com/docspace/api-backend/usage-api/move-batch-items/)
+*/
+
+// Set API base URL
 const BASE_URL = "https://yourportal.onlyoffice.com";
 const API_KEY = "your_api_key";
 

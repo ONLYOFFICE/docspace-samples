@@ -1,4 +1,17 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage files
+
+This example demonstrates how to manage files in ONLYOFFICE DocSpace using the API.
+It covers creating, uploading, updating, and deleting files through API requests.
+
+Using methods:
+- POST /api/2.0/files/{folderId}/file (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-file/)
+- POST /api/2.0/files/{folderId}/upload (https://api.onlyoffice.com/docspace/api-backend/usage-api/upload-file/)
+- PUT /api/2.0/files/file/{fileId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-file/)
+- DELETE /api/2.0/files/file/{fileId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-file/)
+*/
+
+// Set API base URL
 const BASE_URL = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'YOUR_API_KEY';
 

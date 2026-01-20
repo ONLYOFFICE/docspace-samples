@@ -1,4 +1,15 @@
-﻿// Set API base URL
+﻿/*
+Example: Invite users
+
+This example automates the process of creating new users and sending them invitations in ONLYOFFICE DocSpace.
+It ensures that only newly created users receive invitations, avoiding unnecessary duplicate invites.
+
+Using methods:
+- POST /api/2.0/people (https://api.onlyoffice.com/docspace/api-backend/usage-api/add-member/)
+- POST /api/2.0/people/invite (https://api.onlyoffice.com/docspace/api-backend/usage-api/invite-users/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

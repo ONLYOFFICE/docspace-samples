@@ -1,4 +1,13 @@
-﻿// Config
+﻿/*
+Example: Get backup schedule
+
+This example demonstrates how to retrieve the current portal’s backup schedule in ONLYOFFICE DocSpace using the API.
+
+Using methods:
+- GET /api/2.0/backup/getbackuphistory (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-backup-schedule/)
+*/
+
+// Config
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

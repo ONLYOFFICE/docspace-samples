@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Create an API Key
+
+This example demonstrates how to programmatically generate an API key in ONLYOFFICE DocSpace with specific permissions and an expiration period. 
+This is useful when integrating external systems or bots with restricted access scopes.
+
+Using methods:
+- POST /api/2.0/keys (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-api-key/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and access token
 API_HOST = 'https://yourportal.onlyoffice.com'

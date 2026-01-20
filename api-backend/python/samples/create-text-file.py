@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Create a text file
+
+This example demonstrates how to create a `.txt` file in a specified folder in ONLYOFFICE DocSpace using the API. 
+You can set a custom title and content for the file when uploading it to a folder.
+
+Using methods:
+- POST /api/2.0/files/{folderId}/text (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-text-file/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = 'https://yourportal.onlyoffice.com'

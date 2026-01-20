@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Change file or folder ownership
+
+This example demonstrates how to transfer ownership of files and/or folders in ONLYOFFICE DocSpace to another user using the API. 
+This is useful for reassigning responsibility when a project changes owners or a team member leaves.
+
+Using methods:
+- POST /api/2.0/files/owner (https://api.onlyoffice.com/docspace/api-backend/usage-api/change-file-owner/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL, access token, and IDs
 API_HOST = 'https://yourportal.onlyoffice.com'

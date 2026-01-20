@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Restore portal from a backup
+
+This example demonstrates how to restore an ONLYOFFICE DocSpace portal from a specific backup using the API.
+You can specify the backup ID, storage type, and optional parameters such as user notifications and dump usage.
+
+Using methods:
+- POST /backup/startrestore (https://api.onlyoffice.com/docspace/api-backend/usage-api/start-backup-restore/)
+'''
+
+import requests
 
 API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'your_api_key'

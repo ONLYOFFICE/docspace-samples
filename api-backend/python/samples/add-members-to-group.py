@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Add members to a group
+
+This example demonstrates how to add one or more members to an existing group in ONLYOFFICE DocSpace using the API.
+Optionally, you can rename the group and assign a new manager in the same request.
+
+Using methods:
+- PUT /api/2.0/group/{groupId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-group/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and API key
 API_HOST = 'https://yourportal.onlyoffice.com'

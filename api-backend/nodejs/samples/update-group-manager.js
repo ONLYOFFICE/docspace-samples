@@ -1,4 +1,14 @@
-﻿// Set API base URL
+﻿/*
+Example: Update group manager
+
+This example demonstrates how to update group manager in ONLYOFFICE DocSpace.
+
+Using methods:
+- POST /api/2.0/group (https://api.onlyoffice.com/docspace/api-backend/usage-api/add-group/)
+- PUT /api/2.0/group/{groupId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-group/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

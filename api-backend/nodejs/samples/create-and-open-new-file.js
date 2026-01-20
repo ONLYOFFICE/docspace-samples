@@ -1,4 +1,14 @@
-﻿import { exec } from "child_process";
+﻿/*
+Example: Create and open a new file
+
+This example demonstrates how to create a new file inside a specific folder in ONLYOFFICE DocSpace using the API. 
+After creation, the file is automatically opened in the default web browser using the returned editor link.
+
+Using methods:
+- POST /api/2.0/files/{folderId}/file (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-file/)
+*/
+
+import { exec } from "child_process";
 
 // Set API base URL
 const API_HOST = "https://yourportal.onlyoffice.com";

@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Copy or move a file to a folder
+
+This example demonstrates how to copy or move a file in ONLYOFFICE DocSpace.
+
+Using methods:
+- PUT /api/2.0/files/fileops/copy (https://api.onlyoffice.com/docspace/api-backend/usage-api/copy-batch-items/)
+- PUT /api/2.0/files/fileops/move (https://api.onlyoffice.com/docspace/api-backend/usage-api/move-batch-items/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = "https://yourportal.onlyoffice.com"

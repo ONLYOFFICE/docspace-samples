@@ -1,4 +1,14 @@
-﻿// Set API base URL
+﻿/*
+Example: Duplicate files and folders
+
+This example demonstrates how to duplicate one or more files and folders in ONLYOFFICE DocSpace using the API. 
+The duplicated items will appear in the same location with a modified title.
+
+Using methods:
+- PUT /api/2.0/files/fileops/duplicate (https://api.onlyoffice.com/docspace/api-backend/usage-api/duplicate-batch-items/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

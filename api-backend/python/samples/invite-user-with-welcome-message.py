@@ -1,4 +1,16 @@
-﻿import requests
+﻿'''
+Example: Invite user with welcome message
+
+This example demonstrates how to invite a user to ONLYOFFICE DocSpace using the API,check their registration status,
+and send them a welcome message after successful activation.
+
+Using methods:
+- GET /api/2.0/portal/users/invite/{employeeType} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-invitation-link/)
+- GET /api/2.0/portal/users/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-user-by-id/)
+- POST /api/2.0/portal/sendcongratulations (https://api.onlyoffice.com/docspace/api-backend/usage-api/send-congratulations/)
+'''
+
+import requests
 
 API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'YOUR_TOKEN'

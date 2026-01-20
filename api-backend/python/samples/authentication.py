@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Authenticate a user
+
+This example demonstrates how to authenticate a user in ONLYOFFICE DocSpace using the API and check the authentication with a token received.
+
+Using methods:
+- POST /api/2.0/authentication (https://api.onlyoffice.com/docspace/api-backend/usage-api/authenticate-me/)
+- GET /api/2.0/authentication (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-is-authentificated/)
+'''
+
+import requests
 
 # Set API base URL
 BASE_URL = 'https://yourportal.onlyoffice.com'

@@ -1,82 +1,100 @@
-# Webhooks Example (Flask - Python)
+# ONLYOFFICE DocSpace Webhook Samples (Python)
 
-This example server demonstrates how to set up and receive events with [ONLYOFFICE DocSpace Webhooks](https://helpcenter.onlyoffice.com/docspace/configuration/docspace-webhooks.aspx).
+This directory contains **Python examples** demonstrating how to receive and process
+**webhook events** from **ONLYOFFICE DocSpace**.
 
-In particular, this project demonstrates:
+Webhooks allow your application to react to DocSpace events
+in real time without polling the API.
 
-1. Receiving notifications about changes in DocSpace
-2. Verifying the integrity of notifications with HMAC signatures
+---
 
+## What these samples demonstrate
 
-## System Requirements
+The Python webhook examples show:
 
-- [Python](https://www.python.org/downloads/)
-- [Flask](https://flask.palletsprojects.com/en/stable/)
+- how to expose an HTTP endpoint for webhook events,
+- how to validate incoming webhook requests,
+- how to parse event payloads sent by DocSpace,
+- how to trigger backend logic in response to events.
 
+The samples focus on **event handling mechanics**
+rather than complete business workflows.
 
-## Usage
+---
 
-1. Navigate to the root directory of this project and install dependencies:
+## Prerequisites
 
-```
-pip install -r requirements.txt
-```
+- **Python 3.9+**
+- An accessible public URL (required for webhook delivery)
+- An active ONLYOFFICE DocSpace portal
 
-2. Download, set up, and run ngrok on your local machine via the official instructions:
+---
 
-```
-https://ngrok.com/docs/getting-started/
-```
+## Installation
 
-Ngrok is used to create a publicly accessible "tunnel" (i.e., URL) to a port on your local machine. By default, the Express server in this demo runs on port `8080`, so ensure that ngrok is set up to tunnel to the correct port where your server is running.
+Create and activate a virtual environment (optional):
 
-For example: Using the default settings, you can run ngrok on your local machine with the following command:
-
-```
-ngrok http 8080
-```
-
-3. Create the **.env** file in the root directory of this app. In the file, include the following lines:
-
-```
-PORTAL_URL=
-API_KEY=
-WEBHOOK_SECRET_KEY=
+```bash
+python -m venv venv
+source venv/bin/activate  # macOS / Linux
+venv\Scripts\activate    # Windows
 ```
 
-> **Note:** In a production environment, this value should be securely stored. For security reasons, ensure that you never commit or expose this value in a public repository.
+Install required dependencies:
 
-Enter your portal address, [API key](https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/api-keys/) for authorization and secret key for webhook.
-
-For your convenience, a sample **.env.template** file is included in the root directory of this application.
-
-4. After ngrok is successfully running, the next steps are to run the server:
-
-```
-python server.py
+```bash
+pip install flask
 ```
 
-5. Edit the **create_webhook.py** setup script to to include the information to [create](https://api.onlyoffice.com/docspace/api-backend/usage-api/create-webhook/) the webhook:
+---
 
-```python
-# TODO: Replace these values with your own.
-name = "My Webhook" # Webhook name
-uri = "http://localhost:8080/webhook" # Webhook payload url
-ssl = True # SSL verification
-triggers = 0 # All triggers are selected by default
-target_id= "" # Target ID
+## Configuration
+
+Each example contains a small configuration block defining:
+
+- webhook secret (if request validation is enabled),
+- server host and port.
+
+Make sure the webhook endpoint URL is reachable by DocSpace.
+
+---
+
+## Running the webhook receiver
+
+Start the Flask application:
+
+```bash
+python app.py
 ```
 
-> **Note:** Make sure to set the payload url parameter to your public ngrok domain instead of a `localhost` domain. This means you must replace `localhost:8000` with your unique ngrok domain. The target URI should be your ngrok server's "Forwarding" domain followed by `/webhook`. 
-> 
-> The final value for your target URI will look something like this: `https://a1c8-3-125-222-163.ngrok-free.app/webhook`. 
+Once running, configure the webhook URL in DocSpace
+and point it to the exposed endpoint.
 
-6. Run the setup script to create new webhook:
+---
 
-```
-python create_webhook.py
-```
+## Typical use cases
 
-7. In the DocSpace UI (or via the API), perform some actions corresponding with chosen triggers (e.g., create folder).
+Webhook integrations are commonly used to:
 
-8. The Express server will output webhook event notifications in the console about your changes in DocSpace!
+- synchronize data with external systems,
+- react to file or room changes,
+- trigger automation workflows,
+- monitor DocSpace activity.
+
+---
+
+## Related resources
+
+- Webhooks in DocSpace  
+  https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/webhooks/
+
+- DocSpace Backend API documentation  
+  https://api.onlyoffice.com/docspace/api-backend/get-started/basic-concepts/
+
+---
+
+## License
+
+This project is licensed under the **Apache License 2.0**.
+
+See the [LICENSE](../../LICENSE) file for details.

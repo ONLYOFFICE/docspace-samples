@@ -1,4 +1,17 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage users
+
+This example demonstrates how to manage user accounts in ONLYOFFICE DocSpace using the API.
+It covers creating, retrieving, terminating, and deleting users, following a structured administrative workflow.
+
+Using methods:
+- POST /api/2.0/people (https://api.onlyoffice.com/docspace/api-backend/usage-api/add-member/)
+- GET /api/2.0/people/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-profile-by-user-id/)
+- PUT /api/2.0/people/status/Terminated (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-user-status/)
+- DELETE /api/2.0/people/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-member/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

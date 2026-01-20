@@ -1,4 +1,16 @@
-﻿// Set API base URL
+﻿/*
+Example: Manage login settings
+
+This example demonstrates how to configure login security settings, including failed login attempt limits, account blocking duration,
+and login monitoring periods using API requests. Managing these settings ensures better protection against brute-force attacks and unauthorized access.
+
+Using methods:
+- PUT /api/2.0/settings/security/loginsettings (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-login-settings/)
+- GET /api/2.0/settings/security/loginsettings (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-login-settings/)
+- DELETE /api/2.0/settings/security/loginsettings (https://api.onlyoffice.com/docspace/api-backend/usage-api/set-default-login-settings/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

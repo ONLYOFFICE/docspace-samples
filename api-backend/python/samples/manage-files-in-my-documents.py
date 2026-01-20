@@ -1,4 +1,17 @@
-﻿import requests
+﻿'''
+Example: Manage files in "My Documents"
+
+This example demonstrates how to interact with a user's personal space ("My Documents") in ONLYOFFICE DocSpace using the API.
+It includes retrieving contents, uploading a file, creating a new document, and deleting a file.
+
+Using methods:
+- GET /api/2.0/security/activeconnections (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-my-folder/)
+- PUT /api/2.0/security/activeconnections/logoutallexceptthis (https://api.onlyoffice.com/docspace/api-backend/usage-api/upload-file-to-my/)
+- PUT /api/2.0/security/activeconnections/logout/{loginEventId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-file-in-my-documents/)
+- PUT /api/2.0/security/activeconnections/logoutall/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-file/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = 'https://yourportal.onlyoffice.com'

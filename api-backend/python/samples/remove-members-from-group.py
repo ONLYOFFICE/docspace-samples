@@ -1,4 +1,13 @@
-﻿import requests
+﻿'''
+Example: Remove members from a group
+
+This example demonstrates how to remove one or more members from a group in ONLYOFFICE DocSpace using the API.
+
+Using methods:
+- DELETE /api/2.0/group/{groupId}/members (https://api.onlyoffice.com/docspace/api-backend/usage-api/remove-members-from/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and API key
 API_HOST = 'https://yourportal.onlyoffice.com'

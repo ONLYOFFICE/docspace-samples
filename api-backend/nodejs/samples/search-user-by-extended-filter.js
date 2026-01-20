@@ -1,4 +1,14 @@
-﻿// Config
+﻿/*
+Example: Search users by extended filter
+
+This example demonstrates how to retrieve a list of users in ONLYOFFICE DocSpace with optional extended filter parameters such as group ID,
+employee type, administrator status, and result limit.
+
+Using methods:
+- GET /api/2.0/people/filter (https://api.onlyoffice.com/docspace/api-backend/usage-api/search-users-by-extended-filter/)
+*/
+
+// Config
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

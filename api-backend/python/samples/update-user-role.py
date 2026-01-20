@@ -1,4 +1,16 @@
-﻿import requests
+﻿'''
+Example: Update user role
+
+This example demonstrates how to automate user onboarding in ONLYOFFICE DocSpace using the API.
+It covers creating a user, retrieving their profile, and updating their role.
+
+Using methods:
+- POST /api/2.0/people (https://api.onlyoffice.com/docspace/api-backend/usage-api/add-member/)
+- GET /api/2.0/people/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-profile-by-user-id/)
+- PUT /api/2.0/people/{userId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-member/)
+'''
+
+import requests
 
 # Set API base URL
 API_HOST = 'https://yourportal.onlyoffice.com'

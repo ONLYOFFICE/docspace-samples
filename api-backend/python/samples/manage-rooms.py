@@ -1,4 +1,18 @@
-﻿import requests
+﻿'''
+Example: Manage rooms
+
+This example demonstrates how to manage rooms in ONLYOFFICE DocSpace using the API.
+It covers creating, retrieving, renaming, archiving, and deleting rooms through API requests.
+
+Using methods:
+- POST /api/2.0/files/rooms (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-room/)
+- GET /api/2.0/files/rooms/{roomId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-room-info/)
+- PUT /api/2.0/files/rooms/{roomId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-room/)
+- PUT /api/2.0/files/rooms/{roomId}/archive (https://api.onlyoffice.com/docspace/api-backend/usage-api/archive-room/)
+- DELETE /api/2.0/files/rooms/{roomId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/delete-room/)
+'''
+
+import requests
 
 # Set API base URL
 BASE_URL = 'https://yourportal.onlyoffice.com'

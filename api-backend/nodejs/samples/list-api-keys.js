@@ -1,4 +1,14 @@
-﻿// Set your DocSpace portal URL and access token
+﻿/*
+Example: List API keys
+
+This example demonstrates how to retrieve all API keys associated with the current user in ONLYOFFICE DocSpace.
+The response includes metadata such as name, permissions, status, and expiration date.
+
+Using methods:
+- GET /api/2.0/keys (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-api-keys/)
+*/
+
+// Set your DocSpace portal URL and access token
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

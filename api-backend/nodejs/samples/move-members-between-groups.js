@@ -1,4 +1,13 @@
-﻿// Set your DocSpace portal URL and API key
+﻿/*
+Example: Move members between groups
+
+This example demonstrates how to move all members from one group to another in ONLYOFFICE DocSpace using the API.
+
+Using methods:
+- PUT /api/2.0/group/{fromGroupId}/members/{toGroupId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/move-members-to/)
+*/
+
+// Set your DocSpace portal URL and API key
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

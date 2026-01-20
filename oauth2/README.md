@@ -1,94 +1,154 @@
-# DocSpace OAuth 2.0 Samples
+# ONLYOFFICE DocSpace OAuth 2.0 Samples
 
-This repository contains sample applications demonstrating OAuth 2.0 integration with ONLYOFFICE DocSpace. These samples show how to implement user authentication, obtain access tokens, and retrieve user profile information.
+This directory contains examples demonstrating how to authenticate users
+in **ONLYOFFICE DocSpace** using **OAuth 2.0**.
 
-## Available Implementations
+OAuth 2.0 authentication is recommended for applications that work
+on behalf of users, such as public web services, SaaS platforms,
+and multi-user integrations.
 
-The repository includes the following implementations:
+The examples are provided for **Node.js** and **Python** and demonstrate
+the same OAuth 2.0 flows using different technology stacks.
 
-- **Python**: Standard OAuth 2.0 authorization code flow
-- **Python-PKCE**: OAuth 2.0 with PKCE (Proof Key for Code Exchange) extension for additional security
-- **NodeJS**: Standard OAuth 2.0 authorization code flow using Express
-- **NodeJS-PKCE**: OAuth 2.0 with PKCE using Express
+---
 
-## What is OAuth 2.0?
+## What these samples demonstrate
 
-OAuth 2.0 is an industry-standard authorization protocol that allows third-party applications to access user resources without exposing user credentials. In these samples, we demonstrate how to:
+The OAuth 2.0 examples show:
 
-1. Redirect users to DocSpace for authentication
-2. Handle the callback with an authorization code
-3. Exchange the code for access and refresh tokens
-4. Use the access token to retrieve user information
+- how to initiate the OAuth authorization flow,
+- how to handle the authorization callback,
+- how to obtain an access token for a user,
+- how to use the token to call the DocSpace Backend API.
 
-## What is PKCE?
+The samples focus on the **authentication flow** and are intended
+to be combined with backend API samples for real-world integrations.
 
-PKCE (Proof Key for Code Exchange) is an extension to OAuth 2.0 designed to protect against authorization code interception attacks. It's particularly useful for applications that can't securely store a client secret, such as single-page applications or mobile apps.
+---
+
+## Directory structure
+
+```
+oauth2/
+├── nodejs/
+│   └── ...
+├── python/
+│   └── ...
+└── README.md
+```
+
+Each language directory contains a runnable OAuth 2.0 example
+implemented using the corresponding stack.
+
+---
 
 ## Prerequisites
 
-- DocSpace account
-- Client ID and Secret from DocSpace (obtained by registering your application)
-- Web server capable of running Python or NodeJS or any other language
+- An active **ONLYOFFICE DocSpace** portal
+- OAuth 2.0 credentials registered in DocSpace
 
-## Setup Instructions
+Additional requirements depend on the selected implementation:
 
-### 1. Register Your Application in DocSpace
+- **Node.js** examples require Node.js 18+
+- **Python** examples require Python 3.9+
 
-1. Log in to your DocSpace account
-2. Navigate to Developer Tools > OAuth2
-3. Create a new application
-4. Set the redirect URI to `http://localhost:3000/callback` (or your custom URI)
-5. Open the application settings
-6. Note the provided Client ID and Client Secret
+---
 
-### 2. Configuration
+## Configuration
 
-Each implementation requires setting up environment variables. Create a `.env` file in the root directory of each sample with the following variables:
+Each example contains configuration variables or uses environment variables
+to define:
 
-```
-API_BASE_URL=https://oauth.onlyoffice.com
-API_BASE_PATH=/api/2.0
-CLIENT_ID=your_client_id
-CLIENT_SECRET=your_client_secret
-PORT=3000
-REDIRECT_URI=http://localhost:3000/callback
-RESPONSE_TYPE=code
-CLIENT_SCOPES=your_client_scopes
-```
+- client ID,
+- client secret,
+- redirect URI,
+- server host and port.
 
-### 3. Running the Samples
+Make sure the redirect URI exactly matches the one configured
+for your OAuth application in DocSpace.
 
-#### Python Implementation
+---
 
-```bash
-cd python
-python app.py
-```
+## Running the examples
 
-#### NodeJS Implementation
+### Node.js
+
+Navigate to the Node.js OAuth example directory and install dependencies:
 
 ```bash
 cd nodejs
 npm install
+```
+
+Start the OAuth example server:
+
+```bash
+node index.js
+```
+
+or, if specified in the project:
+
+```bash
 npm start
 ```
 
-## OAuth 2.0 Authorization Flow
+Open the application URL in your browser
+to initiate the OAuth authorization flow.
 
-These samples implement the following flow:
+---
 
-1. User initiates authentication by clicking the login button
-2. Application redirects to DocSpace's authorization endpoint
-3. User authenticates with DocSpace credentials
-4. DocSpace redirects back to the application with an authorization code
-5. Application exchanges the code for access and refresh tokens
-6. Application uses the access token to fetch user information
+### Python
 
-## PKCE Flow Differences
+Navigate to the Python OAuth example directory.
 
-The PKCE implementations add these additional security measures:
+(Optional) Create and activate a virtual environment:
 
-1. Generation of a code verifier (random string)
-2. Creation of a code challenge derived from the verifier
-3. Sending the code challenge during the authorization request
-4. Including the original code verifier when exchanging the authorization code
+```bash
+python -m venv venv
+source venv/bin/activate  # macOS / Linux
+venv\Scripts\activate   # Windows
+```
+
+Install required dependencies:
+
+```bash
+pip install flask requests
+```
+
+Start the OAuth example application:
+
+```bash
+python app.py
+```
+
+Open the application URL in your browser
+to initiate the OAuth authorization flow.
+
+---
+
+## Typical use cases
+
+OAuth 2.0 authentication is recommended when:
+
+- your application serves multiple users,
+- users must explicitly grant access to their DocSpace account,
+- you are building a public or third-party integration,
+- you need secure access without storing user passwords.
+
+---
+
+## Related resources
+
+- OAuth 2.0 authentication in DocSpace  
+  https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/oauth2/
+
+- DocSpace Backend API documentation  
+  https://api.onlyoffice.com/docspace/api-backend/get-started/basic-concepts/
+
+---
+
+## License
+
+This project is licensed under the **Apache License 2.0**.
+
+See the [LICENSE](../LICENSE) file for details.

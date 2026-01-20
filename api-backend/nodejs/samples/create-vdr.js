@@ -1,4 +1,15 @@
-﻿// Set API base URL
+﻿
+/*
+Example: Create a virtual data room (VDR) with a watermark
+
+This example demonstrates how to create a Virtual Data Room (VDR) in ONLYOFFICE DocSpace using the API.
+The room is created with a text watermark enabled, including dynamic elements such as `UserName` and `CurrentDate`.
+
+Using methods:
+- POST /api/2.0/files/rooms (https://api.onlyoffice.com/docspace/api-backend/usage-api/create-room/)
+*/
+
+// Set API base URL
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

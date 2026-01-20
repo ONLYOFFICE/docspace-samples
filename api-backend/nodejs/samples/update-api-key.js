@@ -1,4 +1,14 @@
-﻿// Set your DocSpace portal URL and access token
+﻿/*
+Example: Update an API Key
+
+This example demonstrates how to update an existing API key in DocSpace using the API.
+You can change the name, permissions, or status of the key by providing its unique ID (UUID).
+
+Using methods:
+- PUT /api/2.0/keys/{keyId} (https://api.onlyoffice.com/docspace/api-backend/usage-api/update-api-key/)
+*/
+
+// Set your DocSpace portal URL and access token
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

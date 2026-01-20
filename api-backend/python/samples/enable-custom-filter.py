@@ -1,4 +1,14 @@
-﻿import requests
+﻿'''
+Example: Enable custom filter mode for a file
+
+This example demonstrates how to enable the Custom Filter mode for a specific file in ONLYOFFICE DocSpace using the API.
+The Custom Filter feature allows you to restrict spreadsheet views so that users only see their own applied filters.
+
+Using methods:
+- PUT /api/2.0/files/file/{fileId}/customfilter (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-all-permissions/)
+'''
+
+import requests
 
 # Set your DocSpace portal URL and access token
 API_HOST = 'https://yourportal.onlyoffice.com'

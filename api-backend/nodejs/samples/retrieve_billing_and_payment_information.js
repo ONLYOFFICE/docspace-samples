@@ -1,4 +1,19 @@
-﻿// Config
+﻿/*
+Example: Retrieve billing and payment information
+
+This example demonstrates how to read billing-related information in ONLYOFFICE DocSpace via the API:
+customer profile, balance by currency, current quota, available quotas, auto top-up settings, and supported currencies.
+
+Using methods:
+- GET /api/2.0/portal/payment/customerinfo (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-customer-info/)
+- GET /api/2.0/portal/payment/customer/balance (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-customer-balance/)
+- GET /api/2.0/portal/payment/quota (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-quota-payment-information/)
+- GET /api/2.0/portal/payment/quotas (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-payment-quotas/)
+- GET /api/2.0/portal/payment/topupsettings (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-tenant-wallet-settings/)
+- GET /api/2.0/portal/payment/currencies (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-payment-currencies/)
+*/
+
+// Config
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 

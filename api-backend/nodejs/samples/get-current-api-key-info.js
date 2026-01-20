@@ -1,4 +1,14 @@
-﻿// Set your DocSpace portal URL and access token
+﻿/*
+Example: Get current token permissions
+
+This example demonstrates how to retrieve the list of permissions (scopes) associated with the currently authenticated token in ONLYOFFICE DocSpace.
+It helps verify which actions the token can perform (e.g., file access, room management, user operations).
+
+Using methods:
+- GET /api/2.0/keys/permissions (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-all-permissions/)
+*/
+
+// Set your DocSpace portal URL and access token
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 
