@@ -101,12 +101,6 @@ or
 npm start
 ```
 
-By default, the server will be available at:
-
-```
-http://localhost:3030
-```
-
 ---
 
 ### 4. Open the Examples Hub
@@ -170,7 +164,7 @@ This approach is intended for demo purposes only and should not be used in produ
 Useful references:
 
 - DocSpace JavaScript SDK overview  
-  https://api.onlyoffice.com/docspace/javascript-sdk/
+  https://api.onlyoffice.com/docspace/javascript-sdk/get-started/
 
 ---
 
@@ -184,4 +178,8 @@ Useful references:
 
 ## License
 
-This project is distributed under the Apache-2.0 license found in the [LICENSE](../LICENSE) file.
+This project is licensed under the **Apache License 2.0**.
+
+You may use, modify, and distribute these samples in commercial and non-commercial projects.
+
+See the [LICENSE](../../LICENSE) file for details.
