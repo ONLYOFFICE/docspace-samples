@@ -18,8 +18,6 @@ These samples are intended for developers and integrators who want to:
 
 All examples are **self-contained**, **runnable**, and focused on a specific integration scenario.
 
----
-
 ## 📁 Repository structure
 
 The samples are grouped by integration type and technology:
@@ -37,7 +35,6 @@ docspace-samples/
 └── LICENSE
 ```
 
----
 
 ## 🔧 API backend samples
 
@@ -61,7 +58,6 @@ Each language directory contains its own README with detailed instructions:
 - [Node.js backend samples](api-backend/nodejs/README.md)
 - [Python backend samples](api-backend/python/README.md)
 
----
 
 ## 🔔 Webhooks
 
@@ -80,7 +76,6 @@ See:
 - [Node.js webhook samples](webhooks/nodejs/README.md)
 - [Python webhook samples](webhooks/python/README.md)
 
----
 
 ## 🧩 JavaScript SDK examples
 
@@ -98,7 +93,6 @@ These samples are suitable for:
 
 👉 See: [JavaScript SDK samples](js-sdk/README.md)
 
----
 
 ## 🔐 OAuth 2.0 examples
 
@@ -112,7 +106,6 @@ They are recommended for:
 
 👉 See: [OAuth 2.0 samples](oauth2/README.md)
 
----
 
 ## 🔑 Authentication methods
 
@@ -124,7 +117,6 @@ Depending on the integration type, the following authentication methods are used
 
 Authentication details are documented in each section README.
 
----
 
 ## 📚 Documentation
 
@@ -143,7 +135,6 @@ Authentication details are documented in each section README.
 - Webhooks documentation  
   https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/webhooks/
 
----
 
 ## 📄 License
 
