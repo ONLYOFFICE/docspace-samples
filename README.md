@@ -1,23 +1,30 @@
-# ONLYOFFICE DocSpace Samples
+# ONLYOFFICE DocSpace Samples 📦
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+![Node.js](https://img.shields.io/badge/Node.js-supported-3c873a?logo=node.js&logoColor=white)
+![Python](https://img.shields.io/badge/Python-supported-3776AB?logo=python&logoColor=white)
+![Type](https://img.shields.io/badge/type-integration%20samples-lightgrey)
 
 This repository contains **official ONLYOFFICE DocSpace integration samples**.
-It demonstrates different ways to interact with DocSpace — via REST API, webhooks, OAuth, and the JavaScript SDK.
 
-The repository is intended for developers who want to:
-- automate DocSpace administration and content management,
-- integrate DocSpace with third‑party systems,
-- embed DocSpace UI into their applications,
-- build event‑driven workflows using webhooks.
+It provides **practical, ready-to-use examples** that demonstrate different ways to interact with DocSpace:
+REST API, webhooks, OAuth 2.0, and the JavaScript SDK.
 
-All samples are **self‑contained**, **runnable**, and focused on a specific integration scenario.
+These samples are intended for developers and integrators who want to:
+- ⚙️ automate DocSpace administration and content management,
+- 🔗 integrate DocSpace with third-party systems,
+- 🧩 embed DocSpace UI into their applications,
+- 🔔 build event-driven workflows using webhooks.
+
+All examples are **self-contained**, **runnable**, and focused on a specific integration scenario.
 
 ---
 
-## Repository structure
+## 📁 Repository structure
 
-The samples are grouped by integration type and technology.
+The samples are grouped by integration type and technology:
 
-```
+```text
 docspace-samples/
 ├── api-backend/
 │   ├── nodejs/
@@ -32,41 +39,42 @@ docspace-samples/
 
 ---
 
-## API backend samples
+## 🔧 API backend samples
 
-Backend samples demonstrate how to work with the **DocSpace REST API** (`/api/2.0/...`).  
-They are designed as **standalone scripts**, where each file represents a single API use case.
+Backend samples demonstrate how to work with the **DocSpace REST API** (`/api/2.0/...`).
 
-Supported languages:
-- **Node.js**
-- **Python**
+They are implemented as **standalone scripts**, where each file represents a single API use case.
 
-Typical use cases:
+**Supported languages:**
+- 🟢 Node.js
+- 🐍 Python
+
+**Typical scenarios include:**
 - user and group management,
 - room and file operations,
 - access control and security settings,
 - backups and portal maintenance,
 - administrative automation.
 
-Each language folder contains its own README with detailed instructions:
+Each language directory contains its own README with detailed instructions:
 
 - [Node.js backend samples](api-backend/nodejs/README.md)
 - [Python backend samples](api-backend/python/README.md)
 
 ---
 
-## Webhooks
+## 🔔 Webhooks
 
-Webhook samples show how to receive and process **DocSpace events** in real time.
+Webhook samples demonstrate how to receive and process **DocSpace events** in real time.
 
-They demonstrate:
-- how to expose webhook endpoints,
-- how to validate incoming requests,
-- how to react to DocSpace events using the REST API.
+They show how to:
+- expose webhook endpoints,
+- validate incoming requests,
+- react to DocSpace events using backend logic or API calls.
 
-Supported languages:
-- **Node.js**
-- **Python**
+**Supported languages:**
+- 🟢 Node.js
+- 🐍 Python
 
 See:
 - [Node.js webhook samples](webhooks/nodejs/README.md)
@@ -74,7 +82,7 @@ See:
 
 ---
 
-## JavaScript SDK examples
+## 🧩 JavaScript SDK examples
 
 JavaScript SDK samples demonstrate **frontend integration** with DocSpace.
 
@@ -83,62 +91,61 @@ They include examples of:
 - using room and file selectors,
 - building custom user flows around the SDK.
 
-These samples are intended for:
+These samples are suitable for:
 - SaaS integrations,
 - custom portals,
 - UI prototyping and demos.
 
-See:
-- [JavaScript SDK samples](js-sdk/README.md)
+👉 See: [JavaScript SDK samples](js-sdk/README.md)
 
 ---
 
-## OAuth 2.0 examples
+## 🔐 OAuth 2.0 examples
 
-OAuth samples demonstrate how to authenticate users using **OAuth 2.0** instead of API key.
+OAuth samples demonstrate how to authenticate users using **OAuth 2.0**
+instead of API keys or personal access tokens.
 
 They are recommended for:
-- multi‑user integrations,
-- public applications,
-- long‑running services.
+- multi-user integrations,
+- public or third-party applications,
+- long-running services acting on behalf of users.
 
-See:
-- [OAuth 2.0 samples](oauth2/README.md)
+👉 See: [OAuth 2.0 samples](oauth2/README.md)
 
 ---
 
-## Authentication methods
+## 🔑 Authentication methods
 
-Depending on the sample type, the following authentication methods are used:
+Depending on the integration type, the following authentication methods are used:
 
-- **API key** — simple authentication for scripts and demos
-- **OAuth 2.0** — user‑based authentication for applications
+- **API key / Personal Access Token** — simple authentication for scripts and demos
+- **OAuth 2.0** — user-based authentication for applications
 - **Webhook secrets** — request verification for webhook receivers
 
-Authentication requirements are documented in each section README.
+Authentication details are documented in each section README.
 
 ---
 
-## Documentation
+## 📚 Documentation
 
-- DocSpace API overview:  
+- DocSpace API overview  
   https://api.onlyoffice.com/docspace/
 
-- DocSpace Backend API reference:  
+- DocSpace Backend API reference  
   https://api.onlyoffice.com/docspace/api-backend/get-started/basic-concepts/
 
-- JavaScript SDK documentation:  
+- JavaScript SDK documentation  
   https://api.onlyoffice.com/docspace/javascript-sdk/get-started/
 
-- OAuth 2.0 documentation:  
+- OAuth 2.0 documentation  
   https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/oauth2/
 
-- Webhooks documentation:  
+- Webhooks documentation  
   https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/webhooks/
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the **Apache License 2.0**.
 

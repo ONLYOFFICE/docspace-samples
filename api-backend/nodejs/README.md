@@ -1,55 +1,41 @@
-# ONLYOFFICE DocSpace API Backend Samples (Node.js)
+# ONLYOFFICE DocSpace API Backend Samples · Node.js 🟢
 
-This directory contains **standalone Node.js examples** that demonstrate how to work with the ONLYOFFICE DocSpace Backend API.
-Each file is an independent script focused on a specific API use case (users, rooms, groups, backups, security, etc.).
+![Node.js](https://img.shields.io/badge/Node.js-18%2B-3c873a?logo=node.js&logoColor=white)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](../../LICENSE)
 
----
+This directory contains **standalone Node.js examples** demonstrating how to work with the **ONLYOFFICE DocSpace Backend API**.
 
-## Directory structure
+Each file represents a **single API use case** (users, rooms, groups, backups, security, etc.) and can be executed independently.
 
-```
+## 📁 Directory structure
+
+```text
 api-backend/
 └── nodejs/
     ├── samples/
-    │   ├── manage-folders.js
-    │   ├── manage-groups.js
-    │   ├── manage-guests.js
-    │   ├── manage-ip-restrictions.js
-    │   ├── manage-login-settings.js
-    │   ├── manage-room-links.js
-    │   ├── manage-rooms.js
-    │   ├── manage-trash-sections.js
-    │   ├── manage-user-photo.js
     │   ├── manage-users.js
+    │   ├── manage-rooms.js
+    │   ├── manage-groups.js
+    │   └── ...
     └── README.md
 ```
 
----
+## ⚙️ Prerequisites
 
-## Prerequisites
-
-- **Node.js 18+**
+- **Node.js 18+** (required for built-in `fetch`)
 - Access to an **ONLYOFFICE DocSpace** portal
 - A valid **API key** or authentication token
 
-Node.js 18+ is required because the examples rely on the built-in `fetch` API.
-
----
-
-## Installation
+## 🚀 Installation
 
 No dependencies are required.
-
-Clone the repository and navigate to the Node.js backend samples:
 
 ```bash
 git clone https://github.com/ONLYOFFICE/docspace-samples.git
 cd docspace-samples/api-backend/nodejs
 ```
 
----
-
-## Configuration
+## 🔐 Configuration
 
 Each script contains a small configuration block at the top:
 
@@ -58,64 +44,43 @@ const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 ```
 
-Replace:
+- `API_HOST` — your DocSpace portal URL  
+- `API_KEY` — API key or access token
 
-- `API_HOST` with your DocSpace portal URL
-- `API_KEY` with your API key or access token
-
-API key can be generated in:
+API keys can be generated in:
 
 **DocSpace → Developer Tools → API keys**
 
-Some scripts may also require additional IDs (user ID, room ID, group ID, etc.). These are clearly marked in the code comments.
+Some examples may require additional IDs (user ID, room ID, group ID).  
+These are clearly marked in the code comments.
 
----
+## ▶️ Running examples
 
-## Running examples
-
-All scripts are designed to be run **individually**.
-
-From the `nodejs` directory:
+All scripts are executed **individually**:
 
 ```bash
 node samples/manage-users.js
 ```
 
-Another example:
+Each script performs one API operation and prints the result to the console.
 
-```bash
-node samples/create-room.js
-```
-
-Each script performs a single API operation and prints the result to the console.
-
----
-
-## Script philosophy
+## 🧠 Script philosophy
 
 - One file = one use case
 - No shared helpers or abstractions
 - Minimal setup
 - Easy to copy, modify, and reuse
 
-These samples are intended as **reference implementations**, not as a production-ready SDK.
+These samples are **reference implementations**, not a production SDK.
 
----
+## 📚 Related resources
 
-## Related resources
-
-- ONLYOFFICE DocSpace Backend API documentation  
+- DocSpace Backend API documentation  
   https://api.onlyoffice.com/docspace/api-backend/get-started/basic-concepts/
 
-- API key 
+- API keys  
   https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/api-keys/
 
----
-
-## License
+## 📄 License
 
 This project is licensed under the **Apache License 2.0**.
-
-You may use, modify, and distribute these samples in commercial and non-commercial projects.
-
-See the [LICENSE](../../LICENSE) file for details.

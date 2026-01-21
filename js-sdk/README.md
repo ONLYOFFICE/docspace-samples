@@ -1,122 +1,80 @@
-# ONLYOFFICE DocSpace JavaScript SDK Examples
+# ONLYOFFICE DocSpace JavaScript SDK Examples 🧩
 
-This repository contains a set of ready-to-use examples demonstrating how to integrate **ONLYOFFICE DocSpace** into web applications using the **JavaScript SDK**.
+![JavaScript](https://img.shields.io/badge/JavaScript-SDK-yellow?logo=javascript&logoColor=black)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](../LICENSE)
 
-The examples are designed to be simple, visual, and practical. They show how to embed DocSpace UI components, interact with rooms, folders, and files, and build real integration scenarios without calling the REST API directly.
+This directory contains **ready-to-use frontend examples** demonstrating how to integrate
+**ONLYOFFICE DocSpace** into web applications using the **JavaScript SDK**.
 
----
+The examples focus on **UI embedding and interaction** and do not require direct REST API calls.
 
-## Overview
+## ✨ What these samples demonstrate
 
-This project demonstrates how to:
+- Initializing DocSpace SDK components (Manager, Editor, Viewer, Selectors)
+- Working with rooms, folders, and files via SDK methods
+- Creating files and folders in the current navigation context
+- Managing tags and room settings
+- Building complete UI-driven integration scenarios
 
-- Initialize DocSpace SDK components (Manager, Editor, Viewer, Selectors)
-- Work with rooms, folders, and files using SDK methods
-- Create files and folders in the current navigation context
-- Manage tags and room settings
-- Retrieve contextual information (selection, folder info, config)
-- Build advanced workflows on top of embedded DocSpace UI
+All interactions are performed via the **DocSpace JavaScript SDK**,
+which helps avoid CORS issues and keeps examples focused on frontend logic.
 
-All interactions are performed via the **DocSpace JavaScript SDK**.  
-No direct API requests are used, which helps avoid CORS issues and keeps examples focused on SDK usage.
+## ⚙️ Prerequisites
 
----
+- **Node.js 18+**
+- npm (included with Node.js)
+- An active **ONLYOFFICE DocSpace** portal
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) (version 18 or higher)
-- npm (installed with Node.js)
-- An active ONLYOFFICE DocSpace portal
-
----
-
-## Repository Structure
+## 📁 Repository structure
 
 Examples are grouped into two categories:
 
 ### Basic samples
-
 Basic samples demonstrate individual SDK capabilities in isolation:
-
 - SDK initialization
-- Creating files, folders, rooms, and tags
-- Getting folder, selection, and configuration information
-- Authorization helpers and hash generation
+- Creating rooms, folders, and files
+- Retrieving folder, selection, and configuration information
 - Frame lifecycle management
 
-These examples are intended to help you understand specific SDK methods and events.
-
 ### Advanced samples
-
 Advanced samples demonstrate complete integration scenarios:
-
 - Creating files in the currently opened folder
-- Task-related file creation flows
-- Project and room setup with predefined structure
+- Project and task-related workflows
 - File attachment flows
 - Two-factor authentication scenarios
-- Embedding DocSpace as part of business applications
+- Embedding DocSpace into business applications
 
-Each example is implemented as a standalone HTML file and can be opened independently.
+Each example is implemented as a standalone HTML file.
 
----
-
-## Getting Started
+## 🚀 Getting started
 
 ### 1. Install dependencies
 
-From the root directory of the project, install the required dependencies:
-
-```
+```bash
 npm install
 ```
 
----
-
 ### 2. Environment configuration
-
-This repository already contains an `.env` file used by the local server.
 
 Update the existing `.env` file and specify your DocSpace portal address:
 
-```
+```env
 PORTAL_SRC=https://your-docspace-portal.com
 ```
 
-The `PORTAL_SRC` value is used to dynamically load the DocSpace JavaScript SDK and initialize all embedded examples.
-
----
-
 ### 3. Start the local server
 
-Run the local development server:
-
-```
+```bash
 npm start
 ```
 
----
-
-### 4. Open the Examples Hub
-
-Open the following URL in your browser:
+The server will be available at:
 
 ```
 http://localhost:3030
 ```
 
-The Examples Hub provides:
-
-- A configuration panel for portal URL and credentials
-- A visual list of Basic and Advanced samples
-- Search and filtering
-- One-click opening of each example in a new tab
-
----
-
-## How the Examples Work
-
-### SDK loading
+## 🧠 How the examples work
 
 All examples load the DocSpace SDK directly from your portal:
 
@@ -124,43 +82,14 @@ All examples load the DocSpace SDK directly from your portal:
 <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
 ```
 
-No additional client-side SDK installation is required.
+The SDK automatically uses the current navigation context
+inside the embedded DocSpace Manager.
 
----
-
-### Authentication
-
-Some examples require authentication. This can be done by:
-
-- Logging in through the embedded DocSpace UI
-- Providing credentials via the Examples Hub (development only)
-
-Credentials are stored locally in the browser for convenience.  
-This approach is intended for demo purposes only and should not be used in production environments.
-
----
-
-## Documentation
-
-Useful references:
+## 📚 Documentation
 
 - DocSpace JavaScript SDK overview  
   https://api.onlyoffice.com/docspace/javascript-sdk/get-started/
 
----
-
-## Notes
-
-- These examples are provided for demonstration and integration guidance
-- Review and adapt the code before using it in production
-- Follow standard security practices when handling authentication data
-
----
-
-## License
+## 📄 License
 
 This project is licensed under the **Apache License 2.0**.
-
-You may use, modify, and distribute these samples in commercial and non-commercial projects.
-
-See the [LICENSE](../../LICENSE) file for details.

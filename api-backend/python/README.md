@@ -1,45 +1,31 @@
-# ONLYOFFICE DocSpace API Backend Samples (Python)
+# ONLYOFFICE DocSpace API Backend Samples · Python 🐍
 
-This directory contains **standalone Python examples** demonstrating how to work with the ONLYOFFICE DocSpace Backend API.
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](../../LICENSE)
 
-Each file is an independent, runnable script focused on a **single API use case**
-(users, rooms, groups, backups, security, etc.).
+This directory contains **standalone Python examples** demonstrating how to work with the **ONLYOFFICE DocSpace Backend API**.
 
-The samples are intended as **reference implementations** for automation,
-administrative scripts, and backend integrations.
+Each file is an independent, runnable script focused on a **single API use case**.
 
----
+## 📁 Directory structure
 
-## Directory structure
-
-```
+```text
 api-backend/
 └── python/
     ├── samples/
-    │   ├── add_members_to_group.py
-    │   ├── authenticate_user.py
-    │   ├── manage_files.py
     │   ├── manage_rooms.py
-    │   ├── delete_backup.py
-    │   └── get_backup_history.py
+    │   ├── manage_files.py
+    │   └── ...
     └── README.md
 ```
 
-Each file name reflects the API action it demonstrates.
-
----
-
-## Prerequisites
+## ⚙️ Prerequisites
 
 - **Python 3.9+**
 - Access to an **ONLYOFFICE DocSpace** portal
-- A valid **API key**
+- A valid **API key** or Personal Access Token
 
----
-
-## Installation
-
-Clone the repository and navigate to the Python backend samples:
+## 🚀 Installation
 
 ```bash
 git clone https://github.com/ONLYOFFICE/docspace-samples.git
@@ -51,7 +37,7 @@ cd docspace-samples/api-backend/python
 ```bash
 python -m venv venv
 source venv/bin/activate  # macOS / Linux
-venv\Scripts\activate    # Windows
+venv\Scripts\activate   # Windows
 ```
 
 Install required dependencies:
@@ -60,95 +46,48 @@ Install required dependencies:
 pip install requests
 ```
 
-No additional libraries are required.
+## 🔐 Configuration
 
----
-
-## Configuration
-
-Each script contains a small configuration block at the top:
+Each script contains a configuration block:
 
 ```python
 API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'your_api_key'
 ```
 
-Replace:
+- `API_HOST` — your DocSpace portal URL  
+- `API_KEY` — API key or Personal Access Token
 
-- `API_HOST` — your DocSpace portal URL
-- `API_KEY` — your API key
-
-API key can be generated in:
+API keys can be generated in:
 
 **DocSpace → Developer Tools → API keys**
 
-Some scripts may require additional identifiers
-(user ID, room ID, group ID, etc.).
-These values are clearly marked in the code comments.
+## ▶️ Running examples
 
----
-
-## Running examples
-
-All scripts are designed to be run **individually**.
-
-From the `python` directory:
+Run any example directly:
 
 ```bash
 python samples/manage_rooms.py
 ```
 
-Another example:
+Scripts do **not depend on each other** and can be executed in any order.
 
-```bash
-python samples/add_members_to_group.py
-```
-
-Each script performs a single API operation and prints the result to the console.
-
-Examples do **not depend on each other** and can be executed in any order.
-
----
-
-## Script philosophy
+## 🧠 Script philosophy
 
 - One file = one API use case
-- No shared helpers or abstractions
 - Minimal setup
-- Easy to copy, modify, and reuse
+- Easy to reuse in automation scripts
 
-These samples are intentionally simple and focused.
-They are **not a framework or SDK**, but practical starting points
-for building your own automation and integrations.
+These examples are intentionally simple and focused.
 
----
+## 📚 Related resources
 
-## Common issues
-
-### 401 / 403 errors
-
-Possible reasons:
-
-- Invalid or expired API key
-- Insufficient permissions for the token
-- Incorrect DocSpace portal URL
-
----
-
-## Related resources
-
-- ONLYOFFICE DocSpace Backend API documentation  
+- DocSpace Backend API documentation  
   https://api.onlyoffice.com/docspace/api-backend/get-started/basic-concepts/
 
-- API key
+- API keys  
   https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/api-keys/
 
----
-
-## License
+## 📄 License
 
 This project is licensed under the **Apache License 2.0**.
-
-You may use, modify, and distribute these samples in commercial and non-commercial projects.
-
-See the [LICENSE](../../LICENSE) file for details.
