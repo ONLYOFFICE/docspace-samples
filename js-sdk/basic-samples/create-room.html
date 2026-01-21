@@ -1,0 +1,263 @@
+<!--
+Example: Create room
+
+This example demonstrates how to create a new shared room.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createroom)
+-->
+
+<!-- Step 1: HTML Setup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Create room" />
+    <meta
+      name="example-description"
+      content="Create a room with parameters using the DocSpace JavaScript SDK, then show the created room details."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Create Room</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-create-room">
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="page">
+      <div class="card">
+        <div class="title">Create room</div>
+        <p class="desc">
+          Set room parameters and create a new room using the DocSpace SDK. After creation, the room details will be shown below.
+        </p>
+
+        <div class="grid">
+          <div>
+            <label for="title">Room title</label>
+            <input id="title" type="text" value="New Room" autocomplete="off" />
+          </div>
+
+          <div>
+            <label for="type">Room type</label>
+            <select id="type">
+              <option value="1">Form filling room</option>
+              <option value="2" selected>Collaboration room</option>
+              <option value="5">Custom room</option>
+              <option value="6">Public room</option>
+              <option value="8">Virtual data room</option>
+              <option value="9">AI Room</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="color">Color (hex, optional)</label>
+            <input id="color" type="text" placeholder="#5CC3F7" />
+          </div>
+
+          <div>
+            <label for="tags">Tags (comma-separated, optional)</label>
+            <input id="tags" type="text" placeholder="marketing, q1-2026" />
+          </div>
+
+          <div>
+            <label for="indexing">Indexing (VDR only, optional)</label>
+            <select id="indexing">
+              <option value="">Default</option>
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="denyDownload">Deny download (VDR only, optional)</label>
+            <select id="denyDownload">
+              <option value="">Default</option>
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="createBtn" type="button" disabled>Create Room</button>
+          <button id="clearBtn" type="button" class="btn-secondary">Clear output</button>
+          <div class="hint" id="status">Preparing SDK…</div>
+        </div>
+
+        <div class="result" id="result" style="display:none;">
+          <div class="result-title">Created room</div>
+          <div class="kv" id="kv"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const createBtn = document.getElementById("createBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+      const kv = document.getElementById("kv");
+
+      const titleEl = document.getElementById("title");
+      const typeEl = document.getElementById("type");
+      const quotaEl = document.getElementById("quota");
+      const tagsEl = document.getElementById("tags");
+      const colorEl = document.getElementById("color");
+      const coverEl = document.getElementById("cover");
+      const indexingEl = document.getElementById("indexing");
+      const denyEl = document.getElementById("denyDownload");
+
+      let sdkReady = false;
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-manager-frame",
+        width: "0",
+        height: "0",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            sdkReady = true;
+            createBtn.disabled = false;
+            status.textContent = "SDK ready.";
+          },
+          onAppError: () => {
+            status.textContent = "SDK error. Please check portal URL / access.";
+          }
+        }
+      });
+
+      function parseOptionalNumber(v) {
+        const s = (v || "").trim();
+        if (!s) return undefined;
+        const n = Number(s);
+        return Number.isFinite(n) ? n : undefined;
+      }
+
+      function parseOptionalBool(v) {
+        if (v === "true") return true;
+        if (v === "false") return false;
+        return undefined;
+      }
+
+      function parseTags(v) {
+        const s = (v || "").trim();
+        if (!s) return undefined;
+        const list = s
+          .split(",")
+          .map(x => x.trim())
+          .filter(Boolean);
+        return list.length ? list : undefined;
+      }
+
+      function renderCreatedRoom(room) {
+        kv.innerHTML = "";
+
+        const id = room?.id ?? room?.roomId ?? "";
+        const title = room?.title ?? room?.name ?? "";
+        const type = room?.roomType ?? "";
+        const url = room?.url ?? room?.link ?? "";
+
+        const rows = [
+          ["ID", String(id || "")],
+          ["Title", String(title || "")],
+          ["Type", String(type || "")],
+        ];
+
+        for (const [k, v] of rows) {
+          const kEl = document.createElement("div");
+          kEl.className = "muted";
+          kEl.textContent = k;
+
+          const vEl = document.createElement("div");
+          vEl.textContent = v;
+
+          kv.appendChild(kEl);
+          kv.appendChild(vEl);
+        }
+
+        if (url) {
+          const kEl = document.createElement("div");
+          kEl.className = "muted";
+          kEl.textContent = "URL";
+
+          const vEl = document.createElement("div");
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = "Open room";
+          vEl.appendChild(a);
+
+          kv.appendChild(kEl);
+          kv.appendChild(vEl);
+        }
+
+        result.style.display = "block";
+      }
+
+      createBtn.onclick = async () => {
+        if (!sdkReady) return;
+
+        const title = (titleEl.value || "").trim();
+        const roomType = Number(typeEl.value);
+
+        if (!title) return;
+
+        const quota = parseOptionalNumber(quotaEl.value);
+        const tags = parseTags(tagsEl.value);
+        const color = (colorEl.value || "").trim() || undefined;
+        const cover = (coverEl.value || "").trim() || undefined;
+        const indexing = parseOptionalBool(indexingEl.value);
+        const denyDownload = parseOptionalBool(denyEl.value);
+
+        createBtn.disabled = true;
+        status.textContent = "Creating room…";
+
+        try {
+          const created = await manager.createRoom(
+            title,
+            roomType,
+            quota,
+            tags,
+            color,
+            cover,
+            indexing,
+            denyDownload
+          );
+
+          renderCreatedRoom(created);
+          status.textContent = "Done.";
+        } catch (e) {
+          status.textContent = "Failed to create room.";
+        } finally {
+          createBtn.disabled = false;
+        }
+      };
+
+      clearBtn.onclick = () => {
+        result.style.display = "none";
+        kv.innerHTML = "";
+        status.textContent = sdkReady ? "SDK ready." : "Preparing SDK…";
+      };
+    </script>
+  </body>
+</html>

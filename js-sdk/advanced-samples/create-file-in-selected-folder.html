@@ -1,0 +1,106 @@
+<!--
+Example: Set list view
+
+This example demonstrates how to change the file list display mode in DocSpace using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
+- manager.getFolderInfo (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfolderinfo)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Create File in Selected Folder" />
+    <meta
+      name="example-description"
+      content="Open a room in Manager, navigate to a folder, enter a file name, and create a file in the currently opened folder."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Create File in Selected Folder</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-create-file-in-selected-folder">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <input id="fileName" type="text" placeholder="new.docx" autocomplete="off" />
+      <button id="createBtn" type="button" disabled>Create</button>
+      <div class="hint" id="status">Loading…</div>
+    </div>
+
+    <script>
+      const roomId = "2186039"; // Replace with your room ID (shared/public)
+      const fileName = document.getElementById("fileName");
+      const createBtn = document.getElementById("createBtn");
+      const status = document.getElementById("status");
+
+      function updateState(ready) {
+        createBtn.disabled = !ready || !fileName.value.trim();
+      }
+
+      const docSpace = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "640px",
+        theme: "base",
+        rootPath: "/rooms/shared/" + roomId,
+        filter: { folder: roomId },
+        events: {
+          onAppReady: function () {
+            status.textContent = "Ready";
+            updateState(true);
+          },
+          onAppError: function () {
+            status.textContent = "Error";
+            updateState(false);
+          },
+        },
+      });
+
+      fileName.addEventListener("input", () => updateState(true));
+
+      createBtn.onclick = async () => {
+        const name = fileName.value.trim();
+        if (!name) return;
+
+        createBtn.disabled = true;
+        status.textContent = "Creating…";
+
+        try {
+          const folderInfo = await docSpace.getFolderInfo();
+          const folderId = String(folderInfo?.id || folderInfo?.folderId || roomId);
+
+          await docSpace.createFile(folderId, name);
+
+          status.textContent = "Done";
+        } catch (e) {
+          status.textContent = "Failed";
+        } finally {
+          updateState(true);
+        }
+      };
+    </script>
+  </body>
+</html>

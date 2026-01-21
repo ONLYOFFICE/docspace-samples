@@ -1,0 +1,67 @@
+<!--
+Example: Set config
+
+This example demonstrates how to update the configuration of the embedded DocSpace frame using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.setConfig (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#setconfig)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Set config" />
+    <meta name="example-description" content="Update configuration of the embedded frame." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Set config</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-set-config">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <button id="btn">Set config</button>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base"
+      });
+
+      btn.onclick = async () => {
+        try {
+          await manager.setConfig({ width: '50%' });
+        } catch (e) {
+          alert(e?.message || e);
+        }
+      };
+    </script>
+  </body>
+</html>

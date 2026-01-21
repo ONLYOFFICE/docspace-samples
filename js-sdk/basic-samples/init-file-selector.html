@@ -1,0 +1,66 @@
+<!--
+Example: Initialize file selector
+
+This example demonstrates how to initialize the DocSpace file selector using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Init file selector" />
+    <meta name="example-description" content="Initialize the DocSpace file selector using the JavaScript SDK." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Init File Selector</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-init-file-selector">
+<div class="wrap">
+  <iframe id="ds-frame"></iframe>
+</div>
+
+<div class="card">
+  <textarea id="out" readonly placeholder="Selected file data will appear here..."></textarea>
+</div>
+
+    <script>
+const out = document.getElementById("out");
+
+const config = {
+  frameId: "ds-frame",
+  width: "900px",
+  height: "520px",
+  theme: "base",
+  events: {
+    onSelectCallback: (data) => {
+      out.value = JSON.stringify(data, null, 2);
+    }
+  }
+};
+
+DocSpace.SDK.initFileSelector(config);
+
+    </script>
+  </body>
+</html>

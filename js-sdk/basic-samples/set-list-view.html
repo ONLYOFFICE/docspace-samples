@@ -1,0 +1,68 @@
+
+<!--
+Example: Set list view
+
+This example demonstrates how to change the file list display mode in DocSpace using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.setListView (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#setlistview)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Set list view" />
+    <meta name="example-description" content="Change file list display mode." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Set list view</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-set-list-view">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <button id="btn">Set list view</button>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base"
+      });
+
+      btn.onclick = async () => {
+        try {
+          await manager.setListView(1);
+        } catch (e) {
+          alert(e?.message || e);
+        }
+      };
+    </script>
+  </body>
+</html>

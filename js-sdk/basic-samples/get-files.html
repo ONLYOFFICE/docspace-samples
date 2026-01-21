@@ -1,0 +1,157 @@
+<!--
+Example: Get files
+
+This example demonstrates how to retrieve a list of files from a room using the JavaScript SDK method.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- manager.getFiles (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfiles)
+-->
+
+<!-- Step 1: HTML Setup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get files" />
+    <meta
+      name="example-description"
+      content="Select a room in the selector and retrieve a list of files using the DocSpace JavaScript SDK."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Get Files</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-files">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="card">
+      <div class="row">
+        <button id="getBtn" disabled>Get Files</button>
+        <div class="hint" id="hint">Select a room</div>
+      </div>
+
+      <div class="muted" id="count"></div>
+      <div class="error" id="err"></div>
+      <ul id="list"></ul>
+    </div>
+
+    <script>
+      const getBtn = document.getElementById("getBtn");
+      const hint = document.getElementById("hint");
+      const list = document.getElementById("list");
+      const count = document.getElementById("count");
+      const err = document.getElementById("err");
+
+      let roomId = null;
+      let manager = null;
+
+      // 1) UI: user selects a room
+      DocSpace.SDK.initRoomSelector({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            roomId = item?.roomId ?? item?.id ?? null;
+
+            err.textContent = "";
+            count.textContent = "";
+            list.innerHTML = "";
+
+            initManagerForRoom(roomId);
+          }
+        }
+      });
+
+      // 2) Background: manager is re-initialized for the selected room context
+      function initManagerForRoom(id) {
+        getBtn.disabled = true;
+        hint.textContent = "Preparing…";
+
+        if (manager && typeof manager.destroyFrame === "function") {
+          try { manager.destroyFrame(); } catch {}
+        }
+
+        manager = DocSpace.SDK.initManager({
+          frameId: "ds-manager-frame",
+          width: "0",
+          height: "0",
+          theme: "base",
+          rootPath: "/rooms/shared/" + String(id),
+          filter: { folder: String(id) },
+          events: {
+            onAppReady: () => {
+              getBtn.disabled = false;
+              hint.textContent = "Ready";
+            },
+            onAppError: (e) => {
+              getBtn.disabled = true;
+              hint.textContent = "Error";
+              err.textContent = (e && (e.message || e)) ? String(e.message || e) : "Manager init failed.";
+            }
+          }
+        });
+      }
+
+      function renderFiles(files) {
+        list.innerHTML = "";
+        const items = Array.isArray(files) ? files : [];
+
+        count.textContent = items.length ? `Found: ${items.length}` : "No files found.";
+
+        for (const f of items) {
+          const li = document.createElement("li");
+          li.textContent = f?.title || f?.name || `File ${f?.id || ""}`;
+          list.appendChild(li);
+        }
+      }
+
+      getBtn.onclick = async () => {
+        if (!roomId || !manager) return;
+
+        getBtn.disabled = true;
+        hint.textContent = "Loading…";
+        err.textContent = "";
+        count.textContent = "";
+        list.innerHTML = "";
+
+        try {
+          const files = await manager.getFiles();
+          renderFiles(files);
+          hint.textContent = "Done";
+        } catch (e) {
+          hint.textContent = "Error";
+          err.textContent = (e && (e.message || e)) ? String(e.message || e) : "Failed to load files.";
+        } finally {
+          getBtn.disabled = false;
+          hint.textContent = "Ready";
+        }
+      };
+    </script>
+  </body>
+</html>

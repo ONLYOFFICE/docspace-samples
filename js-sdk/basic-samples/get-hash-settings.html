@@ -1,0 +1,88 @@
+<!--
+Example: Get hash settings
+
+This example demonstrates how to retrieve hash-based settings from the embedded DocSpace frame using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- manager.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get hash settings" />
+    <meta name="example-description" content="Retrieve hash settings using the JavaScript SDK." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Get Hash Settings</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-hash-settings">
+<div class="wrap">
+  <iframe id="ds-frame"></iframe>
+</div>
+
+<div class="bar">
+  <button id="btn" type="button">Get Hash Settings</button>
+  <div class="hint" id="hint">Ready</div>
+</div>
+
+<div class="card">
+  <textarea id="out" readonly placeholder="Result will appear here..."></textarea>
+</div>
+
+    <script>
+const btn = document.getElementById("btn");
+const hint = document.getElementById("hint");
+const out = document.getElementById("out");
+
+const manager = DocSpace.SDK.initManager({
+  frameId: "ds-frame",
+  width: "900px",
+  height: "520px",
+  theme: "base",
+
+});
+
+btn.disabled = false;
+
+btn.onclick = async () => {
+  btn.disabled = true;
+  hint.textContent = "Loading…";
+  out.value = "";
+
+  try {
+    const result = await manager.getHashSettings();
+    out.value = JSON.stringify(result, null, 2);
+    hint.textContent = "Done";
+  } catch (e) {
+    hint.textContent = "Error";
+    out.value = String(e && (e.message || e) ? (e.message || e) : e);
+  } finally {
+    btn.disabled = false;
+    hint.textContent = "Ready";
+  }
+};
+
+    </script>
+  </body>
+</html>

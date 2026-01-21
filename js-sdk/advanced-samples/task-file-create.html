@@ -1,0 +1,152 @@
+<!--
+Example: Create files in rooms
+
+This example demonstrates how to create tasks linked to rooms in DocSpace, and then create files inside those rooms using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
+- manager.getFolderInfo (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfolderinfo)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Task file create" />
+    <meta
+      name="example-description"
+      content="Enter a room ID, open it in Manager, navigate to a folder, enter a file name, and create a task-related file in the current folder."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Task File Create</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-task-file-create">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <input id="roomId" type="text" placeholder="Room ID (e.g. 71234)" autocomplete="off" />
+      <button id="openRoomBtn" type="button" disabled>Open room</button>
+
+      <input id="name" type="text" placeholder="task.docx" autocomplete="off" />
+      <button id="btn" type="button" disabled>Create task file</button>
+
+      <div class="hint" id="status">Enter a room ID</div>
+    </div>
+
+    <script>
+      const roomIdInput = document.getElementById("roomId");
+      const openRoomBtn = document.getElementById("openRoomBtn");
+
+      const nameInput = document.getElementById("name");
+      const btn = document.getElementById("btn");
+      const status = document.getElementById("status");
+
+      let docSpace = null;
+      let ready = false;
+      let currentRoomId = "";
+
+      function updateButtons() {
+        const roomId = roomIdInput.value.trim();
+        const name = nameInput.value.trim();
+
+        openRoomBtn.disabled = !roomId;
+        btn.disabled = !ready || !name;
+      }
+
+      roomIdInput.addEventListener("input", () => {
+        const roomId = roomIdInput.value.trim();
+        if (!roomId) {
+          status.textContent = "Enter a room ID";
+        } else if (!ready || roomId !== currentRoomId) {
+          status.textContent = "Click “Open room”";
+        }
+        updateButtons();
+      });
+
+      nameInput.addEventListener("input", updateButtons);
+
+      openRoomBtn.onclick = () => {
+        const roomId = roomIdInput.value.trim();
+        if (!roomId) return;
+
+        // Reset state
+        ready = false;
+        currentRoomId = roomId;
+        btn.disabled = true;
+        status.textContent = "Loading…";
+
+        // Recreate iframe to ensure a clean Manager instance
+        const oldFrame = document.getElementById("ds-frame");
+        const newFrame = oldFrame.cloneNode(false);
+        oldFrame.parentNode.replaceChild(newFrame, oldFrame);
+        newFrame.id = "ds-frame";
+
+        docSpace = DocSpace.SDK.initManager({
+          frameId: "ds-frame",
+          width: "900px",
+          height: "640px",
+          theme: "base",
+          rootPath: "/rooms/shared/" + roomId,
+          filter: { folder: roomId },
+          events: {
+            onAppReady: function () {
+              ready = true;
+              status.textContent = "Room opened. Ready";
+              updateButtons();
+            },
+            onAppError: function () {
+              ready = false;
+              status.textContent = "Error opening room";
+              updateButtons();
+            }
+          }
+        });
+
+        updateButtons();
+      };
+
+      btn.onclick = async () => {
+        const name = nameInput.value.trim();
+        if (!ready || !docSpace || !name) return;
+
+        btn.disabled = true;
+        status.textContent = "Creating…";
+
+        try {
+          const folderInfo = await docSpace.getFolderInfo();
+          const fallbackId = currentRoomId;
+
+          const folderId = String(folderInfo?.id || folderInfo?.folderId || fallbackId);
+
+          await docSpace.createFile(folderId, name);
+
+          status.textContent = "Done";
+        } catch (e) {
+          status.textContent = "Failed";
+        } finally {
+          updateButtons();
+        }
+      };
+
+      updateButtons();
+    </script>
+  </body>
+</html>

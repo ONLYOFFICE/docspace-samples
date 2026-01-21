@@ -1,0 +1,88 @@
+<!--
+Example: Get user info
+
+This example demonstrates how to retrieve user information using the JavaScript SDK embedded in a DocSpace frame.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.getUserInfo (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getuserinfo)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get user info" />
+    <meta name="example-description" content="Retrieve user information using the JavaScript SDK." />
+    <meta name="example-group" content="basic" />
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+
+    <title>Get User Info</title>
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-user-info">
+<div class="wrap">
+  <iframe id="ds-frame"></iframe>
+</div>
+
+<div class="bar">
+  <button id="btn" type="button" disabled>Get User Info</button>
+  <div class="hint" id="hint">Loading…</div>
+</div>
+
+<div class="card">
+  <textarea id="out" readonly placeholder="Result will appear here..."></textarea>
+</div>
+
+    <script>
+const btn = document.getElementById("btn");
+const hint = document.getElementById("hint");
+const out = document.getElementById("out");
+
+const manager = DocSpace.SDK.initManager({
+  frameId: "ds-frame",
+  width: "900px",
+  height: "520px",
+  theme: "base",
+  events: { onAppReady: () => { btn.disabled = false; hint.textContent = "Ready"; } },
+});
+
+btn.disabled = true;
+
+btn.onclick = async () => {
+  btn.disabled = true;
+  hint.textContent = "Loading…";
+  out.value = "";
+
+  try {
+    const result = await manager.getUserInfo();
+    out.value = JSON.stringify(result, null, 2);
+    hint.textContent = "Done";
+  } catch (e) {
+    hint.textContent = "Error";
+    out.value = String(e && (e.message || e) ? (e.message || e) : e);
+  } finally {
+    btn.disabled = false;
+    hint.textContent = "Ready";
+  }
+};
+
+    </script>
+  </body>
+</html>

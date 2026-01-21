@@ -1,0 +1,140 @@
+<!--
+Example: Get folder info
+
+This example demonstrates how to retrieve information about the current folder in DocSpace using the JavaScript SDK.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- manager.getFolderInfo (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfolderinfo)
+-->
+
+<!-- Step 1: HTML Setup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Get folder info" />
+    <meta
+      name="example-description"
+      content="Select a room and retrieve info about the current folder using the DocSpace JavaScript SDK."
+    />
+    <meta name="example-group" content="basic" />
+
+    <title>Get Folder Info</title>
+
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-get-folder-info">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <iframe id="ds-manager-frame"></iframe>
+
+    <div class="card">
+      <div class="row">
+        <button id="btn" disabled>Get Folder Info</button>
+        <div class="hint" id="hint">Select a room</div>
+      </div>
+
+      <div class="error" id="err"></div>
+      <textarea id="out" readonly placeholder="Folder info will appear here..."></textarea>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+      const hint = document.getElementById("hint");
+      const err = document.getElementById("err");
+      const out = document.getElementById("out");
+
+      let roomId = null;
+      let manager = null;
+
+      // 1) UI: user selects a room
+      DocSpace.SDK.initRoomSelector({
+        frameId: "ds-frame",
+        width: "900px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            roomId = item?.roomId ?? item?.id ?? null;
+
+            err.textContent = "";
+            out.value = "";
+
+            initManagerForRoom(roomId);
+          }
+        }
+      });
+
+      // 2) Background: manager re-initialized for the selected room
+      function initManagerForRoom(id) {
+        btn.disabled = true;
+        hint.textContent = "Preparing…";
+
+        if (manager && typeof manager.destroyFrame === "function") {
+          try { manager.destroyFrame(); } catch {}
+        }
+
+        manager = DocSpace.SDK.initManager({
+          frameId: "ds-manager-frame",
+          width: "0",
+          height: "0",
+          theme: "base",
+          rootPath: "/rooms/shared/" + String(id),
+          filter: { folder: String(id) },
+          events: {
+            onAppReady: () => {
+              btn.disabled = false;
+              hint.textContent = "Ready";
+            },
+            onAppError: (e) => {
+              btn.disabled = true;
+              hint.textContent = "Error";
+              err.textContent = e && (e.message || e) ? String(e.message || e) : "Manager init failed.";
+            }
+          }
+        });
+      }
+
+      btn.onclick = async () => {
+        if (!roomId || !manager) return;
+
+        btn.disabled = true;
+        hint.textContent = "Loading…";
+        err.textContent = "";
+        out.value = "";
+
+        try {
+          const info = await manager.getFolderInfo();
+          out.value = JSON.stringify(info, null, 2);
+          hint.textContent = "Done";
+        } catch (e) {
+          hint.textContent = "Error";
+          err.textContent = e && (e.message || e) ? String(e.message || e) : "Failed to get folder info.";
+        } finally {
+          btn.disabled = false;
+          hint.textContent = "Ready";
+        }
+      };
+    </script>
+  </body>
+</html>

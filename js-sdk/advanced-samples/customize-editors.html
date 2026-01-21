@@ -1,0 +1,115 @@
+<!--
+Example: Customize editors
+
+This example customizes the editor interface so that it looks like your other products (if there are any),
+and changes the presence or absence of the additional buttons, links, logos and editor owner details.
+
+Using methods:
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Customize Editors" />
+    <meta name="example-description" content="Customize the editor UI (toolbar, theme, features) via editorCustomization." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Customize Editors</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-customize-editors">
+    <div class="wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <input id="fileId" type="text" placeholder="File ID (e.g. 361797)" />
+      <button id="openBtn" type="button" disabled>Open</button>
+      <div class="hint" id="hint">Enter a file ID</div>
+    </div>
+
+    <script>
+      const input = document.getElementById("fileId");
+      const btn = document.getElementById("openBtn");
+      const hint = document.getElementById("hint");
+
+      function update() {
+        const value = input.value.trim();
+        btn.disabled = !value;
+        hint.textContent = value ? "Ready" : "Enter a file ID";
+      }
+
+      input.addEventListener("input", update);
+
+      btn.onclick = () => {
+        const id = input.value.trim();
+        if (!id) return;
+
+        hint.textContent = "Opening…";
+
+        DocSpace.SDK.initEditor({
+          frameId: "ds-frame",
+          id: id,
+          width: "900px",
+          height: "520px",
+          theme: "base",
+          editorCustomization: {
+            autosave: true,
+            comments: true,
+            compactHeader: true,
+            compactToolbar: false,
+            compatibleFeatures: false,
+            forcesave: false,
+            help: true,
+            hideRightMenu: true,
+            hideRulers: false,
+            integrationMode: "embed",
+            macros: true,
+            macrosMode: "Warn",
+            mentionShare: true,
+            mobileForceView: true,
+            plugins: true,
+            toolbarHideFileName: false,
+            toolbarNoTabs: false,
+            uiTheme: "dark",
+            unit: "cm",
+            zoom: 100
+          },
+          events: {
+            onAppReady: () => {
+              hint.textContent = "Ready";
+            },
+            onAppError: (e) => {
+              hint.textContent = "Error";
+              alert(
+                e && (e.message || e)
+                  ? String(e.message || e)
+                  : "Failed to open file."
+              );
+            }
+          }
+        });
+      };
+
+      update();
+    </script>
+  </body>
+</html>

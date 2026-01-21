@@ -1,0 +1,120 @@
+<!--
+Example: Open file in ONLYOFFICE editors
+
+This example opens a file in ONLYOFFICE editors using the file selector.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Open File in ONLYOFFICE Editors" />
+    <meta name="example-description" content="Select a file in the selector and open it in ONLYOFFICE editors." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Open File in ONLYOFFICE Editors</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-open-file-in-onlyoffice-editors">
+    <div class="wrap">
+      <iframe id="ds-frame" class="frame"></iframe>
+    </div>
+
+    <div class="bar">
+      <button id="pick" type="button">Pick File</button>
+      <div class="hint" id="hint">Select a file to open it</div>
+    </div>
+
+    <script>
+      const hint = document.getElementById("hint");
+      const pick = document.getElementById("pick");
+
+      let mode = "selector";
+      let instance = null;
+
+      function destroyCurrent() {
+        if (instance && typeof instance.destroyFrame === "function") {
+          try { instance.destroyFrame(); } catch {}
+        }
+        instance = null;
+      }
+
+      function openSelector() {
+        mode = "selector";
+        hint.textContent = "Select a file…";
+        destroyCurrent();
+
+        instance = DocSpace.SDK.initFileSelector({
+          frameId: "ds-frame",
+          width: "900px",
+          height: "520px",
+          theme: "base",
+          events: {
+            onSelectCallback: (e) => {
+              // e can be an object or array, depending on SDK mode
+              const item = Array.isArray(e) ? e[0] : e;
+              if (!item || !item.id) return;
+              openEditor(String(item.id));
+            },
+            onAppError: () => {
+              hint.textContent = "Error";
+            }
+          }
+        });
+      }
+
+      function openEditor(fileId) {
+        mode = "editor";
+        hint.textContent = "Opening…";
+        destroyCurrent();
+
+        instance = DocSpace.SDK.initEditor({
+          id: fileId,
+          frameId: "ds-frame",
+          width: "900px",
+          height: "520px",
+          theme: "base",
+          events: {
+            onAppReady: () => {
+              hint.textContent = "Ready";
+            },
+            onAppError: () => {
+              hint.textContent = "Error";
+            }
+          }
+        });
+      }
+
+      pick.onclick = () => {
+        if (mode === "editor") {
+          openSelector();
+        } else {
+          // selector already open, just reset
+          openSelector();
+        }
+      };
+
+      openSelector();
+    </script>
+  </body>
+</html>

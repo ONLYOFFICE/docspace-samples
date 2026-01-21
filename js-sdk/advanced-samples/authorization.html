@@ -1,0 +1,114 @@
+<!--
+Example: Authorization
+
+This examples logs in to the DocSpace account using the specified email and password hash.
+
+Using methods:
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- system.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
+- system.createHash (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createhash)
+- system.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="{PORTAL_SRC}/" />
+  <meta charset="UTF-8" />
+
+  <meta name="example-title" content="Authorization" />
+  <meta name="example-description" content="Log in to DocSpace using email + password (hashed via SDK)." />
+  <meta name="example-group" content="advanced" />
+
+  <title>Authorization</title>
+  <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+  
+
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+<body class="ex-authorization">
+  <div class="page">
+    <div class="card">
+      <h3 style="margin:0 0 10px;">Authorization</h3>
+      <div class="hint">Enter credentials, the SDK will hash the password and perform login.</div>
+
+      <label for="login">Email</label>
+      <input id="login" type="text" placeholder="user@example.com" style="width:100%;" />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••" style="width:100%;" />
+
+      <div class="row" style="margin-top:12px;">
+        <button id="btn" class="btn" type="button">Login</button>
+        <div class="hint" id="status">Waiting…</div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="hint">Result</div>
+        <textarea id="out" readonly placeholder="SDK response will appear here…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="ds-frame" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;"></div>
+
+  <script>
+    const btn = document.getElementById("btn");
+    const status = document.getElementById("status");
+    const out = document.getElementById("out");
+
+    function setOut(v){
+      out.value = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+    }
+
+    const system = DocSpace.SDK.initSystem({
+      frameId: "ds-frame",
+      theme: "base",
+      width: "0px",
+      height: "0px",
+      events: {
+        onAppReady: () => status.textContent = "Ready",
+        onAppError: (e) => {
+          status.textContent = "Error";
+          setOut(e && (e.message || e) ? String(e.message || e) : "SDK error");
+        }
+      }
+    });
+
+    btn.onclick = async () => {
+      const login = document.getElementById("login").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!login || !password) return;
+
+      btn.disabled = true;
+      status.textContent = "Logging in…";
+      setOut("");
+
+      try {
+        const hs = await system.getHashSettings();
+        const ph = await system.createHash(password, hs);
+        const res = await system.login(login, ph);
+        status.textContent = "Done";
+        setOut(res || { ok: true });
+      } catch (e) {
+        status.textContent = "Error";
+        setOut(e && (e.message || e) ? String(e.message || e) : "Login failed");
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

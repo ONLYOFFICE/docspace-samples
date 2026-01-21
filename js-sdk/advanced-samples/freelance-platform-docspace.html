@@ -1,0 +1,141 @@
+<!--
+Example: Collaborative project workflow
+
+This example shows how to build a freelance project workspace using DocSpace SDK. 
+When a project is created, a room is generated, a freelancer is assigned via API, task files are managed, and the room is archived on completion.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createroom)
+- manager.setConfig (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#setconfig)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Freelance Platform + DocSpace" />
+    <meta name="example-description" content="Create a project room, share a link, and manage project files with the embedded manager." />
+    <meta name="example-group" content="advanced" />
+
+    <title>Freelance Platform + DocSpace</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    
+  
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+
+</head>
+
+  <body class="ex-freelance-platform-docspace">
+    <div class="page">
+      <div class="card">
+        <h3 style="margin:0 0 8px;">Project Setup</h3>
+        <div class="hint">
+          This sample uses only SDK methods (no direct REST fetch).<br/>
+          Enter any project name and click Create.
+        </div>
+
+        <label for="projectTitle">Project title</label>
+        <input id="projectTitle" type="text" placeholder="Acme Website Landing Page" />
+
+        <label for="freelancer">Freelancer email (optional)</label>
+        <input id="freelancer" type="text" placeholder="freelancer@example.com" />
+
+        <button id="createBtn" type="button" disabled>Create project room</button>
+
+        <div class="hint" id="status">Waiting…</div>
+        <div style="margin-top:10px;">
+          <textarea id="out" readonly placeholder="Room link and details will appear here…"></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <iframe id="ds-frame" class="frame"></iframe>
+      </div>
+    </div>
+
+    <script>
+      const projectTitle = document.getElementById("projectTitle");
+      const freelancer = document.getElementById("freelancer");
+      const createBtn = document.getElementById("createBtn");
+      const status = document.getElementById("status");
+      const out = document.getElementById("out");
+
+      function setOut(obj){
+        out.value = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+      }
+
+      function updateState(){
+        createBtn.disabled = !managerReady || !projectTitle.value.trim();
+      }
+
+      let managerReady = false;
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "100%",
+        height: "520px",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            managerReady = true;
+            status.textContent = "Ready";
+            updateState();
+          },
+          onAppError: () => {
+            status.textContent = "Error";
+          }
+        }
+      });
+
+      projectTitle.addEventListener("input", updateState);
+
+      createBtn.onclick = async () => {
+        const title = projectTitle.value.trim();
+        if (!title) return;
+
+        createBtn.disabled = true;
+        status.textContent = "Creating…";
+        setOut("");
+
+        try {
+          const room = await manager.createRoom(title, 2);
+          if (!room || !room.id) throw new Error("Room was not created");
+
+          const roomId = String(room.id);
+          const link = `{PORTAL_SRC}rooms/shared/${roomId}/filter?folder=${roomId}`;
+
+          manager.setConfig({
+            rootPath: "/rooms/shared/" + roomId,
+            filter: { folder: roomId },
+            showHeader: false
+          });
+
+          status.textContent = "Done";
+          setOut({
+            roomId,
+            roomTitle: title,
+            roomLink: link,
+            freelancer: freelancer.value.trim() || null
+          });
+        } catch (e) {
+          status.textContent = "Error";
+          setOut(e && (e.message || e) ? String(e.message || e) : "Failed");
+        } finally {
+          updateState();
+        }
+      };
+    </script>
+  </body>
+</html>
