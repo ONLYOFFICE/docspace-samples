@@ -1,0 +1,332 @@
+<!--
+Example: Create a tabbed DocSpace manager UI
+
+This example demonstrates how to embed ONLYOFFICE DocSpace in a tabbed interface,
+where each tab runs its own DocSpace instance in manager mode.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- instance.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Tabbed DocSpace Manager" />
+    <meta
+      name="example-description"
+      content="Embed multiple DocSpace Manager instances into a tabbed UI, with optional auto-login via the SDK."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Tabbed DocSpace Manager</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-tabbed-docspace-manager">
+    <div class="page">
+      <div class="card">
+        <div class="title">DocSpace Tabs (Manager mode)</div>
+        <p class="desc">Each tab is a separate DocSpace Manager instance (its own SDK frame).</p>
+
+        <div class="grid">
+          <div>
+            <label for="login">User email (optional)</label>
+            <input id="login" type="text" placeholder="user@example.com" autocomplete="off" />
+          </div>
+          <div>
+            <label for="passwordHash">Password hash (optional)</label>
+            <input id="passwordHash" type="text" placeholder="PASTE_HASH_HERE" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="hint" style="margin-top: 8px;">
+          Need a password hash?
+          <a id="authLink" href="#" target="_blank" rel="noreferrer">Open the Authorization sample</a>.
+        </div>
+
+        <div class="row">
+          <button id="newTab" type="button" disabled>+ New tab</button>
+          <button id="loginAll" type="button" class="btn-secondary" disabled>Login all</button>
+          <button id="closeAll" type="button" class="btn-secondary" disabled>Close all</button>
+          <div class="hint" id="status">Preparing SDK…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabsShell">
+      <div id="tabsBar" class="tabsBar" aria-label="Tabs"></div>
+      <div id="content" class="content" aria-label="DocSpace area"></div>
+    </div>
+
+    <script>
+      const loginEl = document.getElementById("login");
+      const passwordHashEl = document.getElementById("passwordHash");
+      const authLinkEl = document.getElementById("authLink");
+
+      const newTabBtn = document.getElementById("newTab");
+      const loginAllBtn = document.getElementById("loginAll");
+      const closeAllBtn = document.getElementById("closeAll");
+      const statusEl = document.getElementById("status");
+
+      const tabsBar = document.getElementById("tabsBar");
+      const content = document.getElementById("content");
+
+      function setStatus(v) {
+        statusEl.textContent = v;
+      }
+
+      function uid() {
+        return "t-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+      }
+
+      function canAutoLogin() {
+        return Boolean((loginEl.value || "").trim()) && Boolean((passwordHashEl.value || "").trim());
+      }
+
+      function ensureSdkLoaded() {
+        return Boolean(window.DocSpace && window.DocSpace.SDK);
+      }
+
+      (function setupAuthLink() {
+        const portalSrcParam = new URLSearchParams(window.location.search).get("portalSrc");
+        if (portalSrcParam) {
+          authLinkEl.href =
+            "/example?file=" +
+            encodeURIComponent("/advanced-samples/authorization.html") +
+            "&portalSrc=" +
+            encodeURIComponent(portalSrcParam);
+        } else {
+          authLinkEl.href = "/advanced-samples/authorization.html";
+        }
+      })();
+
+      const tabs = []; // { id, title, frameId, iframe, instance, ready, loggedIn, error }
+      let activeId = "";
+      let tabSeq = 0;
+      let sdkReady = false;
+
+      function findTab(id) {
+        return tabs.find((t) => t.id === id) || null;
+      }
+
+      function setActive(id) {
+        activeId = id;
+        render();
+      }
+
+      function updateControls() {
+        const any = tabs.length > 0;
+        newTabBtn.disabled = !sdkReady;
+        loginAllBtn.disabled = !sdkReady || !any || !canAutoLogin();
+        closeAllBtn.disabled = !sdkReady || !any;
+      }
+
+      async function tryLogin(tab) {
+        if (!tab || !tab.instance) return;
+        if (!canAutoLogin()) return;
+
+        const login = (loginEl.value || "").trim();
+        const passwordHash = (passwordHashEl.value || "").trim();
+
+        tab.loggedIn = false;
+        tab.error = "";
+        render();
+
+        try {
+          await tab.instance.login(login, passwordHash);
+          tab.loggedIn = true;
+        } catch (e) {
+          tab.loggedIn = false;
+          tab.error = "Login failed";
+          console.error(`[${tab.id}] login failed`, e);
+        } finally {
+          render();
+        }
+      }
+
+      function destroyTab(tab) {
+        if (!tab) return;
+        try {
+          if (tab.instance && typeof tab.instance.destroyFrame === "function") tab.instance.destroyFrame();
+        } catch {}
+        try {
+          if (tab.iframe) tab.iframe.remove();
+        } catch {}
+      }
+
+      function closeTab(id) {
+        const idx = tabs.findIndex((t) => t.id === id);
+        if (idx === -1) return;
+
+        const tab = tabs[idx];
+        destroyTab(tab);
+        tabs.splice(idx, 1);
+
+        if (activeId === id) {
+          const next = tabs[Math.max(0, idx - 1)] || tabs[0] || null;
+          activeId = next ? next.id : "";
+        }
+
+        render();
+      }
+
+      function closeAll() {
+        while (tabs.length) {
+          const tab = tabs.pop();
+          destroyTab(tab);
+        }
+        activeId = "";
+        render();
+      }
+
+      function addTab() {
+        tabSeq += 1;
+        const id = uid();
+        const frameId = "ds-frame-" + id;
+
+        const iframe = document.createElement("iframe");
+        iframe.id = frameId;
+        iframe.className = "dsFrame";
+        iframe.setAttribute("allow", "clipboard-read; clipboard-write; microphone; camera");
+        content.appendChild(iframe);
+
+        const tab = {
+          id,
+          title: "Manager #" + tabSeq,
+          frameId,
+          iframe,
+          instance: null,
+          ready: false,
+          loggedIn: false,
+          error: ""
+        };
+
+        tabs.push(tab);
+        activeId = id;
+
+        tab.instance = DocSpace.SDK.initManager({
+          frameId,
+          width: "100%",
+          height: "100%",
+          theme: "base",
+          events: {
+            onAppReady: async () => {
+              tab.ready = true;
+              tab.error = "";
+              render();
+              await tryLogin(tab);
+            },
+            onAppError: (e) => {
+              tab.error = "SDK error";
+              render();
+              console.error(`[${tab.id}] sdk error`, e);
+            }
+          }
+        });
+
+        render();
+      }
+
+      function loginAll() {
+        for (const tab of tabs) tryLogin(tab);
+      }
+
+      function tabStatusText(tab) {
+        if (!tab) return "";
+        if (tab.error) return tab.error;
+        if (!tab.ready) return "Loading…";
+        if (canAutoLogin()) return tab.loggedIn ? "Logged in" : "Ready";
+        return "Ready";
+      }
+
+      function renderTabsBar() {
+        tabsBar.innerHTML = "";
+
+        if (tabs.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "tabsEmpty";
+          empty.textContent = "No tabs. Click “+ New tab”.";
+          tabsBar.appendChild(empty);
+          return;
+        }
+
+        for (const tab of tabs) {
+          const isActive = tab.id === activeId;
+
+          const chip = document.createElement("div");
+          chip.className = "tabChip" + (isActive ? " active" : "");
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "tabBtn";
+          btn.textContent = tab.title;
+          btn.title = tabStatusText(tab);
+          btn.onclick = () => setActive(tab.id);
+
+          const meta = document.createElement("span");
+          meta.className = "tabMeta";
+          meta.textContent = tabStatusText(tab);
+
+          const close = document.createElement("button");
+          close.type = "button";
+          close.className = "tabClose";
+          close.textContent = "✕";
+          close.title = "Close tab";
+          close.onclick = (e) => {
+            e.stopPropagation();
+            closeTab(tab.id);
+          };
+
+          chip.appendChild(btn);
+          chip.appendChild(meta);
+          chip.appendChild(close);
+          tabsBar.appendChild(chip);
+        }
+      }
+
+      function renderFrames() {
+        for (const tab of tabs) {
+          tab.iframe.style.display = tab.id === activeId ? "block" : "none";
+        }
+      }
+
+      function render() {
+        renderTabsBar();
+        renderFrames();
+        updateControls();
+      }
+
+      newTabBtn.addEventListener("click", addTab);
+      loginAllBtn.addEventListener("click", loginAll);
+      closeAllBtn.addEventListener("click", closeAll);
+
+      loginEl.addEventListener("input", render);
+      passwordHashEl.addEventListener("input", render);
+
+      if (ensureSdkLoaded()) {
+        sdkReady = true;
+        setStatus("SDK ready.");
+        addTab();
+      } else {
+        sdkReady = false;
+        setStatus("SDK not found. Check PORTAL_SRC / access.");
+        render();
+      }
+    </script>
+  </body>
+</html>
+

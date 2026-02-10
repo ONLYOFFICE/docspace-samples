@@ -1,0 +1,390 @@
+<!--
+Example: Create draggable and resizable DocSpace modals
+
+This example demonstrates how to embed multiple DocSpace "System" instances into draggable and resizable modal windows.
+Each modal is an independent SDK frame. You can open/close windows, bring them to front, drag by the header, and resize
+from the bottom-right corner.
+
+Using methods:
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- system.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Draggable & resizable modals" />
+    <meta
+      name="example-description"
+      content="Embed multiple DocSpace instances into draggable and resizable modal windows and auto-login via the SDK."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Draggable & resizable modals</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-draggable-resize-modals">
+    <div class="page">
+      <div class="card">
+        <div class="title">DocSpace modals</div>
+        <p class="desc">
+          Open multiple windows, drag them by the header, and resize from the bottom-right corner.
+          For auto-login, provide user email and a password hash (generate it via the Authorization sample).
+        </p>
+
+        <div class="grid">
+          <div>
+            <label for="login">User email</label>
+            <input id="login" type="text" placeholder="user@example.com" autocomplete="off" />
+          </div>
+          <div>
+            <label for="passwordHash">Password hash</label>
+            <input id="passwordHash" type="text" placeholder="PASTE_HASH_HERE" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="hint" style="margin-top: 8px;">
+          Need a password hash?
+          <a id="authLink" href="#" target="_blank" rel="noreferrer">Open the Authorization sample</a>.
+        </div>
+
+        <div class="row">
+          <button id="newWin" type="button" disabled>New window</button>
+          <button id="loginAll" type="button" class="btn-secondary" disabled>Login all</button>
+          <button id="closeAll" type="button" class="btn-secondary" disabled>Close all</button>
+          <div class="hint" id="status">Preparing SDK…</div>
+        </div>
+
+        <div class="hint" style="margin-top: 8px;">
+          Tip: this page is served via the local samples server. Set <code>PORTAL_SRC</code> in <code>js-sdk/.env</code>
+          or on the main samples page.
+        </div>
+      </div>
+    </div>
+
+    <div id="desktop" class="desktop" aria-label="Desktop"></div>
+
+    <template id="modalTemplate">
+      <div class="ds-modal" role="dialog" aria-modal="false">
+        <div class="ds-modal__header" data-role="drag">
+          <div class="ds-modal__title"></div>
+          <div class="ds-modal__meta"></div>
+          <button class="ds-modal__close" type="button" aria-label="Close">✕</button>
+        </div>
+        <div class="ds-modal__body">
+          <iframe class="ds-modal__frame" allow="clipboard-read; clipboard-write; microphone; camera"></iframe>
+        </div>
+        <div class="ds-modal__resize" title="Resize" data-role="resize"></div>
+      </div>
+    </template>
+
+    <script>
+      const desktop = document.getElementById("desktop");
+      const template = document.getElementById("modalTemplate");
+
+      const loginEl = document.getElementById("login");
+      const passwordHashEl = document.getElementById("passwordHash");
+      const authLinkEl = document.getElementById("authLink");
+
+      const newWinBtn = document.getElementById("newWin");
+      const loginAllBtn = document.getElementById("loginAll");
+      const closeAllBtn = document.getElementById("closeAll");
+      const statusEl = document.getElementById("status");
+
+      const MIN_W = 360;
+      const MIN_H = 240;
+
+      let nextZ = 10;
+      let winSeq = 0;
+      const wins = new Map(); // id -> { el, frameId, system, pos, size, loggedIn }
+
+      let interaction = null; // { id, type, startX, startY, startLeft, startTop, startW, startH }
+
+      function canAutoLogin() {
+        return Boolean((loginEl.value || "").trim()) && Boolean((passwordHashEl.value || "").trim());
+      }
+
+      function setStatus(v) {
+        statusEl.textContent = v;
+      }
+
+      function updateControls() {
+        const any = wins.size > 0;
+        newWinBtn.disabled = !sdkReady;
+        loginAllBtn.disabled = !sdkReady || !any || !canAutoLogin();
+        closeAllBtn.disabled = !sdkReady || !any;
+      }
+
+      function bringToFront(winEl) {
+        nextZ += 1;
+        winEl.style.zIndex = String(nextZ);
+      }
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function normalizeRect(rect) {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        const left = clamp(rect.left, 0, Math.max(0, vw - rect.width));
+        const top = clamp(rect.top, 0, Math.max(0, vh - rect.height));
+        return { left, top, width: rect.width, height: rect.height };
+      }
+
+      async function tryLogin(winId) {
+        const w = wins.get(winId);
+        if (!w) return;
+        if (!canAutoLogin()) {
+          w.meta.textContent = "No credentials (optional)";
+          return;
+        }
+
+        const login = (loginEl.value || "").trim();
+        const passwordHash = (passwordHashEl.value || "").trim();
+
+        w.meta.textContent = "Logging in…";
+
+        try {
+          await w.system.login(login, passwordHash);
+          w.loggedIn = true;
+          w.meta.textContent = "Logged in";
+        } catch (e) {
+          w.loggedIn = false;
+          w.meta.textContent = "Login failed";
+          console.error(`[${winId}] login failed`, e);
+        }
+      }
+
+      function closeWin(winId) {
+        const w = wins.get(winId);
+        if (!w) return;
+
+        try {
+          if (w.system && typeof w.system.destroyFrame === "function") w.system.destroyFrame();
+        } catch {}
+
+        w.el.remove();
+        wins.delete(winId);
+        updateControls();
+      }
+
+      function closeAll() {
+        for (const id of Array.from(wins.keys())) closeWin(id);
+      }
+
+      function applyRect(winId) {
+        const w = wins.get(winId);
+        if (!w) return;
+        const rect = normalizeRect({ left: w.pos.left, top: w.pos.top, width: w.size.width, height: w.size.height });
+        w.pos.left = rect.left;
+        w.pos.top = rect.top;
+        w.size.width = rect.width;
+        w.size.height = rect.height;
+        w.el.style.left = rect.left + "px";
+        w.el.style.top = rect.top + "px";
+        w.el.style.width = rect.width + "px";
+        w.el.style.height = rect.height + "px";
+      }
+
+      function createWin() {
+        winSeq += 1;
+        const winId = "win-" + Date.now().toString(36) + "-" + winSeq;
+        const frameId = "ds-frame-" + winId;
+
+        const frag = template.content.cloneNode(true);
+        const el = frag.querySelector(".ds-modal");
+        const title = frag.querySelector(".ds-modal__title");
+        const meta = frag.querySelector(".ds-modal__meta");
+        const close = frag.querySelector(".ds-modal__close");
+        const header = frag.querySelector(".ds-modal__header");
+        const resize = frag.querySelector(".ds-modal__resize");
+        const iframe = frag.querySelector(".ds-modal__frame");
+
+        title.textContent = "DocSpace #" + winSeq;
+        meta.textContent = "Loading…";
+
+        iframe.id = frameId;
+
+        el.dataset.id = winId;
+        bringToFront(el);
+
+        const baseLeft = 80 + (wins.size % 6) * 22;
+        const baseTop = 130 + (wins.size % 6) * 22;
+
+        wins.set(winId, {
+          el,
+          title,
+          meta,
+          frameId,
+          system: null,
+          loggedIn: false,
+          pos: { left: baseLeft, top: baseTop },
+          size: { width: 560, height: 420 }
+        });
+
+        desktop.appendChild(frag);
+        applyRect(winId);
+
+        el.addEventListener("pointerdown", () => bringToFront(el));
+
+        close.addEventListener("click", (e) => {
+          e.stopPropagation();
+          closeWin(winId);
+        });
+
+        header.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          bringToFront(el);
+
+          const w = wins.get(winId);
+          interaction = {
+            id: winId,
+            type: "drag",
+            startX: e.clientX,
+            startY: e.clientY,
+            startLeft: w.pos.left,
+            startTop: w.pos.top,
+            startW: w.size.width,
+            startH: w.size.height
+          };
+          header.setPointerCapture(e.pointerId);
+        });
+
+        resize.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          bringToFront(el);
+
+          const w = wins.get(winId);
+          interaction = {
+            id: winId,
+            type: "resize",
+            startX: e.clientX,
+            startY: e.clientY,
+            startLeft: w.pos.left,
+            startTop: w.pos.top,
+            startW: w.size.width,
+            startH: w.size.height
+          };
+          resize.setPointerCapture(e.pointerId);
+        });
+
+        return winId;
+      }
+
+      function onPointerMove(e) {
+        if (!interaction) return;
+        const w = wins.get(interaction.id);
+        if (!w) return;
+
+        const dx = e.clientX - interaction.startX;
+        const dy = e.clientY - interaction.startY;
+
+        if (interaction.type === "drag") {
+          w.pos.left = interaction.startLeft + dx;
+          w.pos.top = interaction.startTop + dy;
+          applyRect(interaction.id);
+        } else if (interaction.type === "resize") {
+          w.size.width = Math.max(MIN_W, interaction.startW + dx);
+          w.size.height = Math.max(MIN_H, interaction.startH + dy);
+          applyRect(interaction.id);
+        }
+      }
+
+      function onPointerUp() {
+        interaction = null;
+      }
+
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+
+      let sdkReady = false;
+
+      function mountSystem(winId) {
+        const w = wins.get(winId);
+        if (!w) return;
+
+        w.system = DocSpace.SDK.initSystem({
+          frameId: w.frameId,
+          width: "100%",
+          height: "100%",
+          theme: "base",
+          events: {
+            onAppReady: async () => {
+              w.meta.textContent = "Ready";
+              await tryLogin(winId);
+            },
+            onAppError: (e) => {
+              w.meta.textContent = "SDK error";
+              console.error(`[${winId}] sdk error`, e);
+            }
+          }
+        });
+      }
+
+      function openNewWindow() {
+        const winId = createWin();
+        mountSystem(winId);
+        updateControls();
+      }
+
+      function loginAll() {
+        for (const id of wins.keys()) tryLogin(id);
+        updateControls();
+      }
+
+      newWinBtn.addEventListener("click", openNewWindow);
+      loginAllBtn.addEventListener("click", loginAll);
+      closeAllBtn.addEventListener("click", closeAll);
+
+      loginEl.addEventListener("input", updateControls);
+      passwordHashEl.addEventListener("input", updateControls);
+
+      // Prepare: ensure the SDK script is present.
+      function ensureSdkLoaded() {
+        if (window.DocSpace && window.DocSpace.SDK) return true;
+        return false;
+      }
+
+      (function setupAuthLink() {
+        const portalSrcParam = new URLSearchParams(window.location.search).get("portalSrc");
+        if (portalSrcParam) {
+          authLinkEl.href =
+            "/example?file=" +
+            encodeURIComponent("/advanced-samples/authorization.html") +
+            "&portalSrc=" +
+            encodeURIComponent(portalSrcParam);
+        } else {
+          authLinkEl.href = "/advanced-samples/authorization.html";
+        }
+      })();
+
+      if (ensureSdkLoaded()) {
+        sdkReady = true;
+        setStatus("SDK ready.");
+        openNewWindow();
+      } else {
+        sdkReady = false;
+        setStatus("SDK not found. Check PORTAL_SRC / access.");
+      }
+
+      updateControls();
+    </script>
+  </body>
+</html>
