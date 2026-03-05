@@ -79,7 +79,7 @@ http://localhost:3030
 All examples load the DocSpace SDK directly from your portal:
 
 ```html
-<script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+<script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
 ```
 
 The SDK automatically uses the current navigation context

@@ -1,0 +1,357 @@
+<!--
+Example: Execute a command in an editor
+
+This example demonstrates how to:
+1) pick a file via the SDK file selector,
+2) open that file in a hidden editor frame,
+3) run editor automation via `executeInEditor` and save the result.
+
+This is useful for export/automation scenarios (e.g., filling an .xlsx programmatically).
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Execute in spreadsheet editor" />
+    <meta
+      name="example-description"
+      content="Pick a file, open it in a hidden editor, run executeInEditor to write data, and save."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Execute in spreadsheet editor</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+
+    <!-- App styles -->
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-execute-in-hidden-editor">
+    <div class="wrap">
+      <iframe id="ds-selector" class="frame"></iframe>
+    </div>
+
+    <iframe id="ds-hidden-editor" class="hidden-frame" title="Editor frame"></iframe>
+
+    <div class="panel">
+      <div class="row">
+        <div class="kv">
+          <div class="k">Selected</div>
+          <div class="v" id="selectedTitle">None</div>
+        </div>
+        <div class="kv">
+          <div class="k">File ID</div>
+          <div class="v" id="selectedId">-</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div style="grid-column: 1 / -1;">
+          <label for="shareLink">Public share link (optional)</label>
+          <input id="shareLink" type="text" placeholder="https://portal/s/.... (or ?share=...)" autocomplete="off" />
+          <div class="muted">If provided, this sample extracts a share token and passes it as <code>requestToken</code>.</div>
+        </div>
+        <div>
+          <label for="requestToken">requestToken (optional)</label>
+          <input id="requestToken" type="text" placeholder="share token (from public link)" autocomplete="off" />
+        </div>
+        <div>
+          <label for="autosaveDelay">Auto close delay (ms)</label>
+          <input id="autosaveDelay" type="text" value="8000" autocomplete="off" />
+        </div>
+      </div>
+
+      <label for="rows">Rows (JSON array of objects)</label>
+      <textarea id="rows" placeholder='[{"Name":"Alice","Score":10},{"Name":"Bob","Score":20}]'></textarea>
+
+      <div class="muted" style="margin-top: 8px;">
+        Note: the editor automation below targets spreadsheet API. For best results, pick an <code>.xlsx</code> file.
+      </div>
+    </div>
+
+    <div class="bar">
+      <button id="pick" type="button">Pick file</button>
+      <button id="run" type="button" disabled>Write &amp; Save</button>
+      <button id="toggleHidden" type="button" class="btn-secondary">Show editor</button>
+      <button id="reset" type="button" class="btn-secondary">Reset</button>
+      <div class="hint" id="hint">Select a file</div>
+    </div>
+
+    <script>
+      const hint = document.getElementById("hint");
+      const pick = document.getElementById("pick");
+      const run = document.getElementById("run");
+      const toggleHidden = document.getElementById("toggleHidden");
+      const reset = document.getElementById("reset");
+
+      const selectedTitle = document.getElementById("selectedTitle");
+      const selectedId = document.getElementById("selectedId");
+
+      const shareLinkEl = document.getElementById("shareLink");
+      const requestTokenEl = document.getElementById("requestToken");
+      const autosaveDelayEl = document.getElementById("autosaveDelay");
+      const rowsEl = document.getElementById("rows");
+
+      const hiddenFrame = document.getElementById("ds-hidden-editor");
+
+      let selectorInstance = null;
+      let editorInstance = null;
+      let selected = null; // { id, title, raw }
+      let hiddenVisible = false;
+
+      function setHint(v) {
+        hint.textContent = v;
+      }
+
+      function safeStringify(v) {
+        try {
+          return JSON.stringify(v, null, 2);
+        } catch {
+          return String(v);
+        }
+      }
+
+      function extractShareToken(shareLink) {
+        const raw = String(shareLink || "").trim();
+        if (!raw) return "";
+        try {
+          const url = new URL(raw);
+          const param = url.searchParams.get("share");
+          if (param) return param;
+          const parts = url.pathname.split("/").filter(Boolean);
+          const sIndex = parts.indexOf("s");
+          return sIndex >= 0 && parts[sIndex + 1] ? parts[sIndex + 1] : "";
+        } catch {
+          return "";
+        }
+      }
+
+      function parseRows() {
+        const raw = String(rowsEl.value || "").trim();
+        if (!raw) return [];
+        const v = JSON.parse(raw);
+        if (!Array.isArray(v)) throw new Error("Rows must be a JSON array");
+        return v;
+      }
+
+      function updateUi() {
+        selectedTitle.textContent = selected?.title || "None";
+        selectedId.textContent = selected?.id ? String(selected.id) : "-";
+        run.disabled = !selected?.id;
+      }
+
+      function destroyEditor() {
+        if (editorInstance && typeof editorInstance.destroyFrame === "function") {
+          try {
+            editorInstance.destroyFrame();
+          } catch {}
+        }
+        editorInstance = null;
+      }
+
+      function destroySelector() {
+        if (selectorInstance && typeof selectorInstance.destroyFrame === "function") {
+          try {
+            selectorInstance.destroyFrame();
+          } catch {}
+        }
+        selectorInstance = null;
+      }
+
+      function openSelector() {
+        destroySelector();
+        setHint("Select a file...");
+
+        selectorInstance = DocSpace.SDK.initFileSelector({
+          frameId: "ds-selector",
+          width: "900px",
+          height: "520px",
+          theme: "base",
+          events: {
+            onSelectCallback: (e) => {
+              const item = Array.isArray(e) ? e[0] : e;
+              if (!item) return;
+
+              const id = item?.id ?? item?.fileId ?? null;
+              const title = item?.title || item?.name || (id ? `File ${id}` : "File");
+              selected = { id: id ? String(id) : "", title: String(title), raw: item };
+
+              setHint("Ready");
+              updateUi();
+              console.log("[selector] selected:", item);
+            },
+            onAppError: (err) => {
+              console.error("Selector error", err);
+              setHint("Error");
+            }
+          }
+        });
+      }
+
+      function buildSpreadsheetCommand(rows) {
+        const payload = JSON.stringify(rows || []);
+        return new Function(
+          "editorInstance",
+          `
+            try {
+              const rows = ${payload};
+              const connector = editorInstance?.createConnector?.();
+              if (!connector?.callCommand) {
+                console.error("connector.callCommand is not available", connector);
+                return;
+              }
+
+              Asc.scope.rows = rows;
+              connector.callCommand(function () {
+                try {
+                  const data = Asc.scope.rows || [];
+                  const sheet = Api.GetActiveSheet();
+                  if (!sheet) return;
+
+                  if (!data.length) {
+                    sheet.GetRange("A1").SetValue("No data");
+                    Api.Save();
+                    return;
+                  }
+
+                  const headers = Object.keys(data[0] || {});
+                  const table = [headers];
+                  for (let i = 0; i < data.length; i += 1) {
+                    const row = data[i] || {};
+                    table.push(headers.map((h) => row[h] ?? ""));
+                  }
+
+                  const height = table.length;
+                  const width = headers.length;
+                  const lastColCode = "A".charCodeAt(0) + Math.max(0, width - 1);
+                  const lastCol = String.fromCharCode(lastColCode);
+                  const rangeRef = "A1:" + lastCol + String(height);
+
+                  sheet.GetRange(rangeRef).SetValue(table);
+                  Api.Save();
+                } catch (err) {
+                  console.error("Spreadsheet command failed", err);
+                }
+              });
+            } catch (e) {
+              console.error("Failed to build spreadsheet command", e);
+            }
+          `
+        );
+      }
+
+      async function runHiddenWriteAndSave() {
+        if (!selected?.id) return;
+
+        const tokenFromLink = extractShareToken(shareLinkEl.value);
+        if (tokenFromLink && !requestTokenEl.value.trim()) {
+          requestTokenEl.value = tokenFromLink;
+        }
+
+        let rows;
+        try {
+          rows = parseRows();
+        } catch (e) {
+          setHint(e?.message ? String(e.message) : "Invalid JSON");
+          return;
+        }
+
+        destroyEditor();
+        setHint("Opening hidden editor...");
+
+        const requestToken = String(requestTokenEl.value || "").trim() || undefined;
+        const delayMs = Number(String(autosaveDelayEl.value || "").trim() || "8000");
+
+        editorInstance = DocSpace.SDK.initEditor({
+          id: selected.id,
+          frameId: "ds-hidden-editor",
+          width: "1px",
+          height: "1px",
+          theme: "base",
+          requestToken,
+          events: {
+            onAppReady: () => {
+              setHint("Executing...");
+
+              const frame = DocSpace?.SDK?.frames?.["ds-hidden-editor"];
+              if (!frame || typeof frame.executeInEditor !== "function") {
+                console.error("SDK frame.executeInEditor is not available", frame);
+                setHint("executeInEditor not available");
+                destroyEditor();
+                return;
+              }
+
+              try {
+                frame.executeInEditor(buildSpreadsheetCommand(rows));
+                setHint("Command sent. Saving...");
+              } catch (e) {
+                console.error(e);
+                setHint("Execute failed");
+              }
+
+              setTimeout(() => {
+                destroyEditor();
+                setHint("Done (editor closed).");
+              }, Number.isFinite(delayMs) ? Math.max(500, delayMs) : 8000);
+            },
+            onAppError: (e) => {
+              console.error("Editor error", e);
+              setHint("Editor error");
+              setTimeout(() => destroyEditor(), 1500);
+            }
+          }
+        });
+      }
+
+      function toggleEditorVisibility() {
+        hiddenVisible = !hiddenVisible;
+        if (hiddenVisible) {
+          hiddenFrame.classList.remove("hidden-frame");
+          hiddenFrame.classList.add("visible-hidden-frame");
+          toggleHidden.textContent = "Hide editor";
+        } else {
+          hiddenFrame.classList.remove("visible-hidden-frame");
+          hiddenFrame.classList.add("hidden-frame");
+          toggleHidden.textContent = "Show editor";
+        }
+      }
+
+      function doReset() {
+        destroyEditor();
+        selected = null;
+        shareLinkEl.value = "";
+        requestTokenEl.value = "";
+        rowsEl.value = '[{\"Name\":\"Alice\",\"Score\":10},{\"Name\":\"Bob\",\"Score\":20}]';
+        setHint("Select a file");
+        updateUi();
+      }
+
+      pick.onclick = openSelector;
+      run.onclick = runHiddenWriteAndSave;
+      toggleHidden.onclick = toggleEditorVisibility;
+      reset.onclick = doReset;
+
+      shareLinkEl.addEventListener("input", () => {
+        const token = extractShareToken(shareLinkEl.value);
+        if (token) requestTokenEl.value = token;
+      });
+
+      doReset();
+      openSelector();
+    </script>
+  </body>
+</html>

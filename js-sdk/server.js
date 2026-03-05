@@ -79,6 +79,48 @@ app.get("/api/examples", (req, res) => {
   }
 });
 
+function requireEnv(res, key) {
+  const v = String(process.env[key] || "").trim();
+  if (!v) {
+    res.status(400).json({ error: `${key} is not set` });
+    return "";
+  }
+  return v;
+}
+
+function tryExtractIdDeep(obj, maxDepth = 4) {
+  if (!obj || maxDepth < 0) return "";
+  if (typeof obj !== "object") return "";
+
+  const direct = obj.id ?? obj.fileId ?? obj.fileID ?? obj.itemId ?? obj.itemID;
+  if (direct !== null && direct !== undefined && String(direct).trim()) return String(direct).trim();
+
+  if (Array.isArray(obj)) {
+    for (const it of obj) {
+      const id = tryExtractIdDeep(it, maxDepth - 1);
+      if (id) return id;
+    }
+    return "";
+  }
+
+  for (const k of ["data", "response", "result", "item", "file", "entry", "payload"]) {
+    if (obj[k] && typeof obj[k] === "object") {
+      const id = tryExtractIdDeep(obj[k], maxDepth - 1);
+      if (id) return id;
+    }
+  }
+
+  for (const k of Object.keys(obj)) {
+    const v = obj[k];
+    if (v && typeof v === "object") {
+      const id = tryExtractIdDeep(v, maxDepth - 1);
+      if (id) return id;
+    }
+  }
+
+  return "";
+}
+
 // IMPORTANT: this endpoint injects PORTAL_SRC into HTML before browser loads api.js
 app.get("/example", (req, res) => {
   try {
