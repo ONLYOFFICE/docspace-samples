@@ -1,0 +1,306 @@
+<!--
+Example: Sign in and open file
+
+This example demonstrates how to authenticate in DocSpace using a login form and
+open files in an embedded manager and viewer without requiring a separate DocSpace login.
+
+The SDK initializes a hidden system frame that handles password hashing and login.
+After authentication, the manager opens and files can be previewed in the viewer.
+
+Using methods:
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- system.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
+- system.createHash (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createhash)
+- system.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- DocSpace.SDK.initViewer (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initviewer)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Sign in and open file" />
+    <meta
+      name="example-description"
+      content="Authenticate with DocSpace credentials from a login form and open files in an embedded viewer without a separate DocSpace login."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Sign in and open file</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-login-and-open-file">
+    <div class="page">
+      <div class="card">
+        <h3 class="title">Sign in and open file</h3>
+        <p class="desc">
+          Enter your DocSpace credentials to browse and preview files without a separate DocSpace
+          login. The SDK handles password hashing and authentication.
+        </p>
+
+        <div class="grid">
+          <div>
+            <label for="usernameInput">Email</label>
+            <input
+              id="usernameInput"
+              type="email"
+              placeholder="user@example.com"
+              autocomplete="username"
+            />
+          </div>
+          <div>
+            <label for="passwordInput">Password</label>
+            <input
+              id="passwordInput"
+              type="password"
+              placeholder="Password"
+              autocomplete="current-password"
+            />
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="signInBtn" type="button">Sign in</button>
+          <div class="hint" id="status">Enter your credentials and click Sign in</div>
+        </div>
+
+        <!-- Shown when the browser blocks the session cookie -->
+        <div class="row" id="cookieRetryRow" style="display: none;">
+          <button id="openPortalBtn" type="button" class="btn-secondary">Open DocSpace tab</button>
+          <button id="retryManagerBtn" type="button" class="btn-secondary">Try again</button>
+        </div>
+      </div>
+
+      <div class="layout" id="framesLayout" style="display: none; margin-top: 16px;">
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Manager</div>
+            <div class="panel-hint" id="managerHint">Loading...</div>
+          </div>
+          <!-- allow="storage-access" lets DocSpace JS inside the frame request cookie access -->
+          <iframe id="manager-frame" class="frame" title="Manager frame" allow="storage-access"></iframe>
+        </section>
+
+        <section class="panel" id="viewerPanel" style="display: none;">
+          <div class="panel-header">
+            <div class="panel-title">Viewer</div>
+            <div class="panel-hint" id="viewerHint">No file selected</div>
+          </div>
+          <iframe id="viewer-frame" class="frame" title="Viewer frame" allow="storage-access"></iframe>
+        </section>
+      </div>
+    </div>
+
+    <!-- Hidden system frame used for SDK initialization and authentication -->
+    <div id="system-frame" style="position: fixed; left: -9999px; top: -9999px; width: 1px; height: 1px;"></div>
+
+    <script>
+      const usernameInput = document.getElementById("usernameInput");
+      const passwordInput = document.getElementById("passwordInput");
+      const signInBtn = document.getElementById("signInBtn");
+      const statusEl = document.getElementById("status");
+      const framesLayout = document.getElementById("framesLayout");
+      const managerHintEl = document.getElementById("managerHint");
+      const viewerHintEl = document.getElementById("viewerHint");
+      const viewerPanel = document.getElementById("viewerPanel");
+      const cookieRetryRow = document.getElementById("cookieRetryRow");
+      const openPortalBtn = document.getElementById("openPortalBtn");
+      const retryManagerBtn = document.getElementById("retryManagerBtn");
+
+      let managerInstance = null;
+      let viewerInstance = null;
+      let system = null;
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      function firstObjectWithId(value) {
+        if (!value) return null;
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            const found = firstObjectWithId(item);
+            if (found) return found;
+          }
+          return null;
+        }
+        if (typeof value !== "object") return null;
+        if (value.id !== undefined && value.id !== null) return value;
+        for (const key of Object.keys(value)) {
+          const found = firstObjectWithId(value[key]);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      function destroyInstance(instance) {
+        if (!instance || typeof instance.destroyFrame !== "function") return;
+        try {
+          instance.destroyFrame();
+        } catch {}
+      }
+
+      function openViewer(item) {
+        destroyInstance(viewerInstance);
+        viewerInstance = null;
+
+        const title = item.title || item.name || item.fileTitle || "";
+        viewerHintEl.textContent = title || "ID: " + item.id;
+        viewerPanel.style.display = "";
+        framesLayout.classList.add("two-panels");
+
+        viewerInstance = DocSpace.SDK.initViewer({
+          frameId: "viewer-frame",
+          id: String(item.id),
+          width: "100%",
+          height: "620px",
+          theme: "base",
+          showHeader: false,
+          showTitle: true,
+          events: {
+            onAppReady: () => {
+              setStatus("Viewer ready");
+            },
+            onNoAccess: () => {
+              setStatus("No access to this file");
+            },
+            onNotFound: () => {
+              setStatus("File not found");
+            },
+            onAppError: () => {
+              setStatus("Viewer error");
+            }
+          }
+        });
+      }
+
+      function showCookieWarning() {
+        const hostname = new URL("{PORTAL_SRC}").hostname;
+        setStatus(
+          "Sign-in succeeded but the browser blocked the session cookie. " +
+          "Click \u201cOpen DocSpace tab\u201d to log in at " + hostname + " directly, " +
+          "then click \u201cTry again\u201d."
+        );
+        cookieRetryRow.style.display = "";
+      }
+
+      function initManager() {
+        destroyInstance(managerInstance);
+        managerInstance = null;
+        cookieRetryRow.style.display = "none";
+        framesLayout.style.display = "";
+        setStatus("Opening manager...");
+
+        let contentLoaded = false;
+        let cookieWarningTimer = null;
+
+        managerInstance = DocSpace.SDK.initManager({
+          frameId: "manager-frame",
+          width: "100%",
+          height: "620px",
+          theme: "base",
+          events: {
+            onAppReady: () => {
+              // If content doesn't load within 5s after app is ready,
+              // the manager is likely showing the DocSpace login page because
+              // the browser blocked the session cookie (third-party cookie policy).
+              cookieWarningTimer = setTimeout(() => {
+                if (!contentLoaded) {
+                  showCookieWarning();
+                }
+              }, 5000);
+            },
+            onContentReady: () => {
+              contentLoaded = true;
+              clearTimeout(cookieWarningTimer);
+              managerHintEl.textContent = "Click a file to preview";
+              setStatus("Ready — click a file to preview it");
+            },
+            onFileManagerClick: (event) => {
+              const item = firstObjectWithId(event);
+              if (!item || !item.id) return;
+              openViewer(item);
+            },
+            onAppError: () => {
+              clearTimeout(cookieWarningTimer);
+              setStatus("Manager error");
+            }
+          }
+        });
+      }
+
+      async function signIn() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+          setStatus("Enter email and password");
+          return;
+        }
+
+        signInBtn.disabled = true;
+        setStatus("Signing in...");
+
+        try {
+          if (!system) {
+            setStatus("Initializing SDK...");
+            await initSystemAndWaitReady();
+          }
+
+          const hashSettings = await system.getHashSettings();
+          const passwordHash = await system.createHash(password, hashSettings);
+          await system.login(username, passwordHash);
+
+          // Small delay: the browser may not have committed the session cookie
+          // to its storage yet at the moment login() resolves.
+          await new Promise((r) => setTimeout(r, 300));
+
+          setStatus("Signed in — opening manager...");
+          initManager();
+        } catch (err) {
+          setStatus("Sign in failed: " + (err?.message || String(err)));
+          signInBtn.disabled = false;
+        }
+      }
+
+      function initSystemAndWaitReady() {
+        return new Promise((resolve, reject) => {
+          system = DocSpace.SDK.initSystem({
+            frameId: "system-frame",
+            theme: "base",
+            events: {
+              onAppReady: resolve,
+              onAppError: (e) => reject(new Error(String(e?.message || e || "SDK init error")))
+            }
+          });
+        });
+      }
+
+      openPortalBtn.addEventListener("click", () => {
+        window.open("{PORTAL_SRC}", "_blank");
+      });
+
+      retryManagerBtn.addEventListener("click", () => {
+        initManager();
+      });
+
+      signInBtn.addEventListener("click", signIn);
+      passwordInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") signIn();
+      });
+    </script>
+  </body>
+</html>

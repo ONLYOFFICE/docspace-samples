@@ -10,6 +10,7 @@ const ROOT_DIR = __dirname;
 const BASIC_DIR = path.join(ROOT_DIR, "basic-samples");
 const ADVANCED_DIR = path.join(ROOT_DIR, "advanced-samples");
 
+app.use(express.json());
 app.use(express.static(ROOT_DIR));
 
 function extractMeta(html, metaName) {
@@ -120,6 +121,167 @@ function tryExtractIdDeep(obj, maxDepth = 4) {
 
   return "";
 }
+
+function getApiConfig(res) {
+  const portalSrc = String(process.env.PORTAL_SRC || "").trim();
+  const apiKey =
+    String(process.env.API_KEY || "").trim() ||
+    String(process.env.DOCSPACE_API_KEY || "").trim() ||
+    String(process.env.PORTAL_API_KEY || "").trim();
+
+  if (!portalSrc) {
+    res.status(400).json({ error: "PORTAL_SRC is not set" });
+    return null;
+  }
+
+  if (!apiKey) {
+    res.status(400).json({
+      error: "API key is not set",
+      details: "Set API_KEY, DOCSPACE_API_KEY, or PORTAL_API_KEY in js-sdk/.env."
+    });
+    return null;
+  }
+
+  return {
+    portalSrc: portalSrc.replace(/\/+$/, ""),
+    apiKey
+  };
+}
+
+function unwrapResponse(json) {
+  return json && typeof json === "object" && "response" in json ? json.response : json;
+}
+
+function pickExternalPrimaryLink(links) {
+  const items = Array.isArray(links)
+    ? links
+    : links?.links || links?.items || (links && typeof links === "object" ? [links] : []);
+  const list = Array.isArray(items) ? items : [];
+
+  const normalized = list.map((item) => {
+    const shared = item?.sharedLink || item?.sharedTo || item || {};
+    return {
+      shareLink: shared?.shareLink || item?.shareLink || null,
+      requestToken: shared?.requestToken || item?.requestToken || null,
+      internal: item?.internal,
+      primary: item?.primary
+    };
+  });
+
+  return (
+    normalized.find((item) => item.primary && item.internal === false && item.shareLink) ||
+    normalized.find((item) => item.internal === false && item.shareLink) ||
+    normalized.find((item) => item.shareLink) ||
+    null
+  );
+}
+
+app.post("/api/authenticate", async (req, res) => {
+  const portalSrc = String(process.env.PORTAL_SRC || "").trim().replace(/\/+$/, "");
+  if (!portalSrc) {
+    return res.status(400).json({ error: "PORTAL_SRC is not set" });
+  }
+
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ error: "username and password are required" });
+  }
+
+  try {
+    const response = await fetch(`${portalSrc}/api/2.0/authentication`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({ userName: username, password })
+    });
+
+    const json = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "Authentication failed",
+        details: json?.error?.message || json?.message || response.statusText
+      });
+    }
+
+    const token = json?.response?.token;
+    if (!token) {
+      return res.status(502).json({ error: "No token in authentication response" });
+    }
+
+    res.json({ success: true, token });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Authentication error", details: e?.message });
+  }
+});
+
+app.post("/api/create-public-share-link", async (req, res) => {
+  const config = getApiConfig(res);
+  if (!config) return;
+
+  const fileId = tryExtractIdDeep(req.body);
+  if (!fileId) {
+    return res.status(400).json({ error: "fileId is required" });
+  }
+
+  try {
+    const response = await fetch(`${config.portalSrc}/api/2.0/files/file/${fileId}/links`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({
+        access: "Read",
+        internal: false,
+        primary: true,
+        title: req.body?.title || "Public link"
+      })
+    });
+
+    const text = await response.text();
+    let json = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      json = null;
+    }
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "Failed to create public share link",
+        details: text || response.statusText
+      });
+    }
+
+    const data = unwrapResponse(json);
+    const picked = pickExternalPrimaryLink(data) || pickExternalPrimaryLink(json);
+
+    if (!picked?.shareLink) {
+      return res.status(502).json({
+        error: "Public share link was not found in the API response",
+        details: json || data || null
+      });
+    }
+
+    res.json({
+      success: true,
+      fileId: String(fileId),
+      shareLink: picked.shareLink,
+      requestToken: picked.requestToken || null
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({
+      error: "Unexpected server error while creating a public share link",
+      details: e?.message || String(e)
+    });
+  }
+});
 
 // IMPORTANT: this endpoint injects PORTAL_SRC into HTML before browser loads api.js
 app.get("/example", (req, res) => {

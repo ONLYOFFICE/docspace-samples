@@ -1,0 +1,312 @@
+<!--
+Example: React file selector example
+
+This example demonstrates how to embed the DocSpace file selector in a React component and keep the selected file in React state.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="React file selector example" />
+    <meta
+      name="example-description"
+      content="Embed the DocSpace file selector in a React component, keep the selected file in React state, and remount the frame when needed."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>React file selector example</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-react-manager-example">
+    <div id="root"></div>
+
+    <script>
+      const h = React.createElement;
+      const { useEffect, useRef, useState } = React;
+
+      function stringify(value) {
+        try {
+          return JSON.stringify(value, null, 2);
+        } catch {
+          return String(value);
+        }
+      }
+
+      function firstObjectWithId(value) {
+        if (!value) return null;
+
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            const found = firstObjectWithId(item);
+            if (found) return found;
+          }
+          return null;
+        }
+
+        if (typeof value !== "object") return null;
+        if (value.id !== undefined && value.id !== null) return value;
+
+        for (const key of Object.keys(value)) {
+          const found = firstObjectWithId(value[key]);
+          if (found) return found;
+        }
+
+        return null;
+      }
+
+      function DocSpaceFileSelectorFrame(props) {
+        const { requestToken, onStatusChange, onEvent, onSelection } = props;
+        const instanceRef = useRef(null);
+        const onStatusChangeRef = useRef(onStatusChange);
+        const onEventRef = useRef(onEvent);
+        const onSelectionRef = useRef(onSelection);
+        const frameId = "react-file-selector-frame";
+
+        useEffect(() => {
+          onStatusChangeRef.current = onStatusChange;
+          onEventRef.current = onEvent;
+          onSelectionRef.current = onSelection;
+        }, [onStatusChange, onEvent, onSelection]);
+
+        useEffect(() => {
+          if (!(window.DocSpace && window.DocSpace.SDK)) {
+            onStatusChangeRef.current("SDK not loaded");
+            return undefined;
+          }
+
+          onStatusChangeRef.current("Initializing selector...");
+
+          instanceRef.current = DocSpace.SDK.initFileSelector({
+            frameId,
+            width: "100%",
+            height: "620px",
+            theme: "base",
+            requestToken: requestToken || undefined,
+            events: {
+              onAppReady: (event) => {
+                onStatusChangeRef.current("Selector ready");
+                onEventRef.current("onAppReady", event || null);
+              },
+              onContentReady: (event) => {
+                onStatusChangeRef.current("Content loaded");
+                onEventRef.current("onContentReady", event || null);
+              },
+              onSelectCallback: (event) => {
+                const item = firstObjectWithId(event);
+                onSelectionRef.current(item, event || null);
+                onStatusChangeRef.current(item && item.id ? "File selected" : "Selection updated");
+                onEventRef.current("onSelectCallback", event || null);
+              },
+              onCloseCallback: (event) => {
+                onStatusChangeRef.current("Selector closed");
+                onEventRef.current("onCloseCallback", event || null);
+              },
+              onAppError: (event) => {
+                onStatusChangeRef.current("App error");
+                onEventRef.current("onAppError", event || null);
+              }
+            }
+          });
+
+          return () => {
+            if (instanceRef.current && typeof instanceRef.current.destroyFrame === "function") {
+              try {
+                instanceRef.current.destroyFrame();
+              } catch {}
+            }
+            instanceRef.current = null;
+          };
+        }, [requestToken]);
+
+        return h("iframe", {
+          id: frameId,
+          className: "frame",
+          title: "React file selector frame"
+        });
+      }
+
+      function App() {
+        const [draftToken, setDraftToken] = useState("");
+        const [appliedToken, setAppliedToken] = useState("");
+        const [mounted, setMounted] = useState(true);
+        const [status, setStatus] = useState("Ready");
+        const [eventLog, setEventLog] = useState("");
+        const [selectedFile, setSelectedFile] = useState(null);
+        const [rawSelection, setRawSelection] = useState("");
+
+        function appendEvent(name, payload) {
+          const lines = ["[" + new Date().toLocaleTimeString() + "] " + name];
+          if (payload !== undefined) lines.push(stringify(payload));
+          setEventLog((current) => lines.join("\n") + "\n\n" + current);
+        }
+
+        function applyState() {
+          setAppliedToken(String(draftToken || "").trim());
+          setMounted(true);
+          setStatus("Reinitializing...");
+        }
+
+        function destroyFrame() {
+          setMounted(false);
+          setStatus("Unmounted");
+        }
+
+        function mountFrame() {
+          setMounted(true);
+          setStatus("Mounting...");
+        }
+
+        function handleSelection(item, rawEvent) {
+          setSelectedFile(item);
+          setRawSelection(stringify(rawEvent || null));
+        }
+
+        return h(
+          "div",
+          { className: "page" },
+          h(
+            "div",
+            { className: "card" },
+            h("h3", { className: "title" }, "React file selector example"),
+            h(
+              "p",
+              { className: "desc" },
+              "This sample shows a practical React wrapper around ",
+              h("code", null, "DocSpace.SDK.initFileSelector"),
+              ". Select a file in DocSpace and inspect how the chosen item is stored in React state."
+            ),
+            h(
+              "div",
+              { className: "toolbar" },
+              h(
+                "div",
+                { className: "field field-wide" },
+                h("label", { htmlFor: "requestToken" }, "requestToken"),
+                h("input", {
+                  id: "requestToken",
+                  type: "text",
+                  value: draftToken,
+                  placeholder: "Optional share token",
+                  autoComplete: "off",
+                  onChange: (event) => setDraftToken(event.target.value)
+                })
+              ),
+              h(
+                "div",
+                { className: "actions" },
+                h("button", { type: "button", onClick: applyState }, "Apply state"),
+                h(
+                  "button",
+                  { type: "button", className: "btn-secondary", onClick: mounted ? destroyFrame : mountFrame },
+                  mounted ? "Unmount frame" : "Mount frame"
+                )
+              )
+            ),
+            h(
+              "div",
+              { className: "meta-row" },
+              h("div", { className: "status" }, "Component status: " + status),
+              h("div", { className: "status" }, "Applied token: " + (appliedToken || "none"))
+            )
+          ),
+          h(
+            "div",
+            { className: "layout" },
+            h(
+              "section",
+              { className: "panel" },
+              h(
+                "div",
+                { className: "panel-header" },
+                h("div", { className: "panel-title" }, "React selector component"),
+                h(
+                  "div",
+                  { className: "panel-hint" },
+                  mounted ? "Mounted component with SDK frame" : "Component unmounted"
+                )
+              ),
+              mounted
+                ? h(DocSpaceFileSelectorFrame, {
+                    requestToken: appliedToken,
+                    onStatusChange: setStatus,
+                    onEvent: appendEvent,
+                    onSelection: handleSelection
+                  })
+                : h(
+                    "div",
+                    { className: "empty-state" },
+                    h("div", { className: "empty-title" }, "Frame is unmounted"),
+                    h("div", { className: "empty-text" }, "Click Mount frame to create the React component again.")
+                  )
+            ),
+            h(
+              "section",
+              { className: "panel" },
+              h(
+                "div",
+                { className: "panel-header" },
+                h("div", { className: "panel-title" }, "React state"),
+                h("div", { className: "panel-hint" }, "Selected file and raw event payload")
+              ),
+              h(
+                "div",
+                { className: "state-block" },
+                h("div", { className: "state-line" }, "Selected file ID: ", h("strong", null, selectedFile && selectedFile.id ? String(selectedFile.id) : "-")),
+                h(
+                  "div",
+                  { className: "state-line" },
+                  "Selected file title: ",
+                  h(
+                    "strong",
+                    null,
+                    selectedFile && (selectedFile.title || selectedFile.name || selectedFile.fileTitle || selectedFile.fileName)
+                      ? String(selectedFile.title || selectedFile.name || selectedFile.fileTitle || selectedFile.fileName)
+                      : "-"
+                  )
+                )
+              ),
+              h("textarea", {
+                className: "log half",
+                readOnly: true,
+                value: rawSelection,
+                placeholder: "The raw payload from onSelectCallback will appear here..."
+              }),
+              h(
+                "div",
+                { className: "panel-header panel-subheader" },
+                h("div", { className: "panel-title" }, "Event log"),
+                h("div", { className: "panel-hint" }, "Selector events collected from React state")
+              ),
+              h("textarea", {
+                className: "log half",
+                readOnly: true,
+                value: eventLog,
+                placeholder: "SDK events will appear here..."
+              })
+            )
+          )
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+    </script>
+  </body>
+</html>

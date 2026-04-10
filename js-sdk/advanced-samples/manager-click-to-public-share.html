@@ -1,0 +1,249 @@
+<!--
+Example: File selector to public share
+
+This example demonstrates how to select a file in the DocSpace file selector, create a public share link via backend,
+and open the resulting link.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="File selector to public share" />
+    <meta
+      name="example-description"
+      content="Select a file in the file selector, create a public share link via backend, and open the resulting share link."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>File selector to public share</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-manager-click-to-public-share">
+    <div class="page">
+      <div class="card">
+        <h3 class="title">File selector to public share</h3>
+        <p class="desc">
+          Select a file in the embedded selector, create a public link for it, and open that share link in a new tab.
+        </p>
+
+        <div class="notice">
+          1. Select a file in the left panel. 2. Click <strong>Create public link</strong>. 3. Open the resulting
+          share link.
+        </div>
+
+        <div class="toolbar">
+          <div class="actions">
+            <button id="createLinkBtn" type="button">Create public link</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="hint" id="status">Select a file in the left panel</div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">File selector</div>
+            <div class="panel-hint">Select a file in DocSpace.</div>
+          </div>
+          <iframe id="selector-frame" class="frame" title="File selector frame"></iframe>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Share result</div>
+            <div class="panel-hint" id="selectedHint">No file selected</div>
+          </div>
+
+          <div class="selection-card">
+            <div class="selection-row"><strong>Title:</strong> <span id="selectedFileTitle">-</span></div>
+            <div class="selection-row"><strong>Share link:</strong> <a id="selectedShareLink" href="#" target="_blank" rel="noopener noreferrer">-</a></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const createLinkBtn = document.getElementById("createLinkBtn");
+      const statusEl = document.getElementById("status");
+      const selectedHintEl = document.getElementById("selectedHint");
+      const selectedFileTitleEl = document.getElementById("selectedFileTitle");
+      const selectedShareLinkEl = document.getElementById("selectedShareLink");
+
+      let selectorInstance = null;
+      let selectedItem = null;
+      let lastShareLink = "";
+      const BACKEND_ENDPOINT = window.location.origin + "/api/create-public-share-link";
+
+      function setStatus(value) {
+        statusEl.textContent = value;
+      }
+
+      function updateSelectionCard() {
+        const title =
+          selectedItem && (selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName)
+            ? String(selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName)
+            : "-";
+
+        selectedFileTitleEl.textContent = title;
+        selectedShareLinkEl.textContent = lastShareLink || "-";
+        selectedShareLinkEl.href = lastShareLink || "#";
+        selectedHintEl.textContent = selectedItem && selectedItem.id ? "Selected file is ready for public sharing" : "No file selected";
+      }
+
+      function firstObjectWithId(value) {
+        if (!value) return null;
+
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            const found = firstObjectWithId(item);
+            if (found) return found;
+          }
+          return null;
+        }
+
+        if (typeof value !== "object") return null;
+        if (value.id !== undefined && value.id !== null) return value;
+
+        for (const key of Object.keys(value)) {
+          const found = firstObjectWithId(value[key]);
+          if (found) return found;
+        }
+
+        return null;
+      }
+
+      function firstValueByKeys(source, keys) {
+        if (!source || typeof source !== "object") return "";
+
+        for (const key of keys) {
+          const value = source[key];
+          if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+        }
+
+        for (const key of ["data", "result", "response", "payload", "item"]) {
+          if (source[key] && typeof source[key] === "object") {
+            const nested = firstValueByKeys(source[key], keys);
+            if (nested) return nested;
+          }
+        }
+
+        return "";
+      }
+
+      function destroySelector() {
+        if (selectorInstance && typeof selectorInstance.destroyFrame === "function") {
+          try {
+            selectorInstance.destroyFrame();
+          } catch {}
+        }
+
+        selectorInstance = null;
+      }
+
+      function initSelector() {
+        destroySelector();
+        selectedItem = null;
+        lastShareLink = "";
+        updateSelectionCard();
+        setStatus("Initializing selector...");
+
+        selectorInstance = DocSpace.SDK.initFileSelector({
+          frameId: "selector-frame",
+          width: "100%",
+          height: "640px",
+          theme: "base",
+          events: {
+            onAppReady: () => {
+              setStatus("Selector ready");
+            },
+            onContentReady: () => {
+              setStatus("Selector loaded. Select a file.");
+            },
+            onSelectCallback: (event) => {
+              selectedItem = firstObjectWithId(event);
+              lastShareLink = "";
+              updateSelectionCard();
+              setStatus(selectedItem && selectedItem.id ? "File selected" : "Selection updated");
+            },
+            onCloseCallback: () => {
+              setStatus("Selector closed");
+            },
+            onAppError: () => {
+              setStatus("Selector error");
+            }
+          }
+        });
+      }
+
+      function buildBackendPayload() {
+        if (!selectedItem || !selectedItem.id) {
+          throw new Error("Select a file in the left panel first.");
+        }
+
+        return {
+          fileId: String(selectedItem.id),
+          title: selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName || null,
+          createPrimaryLink: true
+        };
+      }
+
+      async function callBackend(payload) {
+        const response = await fetch(BACKEND_ENDPOINT, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(json?.details || json?.error || "HTTP " + response.status);
+        }
+
+        return json;
+      }
+
+      async function createPublicLink() {
+        setStatus("Creating public link...");
+
+        try {
+          const payload = buildBackendPayload();
+          const response = await callBackend(payload);
+
+          lastShareLink = firstValueByKeys(response, ["shareLink", "url", "link"]);
+          updateSelectionCard();
+          setStatus(lastShareLink ? "Public link created" : "Backend response received");
+        } catch (error) {
+          setStatus("Public link creation failed: " + (error.message || String(error)));
+        }
+      }
+
+      createLinkBtn.addEventListener("click", createPublicLink);
+
+      initSelector();
+    </script>
+  </body>
+</html>

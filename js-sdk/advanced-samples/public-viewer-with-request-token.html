@@ -1,0 +1,294 @@
+<!--
+Example: Public viewer with request token
+
+This example demonstrates a complete flow:
+select a file in the manager, create a public link via backend, inspect shareLink/requestToken, and open the embedded viewer.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- DocSpace.SDK.initViewer (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initviewer)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Public viewer with request token" />
+    <meta
+      name="example-description"
+      content="Select a file in the manager, create a public link via backend, and open the file in viewer mode using requestToken."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Public viewer with request token</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-public-viewer-with-request-token">
+    <div class="page">
+      <div class="card">
+        <h3 class="title">Public viewer with request token</h3>
+        <p class="desc">
+          Select a file in the manager, ask your backend to create a public share link, then open the file in read-only
+          viewer mode using the returned <code>requestToken</code>.
+        </p>
+
+        <div class="grid">
+          <div>
+            <label for="requestTokenOverride">requestToken override</label>
+            <input
+              id="requestTokenOverride"
+              type="text"
+              placeholder="Optional manual token override"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="createLinkBtn" type="button">Create public link</button>
+          <button id="openViewerBtn" type="button" class="btn-secondary">Open viewer</button>
+          <div class="hint" id="status">Click a file in the manager</div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Manager</div>
+            <div class="panel-hint" id="selectionHint">No file selected</div>
+          </div>
+          <iframe id="manager-frame" class="frame" title="Manager frame"></iframe>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Viewer</div>
+            <div class="panel-hint" id="viewerHint">Viewer is waiting for a public link</div>
+          </div>
+          <iframe id="viewer-frame" class="frame" title="Public viewer frame"></iframe>
+        </section>
+      </div>
+
+    </div>
+
+    <script>
+      const requestTokenOverrideEl = document.getElementById("requestTokenOverride");
+      const createLinkBtn = document.getElementById("createLinkBtn");
+      const openViewerBtn = document.getElementById("openViewerBtn");
+      const statusEl = document.getElementById("status");
+      const selectionHintEl = document.getElementById("selectionHint");
+      const viewerHintEl = document.getElementById("viewerHint");
+
+      let managerInstance = null;
+      let viewerInstance = null;
+      let selectedItem = null;
+      let lastShareData = null;
+      const BACKEND_ENDPOINT = window.location.origin + "/api/create-public-share-link";
+
+      function setStatus(value) {
+        statusEl.textContent = value;
+      }
+
+      function firstObjectWithId(value) {
+        if (!value) return null;
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            const found = firstObjectWithId(item);
+            if (found) return found;
+          }
+          return null;
+        }
+        if (typeof value !== "object") return null;
+        if (value.id !== undefined && value.id !== null) return value;
+        for (const key of Object.keys(value)) {
+          const found = firstObjectWithId(value[key]);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      function firstValueByKeys(source, keys) {
+        if (!source || typeof source !== "object") return "";
+        for (const key of keys) {
+          const value = source[key];
+          if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+        }
+        for (const key of ["data", "result", "response", "payload", "item"]) {
+          if (source[key] && typeof source[key] === "object") {
+            const nested = firstValueByKeys(source[key], keys);
+            if (nested) return nested;
+          }
+        }
+        return "";
+      }
+
+      function destroyInstance(instance) {
+        if (!instance || typeof instance.destroyFrame !== "function") return;
+        try {
+          instance.destroyFrame();
+        } catch {}
+      }
+
+      function updateSelectionHint() {
+        if (!selectedItem || !selectedItem.id) {
+          selectionHintEl.textContent = "No file selected";
+          return;
+        }
+        const title = selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName || "";
+        selectionHintEl.textContent = title ? title + " (ID: " + selectedItem.id + ")" : "ID: " + selectedItem.id;
+      }
+
+      function initManager() {
+        destroyInstance(managerInstance);
+        managerInstance = null;
+        selectedItem = null;
+        lastShareData = null;
+        updateSelectionHint();
+        viewerHintEl.textContent = "Viewer is waiting for a public link";
+        setStatus("Initializing manager...");
+
+        managerInstance = DocSpace.SDK.initManager({
+          frameId: "manager-frame",
+          width: "100%",
+          height: "620px",
+          theme: "base",
+          showHeader: true,
+          showMenu: true,
+          events: {
+            onAppReady: () => {
+              setStatus("Manager ready");
+            },
+            onContentReady: () => {
+              setStatus("Content loaded");
+            },
+            onFileManagerClick: (event) => {
+              selectedItem = firstObjectWithId(event);
+              lastShareData = null;
+              updateSelectionHint();
+              setStatus(selectedItem && selectedItem.id ? "File selected" : "Selection updated");
+            },
+            onAppError: (event) => {
+              setStatus("Manager error");
+            }
+          }
+        });
+      }
+
+      function destroyViewer() {
+        destroyInstance(viewerInstance);
+        viewerInstance = null;
+        viewerHintEl.textContent = "Viewer is waiting for a public link";
+      }
+
+      async function callBackend(payload) {
+        const response = await fetch(BACKEND_ENDPOINT, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(json?.details || json?.error || "HTTP " + response.status);
+        }
+
+        return json;
+      }
+
+      async function createPublicLink() {
+        if (!selectedItem || !selectedItem.id) {
+          setStatus("Select a file first");
+          return;
+        }
+
+        const payload = {
+          fileId: String(selectedItem.id),
+          title: selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName || null,
+          createPrimaryLink: true
+        };
+
+        setStatus("Requesting public link...");
+
+        try {
+          const response = await callBackend(payload);
+          const shareLink = firstValueByKeys(response, ["shareLink", "url", "link"]);
+          const requestToken =
+            String(requestTokenOverrideEl.value || "").trim() || firstValueByKeys(response, ["requestToken", "token", "shareToken"]);
+          const fileId = firstValueByKeys(response, ["fileId", "id"]) || String(selectedItem.id);
+
+          lastShareData = {
+            fileId,
+            shareLink,
+            requestToken
+          };
+
+          viewerHintEl.textContent = shareLink || "Public link created";
+          setStatus("Public link created");
+        } catch (error) {
+          setStatus("Failed to create public link: " + (error.message || String(error)));
+        }
+      }
+
+      function openViewer() {
+        if (!lastShareData || !lastShareData.requestToken || !lastShareData.fileId) {
+          setStatus("Create a public link first");
+          return;
+        }
+
+        destroyViewer();
+        setStatus("Opening viewer...");
+
+        viewerInstance = DocSpace.SDK.initViewer({
+          frameId: "viewer-frame",
+          id: lastShareData.fileId,
+          requestToken: lastShareData.requestToken,
+          width: "100%",
+          height: "620px",
+          theme: "base",
+          showHeader: false,
+          showTitle: true,
+          events: {
+            onAppReady: () => {
+              setStatus("Viewer ready");
+            },
+            onContentReady: () => {
+              setStatus("Viewer content loaded");
+            },
+            onNoAccess: (event) => {
+              setStatus("No access");
+            },
+            onNotFound: (event) => {
+              setStatus("Not found");
+            },
+            onAppError: (event) => {
+              setStatus("Viewer error");
+            }
+          }
+        });
+      }
+
+      createLinkBtn.addEventListener("click", createPublicLink);
+      openViewerBtn.addEventListener("click", openViewer);
+
+      initManager();
+      destroyViewer();
+    </script>
+  </body>
+</html>

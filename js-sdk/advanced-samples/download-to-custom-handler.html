@@ -1,0 +1,192 @@
+<!--
+Example: Download to custom handler
+
+This example demonstrates how to intercept file download links from the manager UI.
+Instead of letting DocSpace download a file immediately, the SDK sends the download payload to your application.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+
+    <meta name="example-title" content="Download to custom handler" />
+    <meta
+      name="example-description"
+      content="Intercept file downloads from the manager UI with downloadToEvent and handle the onDownload payload in your own application."
+    />
+    <meta name="example-group" content="advanced" />
+
+    <title>Download to custom handler</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+
+    <script>
+      (function () {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-download-to-custom-handler">
+    <div class="page">
+      <div class="card">
+        <h3 class="title">Download to custom handler</h3>
+        <p class="desc">
+          Open the manager, trigger a file download from the embedded UI, and inspect the intercepted download URL.
+          With <code>downloadToEvent: true</code>, the SDK sends the payload to <code>onDownload</code> instead of
+          starting the browser download automatically.
+        </p>
+
+        <p class="tip">
+          Use this when your application needs to control the download flow itself: for example, to log downloads, show
+          a custom confirmation step, or forward the URL to your own backend.
+        </p>
+
+        <div class="row">
+          <label for="status">Status</label>
+          <div id="status" class="status">Ready</div>
+        </div>
+
+        <div class="row">
+          <button id="initBtn" type="button">Init manager</button>
+          <button id="copyBtn" type="button" class="btn-secondary">Copy URL</button>
+          <button id="openBtn" type="button" class="btn-secondary">Open link</button>
+        </div>
+
+        <p class="tip">
+          How to test it: after the manager loads, open a file menu or toolbar action in DocSpace and click
+          <strong>Download</strong>. The URL will appear here instead of downloading immediately.
+        </p>
+
+        <div class="result">
+          <div class="result-title">Download URL</div>
+          <textarea id="downloadUrl" readonly placeholder="Download link from onDownload will appear here..."></textarea>
+        </div>
+      </div>
+
+      <div class="frame-wrap">
+        <iframe id="ds-frame" class="frame" title="Download to custom handler frame"></iframe>
+      </div>
+    </div>
+
+    <script>
+      const statusEl = document.getElementById("status");
+      const downloadUrlEl = document.getElementById("downloadUrl");
+      const initBtn = document.getElementById("initBtn");
+      const copyBtn = document.getElementById("copyBtn");
+      const openBtn = document.getElementById("openBtn");
+
+      let managerInstance = null;
+      let lastDownloadUrl = "";
+
+      function setStatus(value) {
+        statusEl.textContent = value;
+      }
+
+      function setDownloadUrl(value) {
+        lastDownloadUrl = String(value || "");
+        downloadUrlEl.value = lastDownloadUrl;
+      }
+
+      function extractUrl(payload) {
+        if (!payload) return "";
+        if (typeof payload === "string") return payload;
+
+        if (typeof payload.url === "string") return payload.url;
+        if (typeof payload.downloadUrl === "string") return payload.downloadUrl;
+        if (typeof payload.link === "string") return payload.link;
+
+        if (payload.data && typeof payload.data === "object") {
+          if (typeof payload.data.url === "string") return payload.data.url;
+          if (typeof payload.data.downloadUrl === "string") return payload.data.downloadUrl;
+          if (typeof payload.data.link === "string") return payload.data.link;
+        }
+
+        return "";
+      }
+
+      function destroyFrame() {
+        if (managerInstance && typeof managerInstance.destroyFrame === "function") {
+          try {
+            managerInstance.destroyFrame();
+          } catch {}
+        }
+
+        managerInstance = null;
+        setStatus("Destroyed");
+      }
+
+      function initManager() {
+        destroyFrame();
+        setDownloadUrl("");
+        setStatus("Initializing manager...");
+
+        managerInstance = DocSpace.SDK.initManager({
+          frameId: "ds-frame",
+          width: "100%",
+          height: "620px",
+          theme: "base",
+          showHeader: true,
+          showMenu: true,
+          downloadToEvent: true,
+          events: {
+            onAppReady: () => {
+              setStatus("Manager ready");
+            },
+            onContentReady: () => {
+              setStatus("Manager loaded. Click Download inside DocSpace.");
+            },
+            onDownload: (event) => {
+              const url = extractUrl(event);
+              setDownloadUrl(url);
+              setStatus(url ? "Download intercepted" : "Download event received");
+            },
+            onAppError: (event) => {
+              setStatus("App error");
+            },
+            onNoAccess: (event) => {
+              setStatus("No access");
+            }
+          }
+        });
+      }
+
+      async function copyUrl() {
+        if (!lastDownloadUrl) {
+          setStatus("Nothing to copy");
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(lastDownloadUrl);
+          setStatus("URL copied");
+        } catch {
+          setStatus("Clipboard unavailable");
+        }
+      }
+
+      function openUrl() {
+        if (!lastDownloadUrl) {
+          setStatus("No download URL");
+          return;
+        }
+
+        window.open(lastDownloadUrl, "_blank", "noopener,noreferrer");
+        setStatus("Download link opened");
+      }
+
+      initBtn.addEventListener("click", initManager);
+      copyBtn.addEventListener("click", copyUrl);
+      openBtn.addEventListener("click", openUrl);
+
+      setDownloadUrl("");
+    </script>
+  </body>
+</html>
