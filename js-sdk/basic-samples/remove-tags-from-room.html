@@ -13,18 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Remove tags from room" />
     <meta name="example-description" content="Remove tags from a selected room." />
     <meta name="example-group" content="basic" />
-
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-
     <title>Remove tags from room</title>
-  
-    <!-- App styles -->
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -33,16 +26,16 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-remove-tags-from-room">
-    <div class="wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="top-bar">
+      <button class="btn" id="btn" type="button">Remove tags</button>
+      <span class="status" id="status"></span>
     </div>
 
-    <div class="bar">
-      <button id="btn">Remove tags</button>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

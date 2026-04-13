@@ -13,17 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Open File in ONLYOFFICE Editors" />
     <meta name="example-description" content="Select a file in the selector and open it in ONLYOFFICE editors." />
     <meta name="example-group" content="advanced" />
-
     <title>Open File in ONLYOFFICE Editors</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -32,17 +26,16 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-open-file-in-onlyoffice-editors">
-    <div class="wrap">
-      <iframe id="ds-frame" class="frame"></iframe>
+    <div class="top-bar">
+      <button id="pick" class="btn" type="button">Pick File</button>
+      <span class="status" id="hint">Select a file to open it</span>
     </div>
 
-    <div class="bar">
-      <button id="pick" type="button">Pick File</button>
-      <div class="hint" id="hint">Select a file to open it</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

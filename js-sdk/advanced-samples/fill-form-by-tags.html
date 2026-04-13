@@ -57,23 +57,25 @@ Using methods:
         </div>
       </div>
 
-      <label for="map">Fill map (JSON object: tag/key -> value)</label>
-      <textarea
-        id="map"
-        placeholder='{"FirstName":"Alice","Agree":true,"BirthDate":"1998-03-01","Department":"Sales","Avatar":"https://.../avatar.png"}'
-      ></textarea>
+      <div class="field">
+        <label for="map">Fill map (JSON object: tag/key -> value)</label>
+        <textarea
+          id="map"
+          placeholder='{"FirstName":"Alice","Agree":true,"BirthDate":"1998-03-01","Department":"Sales","Avatar":"https://.../avatar.png"}'
+        ></textarea>
+      </div>
       <div class="muted" style="margin-top: 8px;">
         Use the <b>FormKey</b> of the PDF form field (see console warnings for missing keys).
       </div>
     </div>
 
     <div class="bar">
-      <button id="pick" type="button">Pick document</button>
-      <button id="fill" type="button" disabled>Fill &amp; Save</button>
+      <button id="pick" type="button" class="btn">Pick document</button>
+      <button id="fill" type="button" class="btn" disabled>Fill &amp; Save</button>
       <button id="clear" type="button" class="btn-secondary" disabled>Clear all fields</button>
       <button id="toggleHidden" type="button" class="btn-secondary">Show editor</button>
       <button id="reset" type="button" class="btn-secondary">Reset</button>
-      <div class="hint" id="hint">Select a fillable .pdf</div>
+      <span class="status" id="hint">Select a fillable .pdf</span>
     </div>
 
     <script>

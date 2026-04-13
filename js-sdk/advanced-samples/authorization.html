@@ -12,20 +12,14 @@ Using methods:
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <base href="{PORTAL_SRC}/" />
-  <meta charset="UTF-8" />
-
-  <meta name="example-title" content="Authorization" />
-  <meta name="example-description" content="Log in to DocSpace using email + password (hashed via SDK)." />
-  <meta name="example-group" content="advanced" />
-
-  <title>Authorization</title>
-  <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
-
-  
-
-    <!-- App styles -->
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+    <meta name="example-title" content="Authorization" />
+    <meta name="example-description" content="Log in to DocSpace using email + password (hashed via SDK)." />
+    <meta name="example-group" content="advanced" />
+    <title>Authorization</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -34,81 +28,86 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
+  </head>
 
-</head>
-
-<body class="ex-authorization">
-  <div class="page">
-    <div class="card">
-      <h3 style="margin:0 0 10px;">Authorization</h3>
-      <div class="hint">Enter credentials, the SDK will hash the password and perform login.</div>
-
-      <label for="login">Email</label>
-      <input id="login" type="text" placeholder="user@example.com" style="width:100%;" />
-
-      <label for="password">Password</label>
-      <input id="password" type="password" placeholder="••••••••" style="width:100%;" />
-
-      <div class="row" style="margin-top:12px;">
-        <button id="btn" class="btn" type="button">Login</button>
-        <div class="hint" id="status">Waiting…</div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <div class="hint">Result</div>
-        <textarea id="out" readonly placeholder="SDK response will appear here…"></textarea>
+  <body class="ex-authorization">
+    <div class="page">
+      <div class="card">
+        <div class="field">
+          <label for="loginInput">Email</label>
+          <input id="loginInput" type="email" placeholder="user@example.com" />
+        </div>
+        <div class="field">
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" placeholder="••••••••" />
+        </div>
+        <div class="actions">
+          <button class="btn" id="btn" type="button">Login</button>
+          <span class="status" id="status">Waiting…</span>
+        </div>
+        <div class="field">
+          <label>Result</label>
+          <textarea class="output" id="out" readonly placeholder="SDK response will appear here…"></textarea>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="ds-frame" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;"></div>
+    <div style="display:none"><iframe id="ds-frame"></iframe></div>
 
-  <script>
-    const btn = document.getElementById("btn");
-    const status = document.getElementById("status");
-    const out = document.getElementById("out");
+    <script>
+      const btn = document.getElementById("btn");
+      const status = document.getElementById("status");
+      const out = document.getElementById("out");
 
-    function setOut(v){
-      out.value = typeof v === "string" ? v : JSON.stringify(v, null, 2);
-    }
-
-    const system = DocSpace.SDK.initSystem({
-      frameId: "ds-frame",
-      theme: "base",
-      width: "0px",
-      height: "0px",
-      events: {
-        onAppReady: () => status.textContent = "Ready",
-        onAppError: (e) => {
-          status.textContent = "Error";
-          setOut(e && (e.message || e) ? String(e.message || e) : "SDK error");
+      function setOut(v) {
+        try {
+          out.value = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+        } catch {
+          out.value = String(v);
         }
       }
-    });
 
-    btn.onclick = async () => {
-      const login = document.getElementById("login").value.trim();
-      const password = document.getElementById("password").value;
+      const system = DocSpace.SDK.initSystem({
+        frameId: "ds-frame",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            status.textContent = "Ready";
+          },
+          onAppError: (e) => {
+            status.className = "status err";
+            status.textContent = "SDK error";
+            setOut(e?.message || String(e));
+          },
+        },
+      });
 
-      if (!login || !password) return;
+      btn.onclick = async () => {
+        const login = document.getElementById("loginInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
 
-      btn.disabled = true;
-      status.textContent = "Logging in…";
-      setOut("");
+        if (!login || !password) return;
 
-      try {
-        const hs = await system.getHashSettings();
-        const ph = await system.createHash(password, hs);
-        const res = await system.login(login, ph);
-        status.textContent = "Done";
-        setOut(res || { ok: true });
-      } catch (e) {
-        status.textContent = "Error";
-        setOut(e && (e.message || e) ? String(e.message || e) : "Login failed");
-      } finally {
-        btn.disabled = false;
-      }
-    };
-  </script>
-</body>
+        btn.disabled = true;
+        status.className = "status";
+        status.textContent = "Logging in…";
+        setOut("");
+
+        try {
+          const hs = await system.getHashSettings();
+          const ph = await system.createHash(password, hs);
+          const res = await system.login(login, ph);
+          status.className = "status ok";
+          status.textContent = "Done";
+          setOut(res || { ok: true });
+        } catch (e) {
+          status.className = "status err";
+          status.textContent = "Error";
+          setOut(e?.message || String(e));
+        } finally {
+          btn.disabled = false;
+        }
+      };
+    </script>
+  </body>
 </html>

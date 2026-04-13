@@ -13,17 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="File Manager with Task Attachments" />
     <meta name="example-description" content="Attach DocSpace files to tasks using a modal file selector." />
     <meta name="example-group" content="advanced" />
-
     <title>Task Attachments</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -32,13 +26,12 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-file-manager-task-attachments">
     <div class="page">
       <div class="card">
-        <h3 style="margin:0 0 10px;">Tasks</h3>
+        <h3>Tasks</h3>
         <table>
           <thead>
             <tr><th>Task</th><th>Description</th><th>Priority</th></tr>
@@ -59,9 +52,9 @@ Using methods:
       </div>
 
       <div class="card">
-        <h3 style="margin:0 0 10px;">Attachments</h3>
-        <ul id="attachmentsList" style="list-style:none; padding:0; margin:0;"></ul>
-        <button id="attachButton" disabled>Attach file</button>
+        <h3>Attachments</h3>
+        <ul id="attachmentsList"></ul>
+        <button class="btn" id="attachButton" type="button" disabled>Attach file</button>
       </div>
     </div>
 

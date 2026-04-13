@@ -43,11 +43,11 @@ Using methods:
         <p class="desc">Each tab is a separate DocSpace Manager instance (its own SDK frame).</p>
 
         <div class="grid">
-          <div>
+          <div class="field">
             <label for="login">User email (optional)</label>
             <input id="login" type="text" placeholder="user@example.com" autocomplete="off" />
           </div>
-          <div>
+          <div class="field">
             <label for="passwordHash">Password hash (optional)</label>
             <input id="passwordHash" type="text" placeholder="PASTE_HASH_HERE" autocomplete="off" />
           </div>
@@ -59,10 +59,10 @@ Using methods:
         </div>
 
         <div class="row">
-          <button id="newTab" type="button" disabled>+ New tab</button>
+          <button id="newTab" type="button" class="btn" disabled>+ New tab</button>
           <button id="loginAll" type="button" class="btn-secondary" disabled>Login all</button>
           <button id="closeAll" type="button" class="btn-secondary" disabled>Close all</button>
-          <div class="hint" id="status">Preparing SDK…</div>
+          <span class="status" id="status">Preparing SDK…</span>
         </div>
       </div>
     </div>

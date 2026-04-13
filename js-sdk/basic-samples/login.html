@@ -13,18 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Login" />
     <meta name="example-description" content="Log in to DocSpace using hashed password." />
     <meta name="example-group" content="basic" />
-
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-
     <title>Login</title>
-  
-    <!-- App styles -->
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -33,17 +26,19 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-login">
-    <div class="wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="page">
+      <div class="card">
+        <div class="actions">
+          <button class="btn" id="btn" type="button">Login</button>
+          <span class="status" id="status">Ready</span>
+        </div>
+      </div>
     </div>
 
-    <div class="bar">
-      <button id="btn">Login</button>
-    </div>
+    <iframe id="ds-frame" class="hidden-frame"></iframe>
 
     <script>
       const btn = document.getElementById("btn");

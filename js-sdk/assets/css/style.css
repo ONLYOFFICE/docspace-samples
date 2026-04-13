@@ -1,200 +1,209 @@
-/* ========== advanced-samples/authorization.html ========== */
-.ex-authorization body {
+/* ========== Shared Base Styles ========== */
+/* These styles apply globally as defaults. Per-example scoped CSS (.ex-foo .class)
+   has higher specificity and will override these where needed. */
+
+body {
   margin: 0;
-  background: #f6f6f6;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #f6f6f6;
   color: #111;
 }
 
-.ex-authorization .page {
+.page {
   max-width: 980px;
   margin: 0 auto;
   padding: 16px;
 }
 
-.ex-authorization .card {
+.card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  padding: 20px;
 }
 
-.ex-authorization .row {
+/* Field: label stacked above input/select/textarea */
+.field {
   display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
-.ex-authorization .hint {
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field label {
   font-size: 13px;
   color: #6b7280;
+  font-weight: 500;
 }
 
-.ex-authorization label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-authorization input {
-  height: 38px;
-  border-radius: 10px;
+.field input,
+.field select {
+  height: 36px;
   border: 1px solid #d1d5db;
+  border-radius: 8px;
   padding: 0 12px;
   font-size: 14px;
+  font-family: inherit;
   outline: none;
-  box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.ex-authorization input:focus {
+.field input:focus,
+.field select:focus {
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.12);
 }
 
-.ex-authorization .btn {
-  height: 38px;
-  padding: 0 14px;
+.field textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.5;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.field textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.12);
+}
+
+.field textarea.output {
+  min-height: 120px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  background: #f9fafb;
+  line-height: 1.4;
+}
+
+/* Actions row: buttons + status on one line */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+/* Buttons */
+.btn {
+  height: 36px;
+  padding: 0 16px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   background: #007bff;
   color: #fff;
   font-size: 14px;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
 
-.ex-authorization .btn:disabled {
-  opacity: 0.6;
+.btn:hover {
+  background: #0069d9;
+}
+
+.btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.ex-authorization .btn.secondary {
+.btn.secondary {
   background: #eef2ff;
   color: #1f3a8a;
-  border: 1px solid rgba(31, 58, 138, 0.15);
+  border: 1px solid rgba(31, 58, 138, 0.2);
 }
 
-.ex-authorization .frameWrap {
+.btn.secondary:hover {
+  background: #e0e7ff;
+}
+
+/* Status indicator */
+.status {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.status.ok {
+  color: #16a34a;
+}
+
+.status.err {
+  color: #dc2626;
+}
+
+/* Visible iframe wrapper */
+.frame-wrap {
   display: flex;
   justify-content: center;
-  padding: 12px 0;
+  padding: 0 16px 16px;
 }
 
-.ex-authorization .frame {
-  width: 900px;
+.frame-wrap iframe {
   max-width: 100%;
-  height: 520px;
   border: none;
   border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
   background: #fff;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
 }
 
-.ex-authorization dialog {
-  width: 920px;
-  max-width: calc(100% - 32px);
-  height: 540px;
-  border: none;
-  border-radius: 14px;
-  padding: 0;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-.ex-authorization .modalTop {
+/* Top bar: controls pinned to top of page */
+.top-bar {
   display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.top-bar .field {
+  margin-bottom: 0;
+}
+
+/* Hidden SDK frame (positioned off-screen) */
+.hidden-frame {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  border: none;
+}
+
+
+/* ========== advanced-samples/authorization.html ========== */
+body.ex-authorization {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-  background: #fff;
-  border-radius: 14px 14px 0 0;
+  justify-content: center;
 }
 
-.ex-authorization .modalTop strong {
-  font-size: 14px;
-}
-
-.ex-authorization .close {
-  height: 32px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 10px;
-  background: #f3f4f6;
-  color: #111;
-  cursor: pointer;
-}
-
-.ex-authorization .modalFrame {
+.ex-authorization .page {
+  max-width: 480px;
   width: 100%;
-  height: calc(540px - 53px);
-  border: none;
-}
-
-.ex-authorization textarea {
-  width: 100%;
-  min-height: 120px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 10px;
-  box-sizing: border-box;
-  resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  margin: 0;
 }
 
 
 /* ========== advanced-samples/basic-task-create.html ========== */
-.ex-basic-task-create body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .ex-basic-task-create .page {
   max-width: 900px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-basic-task-create .card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  padding: 14px;
-}
-
-.ex-basic-task-create label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-basic-task-create input,
-.ex-basic-task-create textarea {
-  width: 100%;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-basic-task-create input:focus,
-.ex-basic-task-create textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
-.ex-basic-task-create textarea {
-  min-height: 90px;
-  resize: vertical;
 }
 
 .ex-basic-task-create .row {
@@ -203,33 +212,6 @@
   align-items: center;
   margin-top: 12px;
   flex-wrap: wrap;
-}
-
-.ex-basic-task-create .btn {
-  height: 38px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-}
-
-.ex-basic-task-create .btn.secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-basic-task-create .btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.ex-basic-task-create .hint {
-  font-size: 13px;
-  color: #6b7280;
 }
 
 .ex-basic-task-create dialog#modal {
@@ -255,13 +237,6 @@
 
 
 /* ========== advanced-samples/create-file-in-selected-folder.html ========== */
-.ex-create-file-in-selected-folder body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-create-file-in-selected-folder .wrap {
   display: flex;
   justify-content: center;
@@ -336,13 +311,6 @@
 
 
 /* ========== advanced-samples/customize-editors.html ========== */
-.ex-customize-editors body{
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-customize-editors .wrap{
   display: flex;
   justify-content: center;
@@ -418,16 +386,8 @@
 
 
 /* ========== advanced-samples/file-manager-task-attachments.html ========== */
-.ex-file-manager-task-attachments body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  background: #f6f6f6;
-}
-
 .ex-file-manager-task-attachments .page {
   max-width: 1100px;
-  margin: 0 auto;
-  padding: 16px;
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 12px;
@@ -437,13 +397,6 @@
   .ex-file-manager-task-attachments .page {
     grid-template-columns: 1fr;
   }
-}
-
-.ex-file-manager-task-attachments .card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  padding: 14px;
 }
 
 .ex-file-manager-task-attachments table {
@@ -533,16 +486,8 @@
 
 
 /* ========== advanced-samples/freelance-platform-docspace.html ========== */
-.ex-freelance-platform-docspace body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .ex-freelance-platform-docspace .page {
   max-width: 1100px;
-  margin: 0 auto;
-  padding: 16px;
   display: grid;
   grid-template-columns: 360px 1fr;
   gap: 12px;
@@ -555,13 +500,6 @@
   }
 }
 
-.ex-freelance-platform-docspace .card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  padding: 14px;
-}
-
 .ex-freelance-platform-docspace .frame {
   width: 100%;
   height: 520px;
@@ -569,29 +507,6 @@
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-}
-
-.ex-freelance-platform-docspace label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-freelance-platform-docspace input {
-  width: 100%;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 0 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.ex-freelance-platform-docspace input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-freelance-platform-docspace button {
@@ -604,11 +519,6 @@
   background: #007bff;
   color: #fff;
   font-size: 14px;
-}
-
-.ex-freelance-platform-docspace button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .ex-freelance-platform-docspace .hint {
@@ -639,23 +549,8 @@
 
 
 /* ========== advanced-samples/insert-rooms-and-files-into-chat.html ========== */
-.ex-insert-rooms-and-files-into-chat body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .ex-insert-rooms-and-files-into-chat .page {
   max-width: 900px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-insert-rooms-and-files-into-chat .card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  padding: 14px;
 }
 
 .ex-insert-rooms-and-files-into-chat .hint {
@@ -701,22 +596,6 @@
   outline: none;
 }
 
-.ex-insert-rooms-and-files-into-chat .input input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
-.ex-insert-rooms-and-files-into-chat .btn {
-  height: 38px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-}
-
 .ex-insert-rooms-and-files-into-chat dialog#modal {
   width: 920px;
   max-width: calc(100% - 32px);
@@ -735,13 +614,6 @@
 
 
 /* ========== advanced-samples/open-file-in-onlyoffice-editors.html ========== */
-.ex-open-file-in-onlyoffice-editors body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-open-file-in-onlyoffice-editors .wrap {
   display: flex;
   justify-content: center;
@@ -757,15 +629,6 @@
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-}
-
-.ex-open-file-in-onlyoffice-editors .hidden-frame {
-  position: fixed;
-  left: -9999px;
-  top: -9999px;
-  width: 0;
-  height: 0;
-  border: none;
 }
 
 .ex-open-file-in-onlyoffice-editors .bar {
@@ -850,13 +713,6 @@
 
 
 /* ========== advanced-samples/open-document-for-filling.html ========== */
-.ex-open-document-for-filling body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-open-document-for-filling .wrap {
   display: flex;
   justify-content: center;
@@ -956,24 +812,8 @@
 
 
 /* ========== advanced-samples/public-viewer-with-request-token.html ========== */
-.ex-public-viewer-with-request-token body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-public-viewer-with-request-token .page {
   max-width: 1380px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-public-viewer-with-request-token .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
 }
 
 .ex-public-viewer-with-request-token .title {
@@ -1020,30 +860,12 @@
   color: #374151;
 }
 
-.ex-public-viewer-with-request-token input,
-.ex-public-viewer-with-request-token textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
 .ex-public-viewer-with-request-token .mock {
   min-height: 110px;
   resize: vertical;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   line-height: 1.45;
-}
-
-.ex-public-viewer-with-request-token input:focus,
-.ex-public-viewer-with-request-token textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-public-viewer-with-request-token .row {
@@ -1177,26 +999,6 @@
 
 
 /* ========== advanced-samples/sdk-events-playground.html ========== */
-.ex-sdk-events-playground body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
-.ex-sdk-events-playground .page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-sdk-events-playground .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
-}
-
 .ex-sdk-events-playground .title {
   font-size: 18px;
   font-weight: 700;
@@ -1220,34 +1022,6 @@
   .ex-sdk-events-playground .grid {
     grid-template-columns: 1fr;
   }
-}
-
-.ex-sdk-events-playground label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-sdk-events-playground input,
-.ex-sdk-events-playground select,
-.ex-sdk-events-playground textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-sdk-events-playground input:focus,
-.ex-sdk-events-playground select:focus,
-.ex-sdk-events-playground textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-sdk-events-playground .row {
@@ -1282,11 +1056,6 @@
   border: 1px solid rgba(31, 58, 138, 0.15);
 }
 
-.ex-sdk-events-playground .hint {
-  font-size: 12px;
-  color: #6b7280;
-}
-
 .ex-sdk-events-playground .result {
   margin-top: 14px;
 }
@@ -1319,34 +1088,10 @@
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
 }
 
-.ex-open-document-for-filling label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
 .ex-open-document-for-filling .linkRow {
   display: flex;
   gap: 10px;
   align-items: center;
-}
-
-.ex-open-document-for-filling input {
-  width: 100%;
-  height: 34px;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.ex-open-document-for-filling input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-open-document-for-filling .muted {
@@ -1362,29 +1107,16 @@
 }
 
 .ex-open-document-for-filling textarea {
-  width: 100%;
   min-height: 220px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
   resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 
 /* ========== advanced-samples/execute-in-hidden-editor.html ========== */
-.ex-execute-in-hidden-editor body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-execute-in-hidden-editor .wrap {
   display: flex;
   justify-content: center;
@@ -1504,80 +1236,23 @@
   word-break: break-word;
 }
 
-.ex-execute-in-hidden-editor label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-execute-in-hidden-editor input,
-.ex-execute-in-hidden-editor select {
-  width: 100%;
-  height: 34px;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.ex-execute-in-hidden-editor input:focus,
-.ex-execute-in-hidden-editor select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-execute-in-hidden-editor .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-.ex-execute-in-hidden-editor .muted {
-  font-size: 12px;
-  color: #6b7280;
-}
-
 .ex-execute-in-hidden-editor textarea {
-  width: 100%;
   min-height: 220px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
   resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 
 /* ========== advanced-samples/dynamic-sdk-loader.html ========== */
-.ex-dynamic-sdk-loader body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
-.ex-dynamic-sdk-loader .page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-dynamic-sdk-loader .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
-}
-
 .ex-dynamic-sdk-loader .title {
   font-size: 18px;
   font-weight: 600;
@@ -1595,31 +1270,6 @@
   grid-template-columns: 1fr 220px;
   gap: 10px;
   align-items: end;
-}
-
-.ex-dynamic-sdk-loader label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-dynamic-sdk-loader input,
-.ex-dynamic-sdk-loader select {
-  width: 100%;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 0 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.ex-dynamic-sdk-loader input:focus,
-.ex-dynamic-sdk-loader select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-dynamic-sdk-loader .row {
@@ -1652,12 +1302,6 @@
   border: 1px solid rgba(31, 58, 138, 0.15) !important;
 }
 
-.ex-dynamic-sdk-loader .hint,
-.ex-dynamic-sdk-loader .muted {
-  font-size: 13px;
-  color: #6b7280;
-}
-
 .ex-dynamic-sdk-loader .wrap {
   display: flex;
   justify-content: center;
@@ -1677,26 +1321,6 @@
 
 
 /* ========== advanced-samples/get-context.html ========== */
-.ex-get-sdk-context body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
-.ex-get-sdk-context .page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-get-sdk-context .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
-}
-
 .ex-get-sdk-context .title {
   font-size: 18px;
   font-weight: 600;
@@ -1733,12 +1357,6 @@
   border: 1px solid rgba(31, 58, 138, 0.15) !important;
 }
 
-.ex-get-sdk-context .hint,
-.ex-get-sdk-context .muted {
-  font-size: 13px;
-  color: #6b7280;
-}
-
 .ex-get-sdk-context .notice {
   margin-top: 12px;
   padding: 10px 12px;
@@ -1764,13 +1382,6 @@
 
 
 /* ========== advanced-samples/fill-form-by-tags.html ========== */
-.ex-fill-form-by-tags body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-fill-form-by-tags .wrap {
   display: flex;
   justify-content: center;
@@ -1890,67 +1501,23 @@
   word-break: break-word;
 }
 
-.ex-fill-form-by-tags label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-fill-form-by-tags input,
-.ex-fill-form-by-tags select {
-  width: 100%;
-  height: 34px;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.ex-fill-form-by-tags input:focus,
-.ex-fill-form-by-tags select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-fill-form-by-tags .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-.ex-fill-form-by-tags .muted {
-  font-size: 12px;
-  color: #6b7280;
-}
-
 .ex-fill-form-by-tags textarea {
-  width: 100%;
   min-height: 240px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
   resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 
 /* ========== advanced-samples/batch-fill-forms.html ========== */
-body.ex-batch-fill-forms {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-batch-fill-forms .wrap {
   display: flex;
   justify-content: center;
@@ -2001,13 +1568,6 @@ body.ex-batch-fill-forms {
   box-sizing: border-box;
 }
 
-.ex-batch-fill-forms .row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 .ex-batch-fill-forms .top-row {
   margin-bottom: 10px;
 }
@@ -2016,13 +1576,6 @@ body.ex-batch-fill-forms {
   font-size: 13px;
   color: #6b7280;
   white-space: nowrap;
-}
-
-.ex-batch-fill-forms label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
 }
 
 .ex-batch-fill-forms input[type="text"] {
@@ -2043,17 +1596,11 @@ body.ex-batch-fill-forms {
 }
 
 .ex-batch-fill-forms textarea {
-  width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
   resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .ex-batch-fill-forms textarea#map {
@@ -2062,11 +1609,6 @@ body.ex-batch-fill-forms {
 
 .ex-batch-fill-forms textarea#log {
   min-height: 340px;
-}
-
-.ex-batch-fill-forms .muted {
-  font-size: 12px;
-  color: #6b7280;
 }
 
 .ex-batch-fill-forms .map-note {
@@ -2189,13 +1731,6 @@ body.ex-batch-fill-forms {
 }
 
 /* ========== advanced-samples/batch-fill-from-template-pdf.html ========== */
-body.ex-batch-fill-from-template-pdf {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-batch-fill-from-template-pdf .wrap {
   display: flex;
   justify-content: center;
@@ -2257,47 +1792,6 @@ body.ex-batch-fill-from-template-pdf {
   word-break: break-word;
 }
 
-.ex-batch-fill-from-template-pdf label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-batch-fill-from-template-pdf input {
-  width: 100%;
-  height: 34px;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.ex-batch-fill-from-template-pdf input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
-.ex-batch-fill-from-template-pdf select {
-  width: 100%;
-  height: 34px;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.ex-batch-fill-from-template-pdf select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-batch-fill-from-template-pdf .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2309,41 +1803,10 @@ body.ex-batch-fill-from-template-pdf {
   color: #6b7280;
 }
 
-.ex-batch-fill-from-template-pdf button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 9px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.ex-batch-fill-from-template-pdf button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .ex-batch-fill-from-template-pdf .btn-secondary {
   background: #eef2ff !important;
   color: #1f3a8a !important;
   border: 1px solid rgba(31, 58, 138, 0.15) !important;
-}
-
-.ex-batch-fill-from-template-pdf textarea {
-  width: 100%;
-  min-height: 240px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-  resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
 }
 
 .ex-batch-fill-from-template-pdf .cols {
@@ -2391,13 +1854,6 @@ body.ex-batch-fill-from-template-pdf {
 }
 
 /* ========== advanced-samples/web-form-to-pdf.html ========== */
-body.ex-web-form-to-pdf {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-web-form-to-pdf code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
@@ -2579,28 +2035,6 @@ body.ex-web-form-to-pdf {
   margin-top: 10px;
 }
 
-.ex-web-form-to-pdf button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 9px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.ex-web-form-to-pdf button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.ex-web-form-to-pdf .btn-secondary {
-  background: #eef2ff !important;
-  color: #1f3a8a !important;
-  border: 1px solid rgba(31, 58, 138, 0.15) !important;
-}
-
 .ex-web-form-to-pdf .wf-run {
   display: grid;
   grid-template-columns: auto auto 1fr;
@@ -2709,12 +2143,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/project-manager-folder-integration.html ========== */
-.ex-project-manager-folder-integration body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .ex-project-manager-folder-integration .page {
   max-width: 1100px;
   margin: 0 auto;
@@ -2731,13 +2159,6 @@ body.ex-web-form-to-pdf {
   }
 }
 
-.ex-project-manager-folder-integration .card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  padding: 14px;
-}
-
 .ex-project-manager-folder-integration .frame {
   width: 100%;
   height: 520px;
@@ -2747,75 +2168,12 @@ body.ex-web-form-to-pdf {
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
 }
 
-.ex-project-manager-folder-integration label {
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-project-manager-folder-integration input {
-  width: 100%;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 0 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.ex-project-manager-folder-integration input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
-.ex-project-manager-folder-integration button {
-  margin-top: 12px;
-  height: 38px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-}
-
-.ex-project-manager-folder-integration button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .ex-project-manager-folder-integration .hint {
-  font-size: 13px;
-  color: #6b7280;
   margin-top: 10px;
-}
-
-.ex-project-manager-folder-integration textarea {
-  width: 100%;
-  min-height: 140px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-  resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
 }
 
 
 /* ========== advanced-samples/room-creation-with-folder-structure.html ========== */
-.ex-room-creation-with-folder-structure body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
 
 .ex-room-creation-with-folder-structure .wrap {
   display: flex;
@@ -2892,8 +2250,6 @@ body.ex-web-form-to-pdf {
 }
 
 .ex-room-creation-with-folder-structure .hint {
-  font-size: 13px;
-  color: #6b7280;
   white-space: nowrap;
 }
 
@@ -2908,29 +2264,8 @@ body.ex-web-form-to-pdf {
   box-sizing: border-box;
 }
 
-.ex-room-creation-with-folder-structure textarea {
-  width: 100%;
-  min-height: 220px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-  resize: vertical;
-  background: #fff;
-  font-size: 12px;
-  line-height: 1.4;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
-}
-
 
 /* ========== advanced-samples/task-file-create.html ========== */
-.ex-task-file-create body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
 
 .ex-task-file-create .wrap {
   display: flex;
@@ -2998,31 +2333,15 @@ body.ex-web-form-to-pdf {
 }
 
 .ex-task-file-create .hint {
-  font-size: 13px;
-  color: #6b7280;
   min-width: 130px;
 }
 
 
 /* ========== advanced-samples/task-room-selector.html ========== */
-.ex-task-room-selector body{
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
 
 .ex-task-room-selector .page{
   max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-.ex-task-room-selector .card{
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(0,0,0,.08);
   padding: 16px;
   box-sizing: border-box;
 }
@@ -3050,8 +2369,6 @@ body.ex-web-form-to-pdf {
 
 .ex-task-room-selector .hint{
   margin-top: 10px;
-  font-size: 13px;
-  color: #6b7280;
 }
 
 .ex-task-room-selector .table{
@@ -3080,53 +2397,6 @@ body.ex-web-form-to-pdf {
 
 .ex-task-room-selector tr:last-child td{
   border-bottom: none;
-}
-
-.ex-task-room-selector label{
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
-.ex-task-room-selector input{
-  width: 100%;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 0 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-task-room-selector input:focus{
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0,123,255,.15);
-}
-
-.ex-task-room-selector .btn{
-  height: 38px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.ex-task-room-selector .btn:disabled{
-  opacity: .6;
-  cursor: not-allowed;
-}
-
-.ex-task-room-selector .btn.secondary{
-  background: #eef2ff;
-  color: #1f3a8a;
-  border: 1px solid rgba(31,58,138,.15);
 }
 
 .ex-task-room-selector .modal{
@@ -3218,12 +2488,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/two-factor-authentication.html ========== */
-.ex-two-factor-authentication body{
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
 
 /* Page layout: vertical, centered */
 .ex-two-factor-authentication .page{
@@ -3262,58 +2526,14 @@ body.ex-web-form-to-pdf {
   line-height: 1.45;
 }
 
-/* Form */
-.ex-two-factor-authentication label{
-  display: block;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 10px 0 6px;
-}
-
 .ex-two-factor-authentication .row{
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
-.ex-two-factor-authentication input{
-  flex: 1;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 0 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-two-factor-authentication input:focus{
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0,123,255,.15);
-}
-
-.ex-two-factor-authentication button{
-  height: 38px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.ex-two-factor-authentication button:disabled{
-  opacity: .6;
-  cursor: not-allowed;
-}
-
 .ex-two-factor-authentication .hint{
   margin-top: 10px;
-  font-size: 13px;
-  color: #6b7280;
 }
 
 /* DocSpace iframe */
@@ -3335,12 +2555,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== basic-samples/add-tags-to-room.html ========== */
-.ex-add-tags-to-room body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .ex-add-tags-to-room .wrap {
   display: flex;
   justify-content: center;
@@ -3398,18 +2612,8 @@ body.ex-web-form-to-pdf {
   cursor: not-allowed;
 }
 
-.ex-add-tags-to-room .hint {
-  font-size: 13px;
-  color: #6b7280;
-}
-
 
 /* ========== basic-samples/create-file.html ========== */
-.ex-create-file body {
-  margin: 0;
-  background: #f6f6f6;
-}
-
 .ex-create-file .wrap {
   display: flex;
   justify-content: center;
@@ -3453,11 +2657,6 @@ body.ex-web-form-to-pdf {
 
 .ex-create-file .action-bar input {
   width: 220px;
-  padding: 8px 10px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  outline: none;
 }
 
 .ex-create-file .action-bar input:focus {
@@ -3483,11 +2682,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== basic-samples/create-folder.html ========== */
-.ex-create-folder body {
-  margin: 0;
-  background: #f6f6f6;
-}
-
 .ex-create-folder .wrap {
   display: flex;
   justify-content: center;
@@ -3531,11 +2725,6 @@ body.ex-web-form-to-pdf {
 
 .ex-create-folder .action-bar input {
   width: 220px;
-  padding: 8px 10px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  outline: none;
 }
 
 .ex-create-folder .action-bar input:focus {
@@ -3561,13 +2750,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== basic-samples/create-hash.html ========== */
-.ex-create-hash body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-create-hash .page {
   min-height: 100vh;
   display: flex;
@@ -3579,10 +2761,6 @@ body.ex-web-form-to-pdf {
 .ex-create-hash .card {
   width: 720px;
   max-width: 100%;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 18px;
 }
 
 .ex-create-hash .title {
@@ -3602,24 +2780,12 @@ body.ex-web-form-to-pdf {
   display: block;
   margin: 12px 0 6px;
   font-weight: 600;
-  font-size: 13px;
 }
 
 .ex-create-hash input,
 .ex-create-hash textarea {
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
   box-sizing: border-box;
-}
-
-.ex-create-hash input:focus,
-.ex-create-hash textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-create-hash textarea {
@@ -3661,8 +2827,6 @@ body.ex-web-form-to-pdf {
 
 .ex-create-hash .hint {
   margin-top: 10px;
-  font-size: 12px;
-  color: #6b7280;
 }
 
 /* Hidden manager iframe */
@@ -3677,13 +2841,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== basic-samples/create-room.html ========== */
-.ex-create-room body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-create-room .page {
   min-height: 100vh;
   display: flex;
@@ -3695,10 +2852,6 @@ body.ex-web-form-to-pdf {
 .ex-create-room .card {
   width: 960px;
   max-width: 100%;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 18px;
 }
 
 .ex-create-room .title {
@@ -3730,27 +2883,14 @@ body.ex-web-form-to-pdf {
   display: block;
   margin: 0 0 6px;
   font-weight: 600;
-  font-size: 13px;
 }
 
 .ex-create-room input,
 .ex-create-room select,
 .ex-create-room textarea {
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
   box-sizing: border-box;
   background: #fff;
-}
-
-.ex-create-room input:focus,
-.ex-create-room select:focus,
-.ex-create-room textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-create-room textarea {
@@ -3793,8 +2933,6 @@ body.ex-web-form-to-pdf {
 
 .ex-create-room .hint {
   margin-top: 10px;
-  font-size: 12px;
-  color: #6b7280;
 }
 
 .ex-create-room .result {
@@ -3847,13 +2985,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== basic-samples/create-tag.html ========== */
-.ex-create-tag body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-create-tag .page {
   min-height: 100vh;
   display: flex;
@@ -3865,10 +2996,6 @@ body.ex-web-form-to-pdf {
 .ex-create-tag .card {
   width: 720px;
   max-width: 100%;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 18px;
 }
 
 .ex-create-tag .title {
@@ -3888,23 +3015,12 @@ body.ex-web-form-to-pdf {
   display: block;
   margin: 12px 0 6px;
   font-weight: 600;
-  font-size: 13px;
 }
 
 .ex-create-tag input {
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
   box-sizing: border-box;
   background: #fff;
-}
-
-.ex-create-tag input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-create-tag .row {
@@ -3940,8 +3056,6 @@ body.ex-web-form-to-pdf {
 
 .ex-create-tag .hint {
   margin-top: 10px;
-  font-size: 12px;
-  color: #6b7280;
 }
 
 .ex-create-tag .result {
@@ -3981,13 +3095,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== basic-samples/destroy-frame.html ========== */
-.ex-destroy-frame body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-destroy-frame .page {
   min-height: 100vh;
   display: flex;
@@ -4035,11 +3142,6 @@ body.ex-web-form-to-pdf {
   cursor: not-allowed;
 }
 
-.ex-destroy-frame .status {
-  font-size: 13px;
-  color: #6b7280;
-}
-
 .ex-destroy-frame .destroyed {
   margin-top: 24px;
   padding: 24px;
@@ -4054,10 +3156,6 @@ body.ex-web-form-to-pdf {
 
 /* ========== advanced-samples/create-draggable-and-resize-modals.html ========== */
 .ex-draggable-resize-modals {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
   overflow: hidden;
 }
 
@@ -4070,10 +3168,6 @@ body.ex-web-form-to-pdf {
 }
 
 .ex-draggable-resize-modals .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -4094,24 +3188,13 @@ body.ex-web-form-to-pdf {
   display: block;
   margin: 10px 0 6px;
   font-weight: 600;
-  font-size: 13px;
   color: #374151;
 }
 
 .ex-draggable-resize-modals input {
   width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
   box-sizing: border-box;
   background: #fff;
-}
-
-.ex-draggable-resize-modals input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-draggable-resize-modals .grid {
@@ -4156,11 +3239,6 @@ body.ex-web-form-to-pdf {
   color: #1f3a8a;
   box-shadow: none;
   border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-draggable-resize-modals .hint {
-  font-size: 12px;
-  color: #6b7280;
 }
 
 .ex-draggable-resize-modals a {
@@ -4269,24 +3347,7 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/create-tabbed-docspace-manager.html ========== */
-.ex-tabbed-docspace-manager {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
-.ex-tabbed-docspace-manager .page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
 .ex-tabbed-docspace-manager .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -4307,24 +3368,13 @@ body.ex-web-form-to-pdf {
   display: block;
   margin: 10px 0 6px;
   font-weight: 600;
-  font-size: 13px;
   color: #374151;
 }
 
 .ex-tabbed-docspace-manager input {
   width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
   box-sizing: border-box;
   background: #fff;
-}
-
-.ex-tabbed-docspace-manager input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-tabbed-docspace-manager .grid {
@@ -4369,11 +3419,6 @@ body.ex-web-form-to-pdf {
   color: #1f3a8a;
   box-shadow: none;
   border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-tabbed-docspace-manager .hint {
-  font-size: 12px;
-  color: #6b7280;
 }
 
 .ex-tabbed-docspace-manager a {
@@ -4500,25 +3545,8 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/download-to-custom-handler.html ========== */
-.ex-download-to-custom-handler body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-download-to-custom-handler .page {
   max-width: 1100px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-download-to-custom-handler .card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .ex-download-to-custom-handler .title {
@@ -4553,32 +3581,6 @@ body.ex-web-form-to-pdf {
   }
 }
 
-.ex-download-to-custom-handler label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-download-to-custom-handler input,
-.ex-download-to-custom-handler textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-download-to-custom-handler input:focus,
-.ex-download-to-custom-handler textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-download-to-custom-handler .status {
   min-height: 42px;
   display: flex;
@@ -4597,30 +3599,6 @@ body.ex-web-form-to-pdf {
   align-items: center;
   margin-top: 14px;
   flex-wrap: wrap;
-}
-
-.ex-download-to-custom-handler button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-download-to-custom-handler button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.ex-download-to-custom-handler .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
 }
 
 .ex-download-to-custom-handler .result-grid {
@@ -4677,25 +3655,8 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/manager-to-editor-viewer-flow.html ========== */
-.ex-manager-to-editor-viewer-flow body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-manager-to-editor-viewer-flow .page {
   max-width: 1360px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-manager-to-editor-viewer-flow .card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .ex-manager-to-editor-viewer-flow .card-compact {
@@ -4736,57 +3697,11 @@ body.ex-web-form-to-pdf {
   min-width: 0;
 }
 
-.ex-manager-to-editor-viewer-flow label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-manager-to-editor-viewer-flow input,
-.ex-manager-to-editor-viewer-flow select,
-.ex-manager-to-editor-viewer-flow textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-manager-to-editor-viewer-flow input:focus,
-.ex-manager-to-editor-viewer-flow select:focus,
-.ex-manager-to-editor-viewer-flow textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-manager-to-editor-viewer-flow .actions {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-}
-
-.ex-manager-to-editor-viewer-flow button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-manager-to-editor-viewer-flow .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
 }
 
 .ex-manager-to-editor-viewer-flow .meta-row {
@@ -4895,13 +3810,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/react-manager-example.html ========== */
-.ex-react-manager-example body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-react-manager-example code {
   background: #eef2ff;
   color: #3730a3;
@@ -4911,16 +3819,6 @@ body.ex-web-form-to-pdf {
 
 .ex-react-manager-example .page {
   max-width: 1320px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-react-manager-example .card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .ex-react-manager-example .title {
@@ -4954,32 +3852,6 @@ body.ex-web-form-to-pdf {
   min-width: 0;
 }
 
-.ex-react-manager-example label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-react-manager-example input,
-.ex-react-manager-example textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-react-manager-example input:focus,
-.ex-react-manager-example textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-react-manager-example .checkbox {
   display: inline-flex;
   align-items: center;
@@ -5006,24 +3878,6 @@ body.ex-web-form-to-pdf {
   align-items: center;
   margin-top: 14px;
   flex-wrap: wrap;
-}
-
-.ex-react-manager-example button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-react-manager-example .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
 }
 
 .ex-react-manager-example .meta-row {
@@ -5161,25 +4015,8 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/secure-frame-with-request-token.html ========== */
-.ex-secure-frame-with-request-token body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-secure-frame-with-request-token .page {
   max-width: 1180px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-secure-frame-with-request-token .card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .ex-secure-frame-with-request-token .title {
@@ -5207,34 +4044,6 @@ body.ex-web-form-to-pdf {
   }
 }
 
-.ex-secure-frame-with-request-token label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-secure-frame-with-request-token input,
-.ex-secure-frame-with-request-token select,
-.ex-secure-frame-with-request-token textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-secure-frame-with-request-token input:focus,
-.ex-secure-frame-with-request-token select:focus,
-.ex-secure-frame-with-request-token textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-secure-frame-with-request-token .mock {
   min-height: 110px;
   resize: vertical;
@@ -5249,29 +4058,6 @@ body.ex-web-form-to-pdf {
   align-items: center;
   margin-top: 14px;
   flex-wrap: wrap;
-}
-
-.ex-secure-frame-with-request-token button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-secure-frame-with-request-token .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-secure-frame-with-request-token .hint {
-  font-size: 13px;
-  color: #6b7280;
 }
 
 .ex-secure-frame-with-request-token .result-grid {
@@ -5317,13 +4103,6 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/error-handling-and-csp-check.html ========== */
-.ex-error-handling-and-csp-check body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-error-handling-and-csp-check code {
   background: #eef2ff;
   color: #3730a3;
@@ -5333,16 +4112,6 @@ body.ex-web-form-to-pdf {
 
 .ex-error-handling-and-csp-check .page {
   max-width: 1180px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-error-handling-and-csp-check .card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .ex-error-handling-and-csp-check .title {
@@ -5368,34 +4137,6 @@ body.ex-web-form-to-pdf {
   .ex-error-handling-and-csp-check .grid {
     grid-template-columns: 1fr;
   }
-}
-
-.ex-error-handling-and-csp-check label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-error-handling-and-csp-check input,
-.ex-error-handling-and-csp-check select,
-.ex-error-handling-and-csp-check textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-error-handling-and-csp-check input:focus,
-.ex-error-handling-and-csp-check select:focus,
-.ex-error-handling-and-csp-check textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
 .ex-error-handling-and-csp-check .options {
@@ -5431,29 +4172,6 @@ body.ex-web-form-to-pdf {
   align-items: center;
   margin-top: 14px;
   flex-wrap: wrap;
-}
-
-.ex-error-handling-and-csp-check button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-error-handling-and-csp-check .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-error-handling-and-csp-check .hint {
-  font-size: 13px;
-  color: #6b7280;
 }
 
 .ex-error-handling-and-csp-check .notice {
@@ -5512,29 +4230,8 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/manager-click-to-public-share.html ========== */
-.ex-manager-click-to-public-share body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-manager-click-to-public-share .page {
   max-width: 1380px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-manager-click-to-public-share .card,
-.ex-manager-click-to-public-share .panel {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  border: 1px solid rgba(15, 23, 42, 0.04);
-}
-
-.ex-manager-click-to-public-share .card {
-  padding: 16px;
 }
 
 .ex-manager-click-to-public-share .title {
@@ -5568,32 +4265,6 @@ body.ex-web-form-to-pdf {
   min-width: 0;
 }
 
-.ex-manager-click-to-public-share label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-manager-click-to-public-share input,
-.ex-manager-click-to-public-share textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-manager-click-to-public-share input:focus,
-.ex-manager-click-to-public-share textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-manager-click-to-public-share .mock {
   min-height: 110px;
   resize: vertical;
@@ -5612,29 +4283,6 @@ body.ex-web-form-to-pdf {
 
 .ex-manager-click-to-public-share .row {
   margin-top: 14px;
-}
-
-.ex-manager-click-to-public-share button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-manager-click-to-public-share .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-manager-click-to-public-share .hint {
-  font-size: 13px;
-  color: #6b7280;
 }
 
 .ex-manager-click-to-public-share .layout {
@@ -5721,29 +4369,8 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/public-share-link-with-qr-code.html ========== */
-.ex-public-share-link-with-qr-code body {
-  margin: 0;
-  background: #f3f4f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111827;
-}
-
 .ex-public-share-link-with-qr-code .page {
   max-width: 1260px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-public-share-link-with-qr-code .card,
-.ex-public-share-link-with-qr-code .panel {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  border: 1px solid rgba(15, 23, 42, 0.04);
-}
-
-.ex-public-share-link-with-qr-code .card {
-  padding: 16px;
 }
 
 .ex-public-share-link-with-qr-code .title {
@@ -5771,32 +4398,6 @@ body.ex-web-form-to-pdf {
   }
 }
 
-.ex-public-share-link-with-qr-code label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-public-share-link-with-qr-code input,
-.ex-public-share-link-with-qr-code textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-public-share-link-with-qr-code input:focus,
-.ex-public-share-link-with-qr-code textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-public-share-link-with-qr-code .mock {
   min-height: 110px;
   resize: vertical;
@@ -5811,29 +4412,6 @@ body.ex-web-form-to-pdf {
   align-items: center;
   margin-top: 14px;
   flex-wrap: wrap;
-}
-
-.ex-public-share-link-with-qr-code button {
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.ex-public-share-link-with-qr-code .btn-secondary {
-  background: #eef2ff;
-  color: #1f3a8a;
-  box-shadow: none;
-  border: 1px solid rgba(31, 58, 138, 0.15);
-}
-
-.ex-public-share-link-with-qr-code .hint {
-  font-size: 13px;
-  color: #6b7280;
 }
 
 .ex-public-share-link-with-qr-code .backend-details {
@@ -5969,24 +4547,8 @@ body.ex-web-form-to-pdf {
 
 
 /* ========== advanced-samples/login-and-open-file.html ========== */
-.ex-login-and-open-file body {
-  margin: 0;
-  background: #f6f6f6;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
-}
-
 .ex-login-and-open-file .page {
   max-width: 1380px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.ex-login-and-open-file .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
 }
 
 .ex-login-and-open-file .title {
@@ -6014,56 +4576,12 @@ body.ex-web-form-to-pdf {
   }
 }
 
-.ex-login-and-open-file label {
-  display: block;
-  margin: 10px 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-}
-
-.ex-login-and-open-file input {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0 12px;
-  height: 38px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ex-login-and-open-file input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
 .ex-login-and-open-file .row {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-top: 14px;
   flex-wrap: wrap;
-}
-
-.ex-login-and-open-file button {
-  height: 38px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #007bff;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25);
-}
-
-.ex-login-and-open-file button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
 }
 
 .ex-login-and-open-file .btn-secondary {
@@ -6128,4 +4646,23 @@ body.ex-web-form-to-pdf {
   min-height: 620px;
   border: none;
   display: block;
+}
+
+
+/* ========== basic-samples/init-editor.html ========== */
+.ex-init-editor .top-bar .field input {
+  width: 240px;
+}
+
+.ex-init-editor .frame-wrap {
+  display: block;
+  padding: 16px;
+}
+
+.ex-init-editor #ds-frame {
+  display: block;
+  width: 900px;
+  max-width: 100%;
+  height: 520px;
+  margin: 0 auto;
 }

@@ -14,18 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Open Document for Filling" />
     <meta
       name="example-description"
       content="Pick a file and open it in fill mode (action=fill) in a new tab. Optionally open the same file via initEditor."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Open Document for Filling</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -56,7 +52,7 @@ Using methods:
       <label for="fillUrl">Fill link</label>
       <div class="linkRow">
         <input id="fillUrl" type="text" placeholder="Select a file or paste a public link" autocomplete="off" />
-        <button id="copyLink" type="button" class="btn-secondary" disabled>Copy</button>
+        <button id="copyLink" type="button" class="btn secondary" disabled>Copy</button>
       </div>
       <div class="muted">
         Tip: for DocSpace public links, this sample adds <code>action=fill</code>. For portal links, it uses
@@ -68,10 +64,10 @@ Using methods:
     </div>
 
     <div class="bar">
-      <button id="pick" type="button">Pick file</button>
-      <button id="openFill" type="button" disabled>Open to fill</button>
-      <button id="openEmbed" type="button" class="btn-secondary" disabled>Open in SDK editor</button>
-      <div class="hint" id="hint">Select a file to enable actions</div>
+      <button id="pick" type="button" class="btn">Pick file</button>
+      <button id="openFill" type="button" class="btn" disabled>Open to fill</button>
+      <button id="openEmbed" type="button" class="btn secondary" disabled>Open in SDK editor</button>
+      <span class="status" id="hint">Select a file to enable actions</span>
     </div>
 
     <script>

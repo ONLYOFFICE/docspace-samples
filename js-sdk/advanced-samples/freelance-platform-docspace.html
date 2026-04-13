@@ -1,7 +1,7 @@
 <!--
 Example: Collaborative project workflow
 
-This example shows how to build a freelance project workspace using DocSpace SDK. 
+This example shows how to build a freelance project workspace using DocSpace SDK.
 When a project is created, a room is generated, a freelancer is assigned via API, task files are managed, and the room is archived on completion.
 
 Using methods:
@@ -15,17 +15,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Freelance Platform + DocSpace" />
     <meta name="example-description" content="Create a project room, share a link, and manage project files with the embedded manager." />
     <meta name="example-group" content="advanced" />
-
     <title>Freelance Platform + DocSpace</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -34,35 +28,32 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-freelance-platform-docspace">
     <div class="page">
       <div class="card">
-        <h3 style="margin:0 0 8px;">Project Setup</h3>
-        <div class="hint">
-          This sample uses only SDK methods (no direct REST fetch).<br/>
-          Enter any project name and click Create.
+        <div class="field">
+          <label for="projectTitle">Project title</label>
+          <input id="projectTitle" type="text" placeholder="Acme Website Landing Page" />
         </div>
-
-        <label for="projectTitle">Project title</label>
-        <input id="projectTitle" type="text" placeholder="Acme Website Landing Page" />
-
-        <label for="freelancer">Freelancer email (optional)</label>
-        <input id="freelancer" type="text" placeholder="freelancer@example.com" />
-
-        <button id="createBtn" type="button" disabled>Create project room</button>
-
-        <div class="hint" id="status">Waiting…</div>
-        <div style="margin-top:10px;">
-          <textarea id="out" readonly placeholder="Room link and details will appear here…"></textarea>
+        <div class="field">
+          <label for="freelancer">Freelancer email (optional)</label>
+          <input id="freelancer" type="text" placeholder="freelancer@example.com" />
+        </div>
+        <div class="actions">
+          <button id="createBtn" class="btn" type="button" disabled>Create project room</button>
+          <span class="status" id="status">Waiting…</span>
+        </div>
+        <div class="field">
+          <label>Result</label>
+          <textarea class="output" id="out" readonly placeholder="Room link and details will appear here…"></textarea>
         </div>
       </div>
+    </div>
 
-      <div class="card" style="padding:0;">
-        <iframe id="ds-frame" class="frame"></iframe>
-      </div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

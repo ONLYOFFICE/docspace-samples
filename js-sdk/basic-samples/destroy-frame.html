@@ -8,26 +8,19 @@ Using methods:
 - manager.destroyFrame (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#destroyframe)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Destroy frame" />
     <meta
       name="example-description"
       content="Destroy (remove) the embedded DocSpace iframe using the JavaScript SDK."
     />
-
+    <meta name="example-group" content="basic" />
     <title>Destroy Frame</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -36,21 +29,20 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-destroy-frame">
-    <div class="page">
-      <div class="frame-wrap" id="frameWrap">
-        <iframe id="ds-frame"></iframe>
-      </div>
+    <div class="top-bar">
+      <button class="btn" id="destroyBtn" type="button" disabled>Destroy Frame</button>
+      <span class="status" id="status">Loading SDK…</span>
+    </div>
 
-      <div class="action-bar">
-        <button id="destroyBtn" disabled>Destroy Frame</button>
-        <div class="status" id="status">Loading SDK…</div>
-      </div>
+    <div class="frame-wrap" id="frameWrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
 
-      <div class="destroyed" id="destroyedState">
+    <div class="page" id="destroyedState" style="display:none;">
+      <div class="card">
         DocSpace frame has been destroyed.
       </div>
     </div>

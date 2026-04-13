@@ -14,17 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="File selector to editor/viewer flow" />
     <meta
       name="example-description"
       content="Select a file in the file selector and open it in a viewer or editor frame."
     />
     <meta name="example-group" content="advanced" />
-
     <title>File selector to editor/viewer flow</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
     <script>
       (function () {
         var link = document.createElement("link");
@@ -38,47 +35,36 @@ Using methods:
   <body class="ex-manager-to-editor-viewer-flow">
     <div class="page">
       <div class="card">
-        <h3 class="title">File selector to editor/viewer flow</h3>
-        <p class="desc">
-          Pick a file in the embedded selector and open it on the right. Switch between read-only viewer and editor
-          mode to test a common integration flow.
-        </p>
-
-        <div class="toolbar">
-          <div class="field">
-            <label for="mode">Open mode</label>
-            <select id="mode">
-              <option value="viewer">Viewer</option>
-              <option value="editor">Editor</option>
-            </select>
-          </div>
-
+        <div class="field">
+          <label for="mode">Open mode</label>
+          <select id="mode">
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+          </select>
         </div>
-
-        <div class="meta-row">
-          <div class="status" id="selectorStatus">Selector: initializing...</div>
-          <div class="status" id="previewStatus">Preview: waiting for file selection</div>
+        <div class="actions">
+          <span class="status" id="selectorStatus">Selector: initializing...</span>
+          <span class="status" id="previewStatus">Preview: waiting for file selection</span>
         </div>
       </div>
 
       <div class="layout">
         <section class="panel">
           <div class="panel-header">
-            <div class="panel-title">File selector</div>
-            <div class="panel-hint">Select a file inside DocSpace.</div>
+            <span class="panel-title">File selector</span>
+            <span class="panel-hint">Select a file inside DocSpace.</span>
           </div>
-          <iframe id="selector-frame" class="frame" title="File selector frame"></iframe>
+          <iframe id="selector-frame"></iframe>
         </section>
 
         <section class="panel">
           <div class="panel-header">
-            <div class="panel-title">Viewer / Editor</div>
-            <div class="panel-hint" id="selectionHint">No file selected</div>
+            <span class="panel-title">Viewer / Editor</span>
+            <span class="panel-hint" id="selectionHint">No file selected</span>
           </div>
-          <iframe id="preview-frame" class="frame" title="Preview frame"></iframe>
+          <iframe id="preview-frame"></iframe>
         </section>
       </div>
-
     </div>
 
     <script>

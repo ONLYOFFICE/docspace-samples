@@ -12,18 +12,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Init room selector" />
     <meta name="example-description" content="Embed the room selection interface using the JavaScript SDK." />
     <meta name="example-group" content="basic" />
-
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-
     <title>Init Room Selector</title>
-  
-    <!-- App styles -->
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -32,17 +25,21 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-init-room-selector">
-<div class="wrap">
-  <iframe id="ds-frame"></iframe>
-</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
 
-<div class="card">
-  <textarea id="out" readonly placeholder="Selected room data will appear here..."></textarea>
-</div>
+    <div class="page">
+      <div class="card">
+        <div class="field">
+          <label for="out">Selected room</label>
+          <textarea class="output" id="out" readonly placeholder="Selected room data will appear here..."></textarea>
+        </div>
+      </div>
+    </div>
 
     <script>
 const out = document.getElementById("out");

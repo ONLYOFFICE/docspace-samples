@@ -9,27 +9,19 @@ Using methods:
 - manager.createHash (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createhash)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Create hash" />
     <meta
       name="example-description"
       content="Generate a secure hash from a plain-text password using DocSpace SDK methods."
     />
     <meta name="example-group" content="basic" />
-
     <title>Create Hash</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -38,33 +30,30 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-create-hash">
-    <iframe id="ds-manager-frame"></iframe>
-
     <div class="page">
       <div class="card">
-        <div class="title">Create password hash</div>
-        <p class="desc">
-          Enter a password and generate a secure hash using DocSpace SDK methods.
-        </p>
-
-        <label for="password">Password</label>
-        <input id="password" type="text" value="qwerty12345" autocomplete="off" />
-
-        <div class="row">
-          <button id="createBtn" type="button" disabled>Create Hash</button>
-          <button id="copyBtn" type="button" class="btn-secondary" disabled>Copy</button>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="text" placeholder="Enter password" />
         </div>
 
-        <label for="output">Hash</label>
-        <textarea id="output" readonly placeholder="Hash will appear here..."></textarea>
+        <div class="actions">
+          <button class="btn" id="createBtn" type="button" disabled>Create Hash</button>
+          <button class="btn secondary" id="copyBtn" type="button" disabled>Copy</button>
+          <span class="status" id="status">Preparing SDK…</span>
+        </div>
 
-        <div class="hint" id="status">Preparing SDK…</div>
+        <div class="field">
+          <label for="output">Hash</label>
+          <textarea class="output" id="output" readonly placeholder="Hash will appear here…"></textarea>
+        </div>
       </div>
     </div>
+
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
     <script>
       const createBtn = document.getElementById("createBtn");

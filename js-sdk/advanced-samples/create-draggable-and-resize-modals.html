@@ -47,11 +47,11 @@ Using methods:
         </p>
 
         <div class="grid">
-          <div>
+          <div class="field">
             <label for="login">User email</label>
             <input id="login" type="text" placeholder="user@example.com" autocomplete="off" />
           </div>
-          <div>
+          <div class="field">
             <label for="passwordHash">Password hash</label>
             <input id="passwordHash" type="text" placeholder="PASTE_HASH_HERE" autocomplete="off" />
           </div>
@@ -63,10 +63,10 @@ Using methods:
         </div>
 
         <div class="row">
-          <button id="newWin" type="button" disabled>New window</button>
+          <button id="newWin" type="button" class="btn" disabled>New window</button>
           <button id="loginAll" type="button" class="btn-secondary" disabled>Login all</button>
           <button id="closeAll" type="button" class="btn-secondary" disabled>Close all</button>
-          <div class="hint" id="status">Preparing SDK…</div>
+          <span class="status" id="status">Preparing SDK…</span>
         </div>
 
         <div class="hint" style="margin-top: 8px;">

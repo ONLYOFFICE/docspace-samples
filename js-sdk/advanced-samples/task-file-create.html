@@ -14,18 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Task file create" />
     <meta
       name="example-description"
       content="Enter a room ID, open it in Manager, navigate to a folder, enter a file name, and create a task-related file in the current folder."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Task File Create</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,18 +33,22 @@ Using methods:
   </head>
 
   <body class="ex-task-file-create">
-    <div class="wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="top-bar">
+      <div class="field">
+        <label for="roomId">Room ID</label>
+        <input id="roomId" type="text" placeholder="Room ID (e.g. 71234)" autocomplete="off" />
+      </div>
+      <button id="openRoomBtn" class="btn secondary" type="button" disabled>Open room</button>
+      <div class="field">
+        <label for="name">File name</label>
+        <input id="name" type="text" placeholder="task.docx" autocomplete="off" />
+      </div>
+      <button id="btn" class="btn" type="button" disabled>Create task file</button>
+      <span class="status" id="status">Enter a room ID</span>
     </div>
 
-    <div class="bar">
-      <input id="roomId" type="text" placeholder="Room ID (e.g. 71234)" autocomplete="off" />
-      <button id="openRoomBtn" type="button" disabled>Open room</button>
-
-      <input id="name" type="text" placeholder="task.docx" autocomplete="off" />
-      <button id="btn" type="button" disabled>Create task file</button>
-
-      <div class="hint" id="status">Enter a room ID</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>
@@ -76,7 +76,7 @@ Using methods:
         if (!roomId) {
           status.textContent = "Enter a room ID";
         } else if (!ready || roomId !== currentRoomId) {
-          status.textContent = "Click “Open room”";
+          status.textContent = "Click \u201cOpen room\u201d";
         }
         updateButtons();
       });

@@ -13,18 +13,15 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="File selector to QR code" />
     <meta
       name="example-description"
       content="Select a file in the file selector and generate a QR code for its public share link."
     />
     <meta name="example-group" content="advanced" />
-
     <title>File selector to QR code</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
     <script>
       (function () {
         var link = document.createElement("link");
@@ -38,33 +35,24 @@ Using methods:
   <body class="ex-public-share-link-with-qr-code">
     <div class="page">
       <div class="card">
-        <h3 class="title">File selector to QR code</h3>
-        <p class="desc">
-          Select a file in the embedded selector and the QR code for its public share link will appear automatically.
-        </p>
-
-        <div class="notice">
-          Select a file in the left panel. The sample will create a public link in the background and show the QR code automatically.
-        </div>
-
-        <div class="row">
-          <div class="hint" id="status">Select a file in the left panel</div>
+        <div class="actions">
+          <span class="status" id="status">Select a file in the left panel</span>
         </div>
       </div>
 
       <div class="layout">
         <section class="panel">
           <div class="panel-header">
-            <div class="panel-title">File selector</div>
-            <div class="panel-hint">Select a file in DocSpace.</div>
+            <span class="panel-title">File selector</span>
+            <span class="panel-hint">Select a file in DocSpace.</span>
           </div>
-          <iframe id="selector-frame" class="frame" title="File selector frame"></iframe>
+          <iframe id="selector-frame"></iframe>
         </section>
 
         <section class="panel">
           <div class="panel-header">
-            <div class="panel-title">QR code</div>
-            <div class="panel-hint" id="qrHint">No file selected</div>
+            <span class="panel-title">QR code</span>
+            <span class="panel-hint" id="qrHint">No file selected</span>
           </div>
 
           <div id="selectionCard" class="selection-card is-empty">

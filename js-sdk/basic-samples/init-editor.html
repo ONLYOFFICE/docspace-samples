@@ -12,21 +12,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Init editor" />
-    <meta
-      name="example-description"
-      content="Enter a file ID and open it in the DocSpace editor using the JavaScript SDK."
-    />
+    <meta name="example-description" content="Enter a file ID and open it in the DocSpace editor using the JavaScript SDK." />
     <meta name="example-group" content="basic" />
-
     <title>Init Editor</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -35,38 +25,40 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-init-editor">
-    <div class="wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="top-bar">
+      <div class="field">
+        <label for="fileId">File ID</label>
+        <input id="fileId" type="text" placeholder="e.g. 123456" />
+      </div>
+      <button class="btn" id="openBtn" type="button" disabled>Open</button>
+      <span class="status" id="status">Enter a file ID</span>
     </div>
 
-    <div class="bar">
-      <input id="fileId" type="text" placeholder="File ID (e.g. 123456)" />
-      <button id="openBtn" type="button" disabled>Open</button>
-      <div class="hint" id="hint">Enter a file ID</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>
       const input = document.getElementById("fileId");
       const btn = document.getElementById("openBtn");
-      const hint = document.getElementById("hint");
+      const status = document.getElementById("status");
 
-      function update() {
+      input.addEventListener("input", () => {
         const v = input.value.trim();
         btn.disabled = !v;
-        hint.textContent = v ? "Ready" : "Enter a file ID";
-      }
-
-      input.addEventListener("input", update);
+        status.className = "status";
+        status.textContent = v ? "Ready" : "Enter a file ID";
+      });
 
       btn.onclick = () => {
         const id = input.value.trim();
         if (!id) return;
 
-        hint.textContent = "Opening…";
+        status.className = "status";
+        status.textContent = "Opening…";
 
         DocSpace.SDK.initEditor({
           id: id,
@@ -76,17 +68,16 @@ Using methods:
           theme: "base",
           events: {
             onAppReady: () => {
-              hint.textContent = "Ready";
+              status.className = "status ok";
+              status.textContent = "Ready";
             },
             onAppError: (e) => {
-              hint.textContent = "Error";
-              alert(e && (e.message || e) ? String(e.message || e) : "Failed to open file.");
-            }
-          }
+              status.className = "status err";
+              status.textContent = e?.message || "Failed to open file";
+            },
+          },
         });
       };
-
-      update();
     </script>
   </body>
 </html>

@@ -8,24 +8,16 @@ Using methods:
 - manager.getSelection (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getselection)
 -->
 
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Get selection" />
     <meta name="example-description" content="Retrieve the current selection in DocSpace using the JavaScript SDK." />
     <meta name="example-group" content="basic" />
-
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-
     <title>Get Selection</title>
-  
-    <!-- App styles -->
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -34,22 +26,26 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-get-selection">
-<div class="wrap">
-  <iframe id="ds-frame"></iframe>
-</div>
+    <div class="top-bar">
+      <button class="btn" id="btn" type="button" disabled>Get Selection</button>
+      <span class="status" id="hint">Loading…</span>
+    </div>
 
-<div class="bar">
-  <button id="btn" type="button" disabled>Get Selection</button>
-  <div class="hint" id="hint">Loading…</div>
-</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
 
-<div class="card">
-  <textarea id="out" readonly placeholder="Result will appear here..."></textarea>
-</div>
+    <div class="page">
+      <div class="card">
+        <div class="field">
+          <label>Result</label>
+          <textarea class="output" id="out" readonly placeholder="Result will appear here…"></textarea>
+        </div>
+      </div>
+    </div>
 
     <script>
 const btn = document.getElementById("btn");

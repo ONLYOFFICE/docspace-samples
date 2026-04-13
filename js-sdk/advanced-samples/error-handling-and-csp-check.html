@@ -13,17 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Error handling and CSP check" />
     <meta
       name="example-description"
       content="Enable checkCSP before frame initialization and inspect onAppError, onNoAccess, and onNotFound events."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Error handling and CSP check</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
     <script>
       (function () {
         var link = document.createElement("link");
@@ -56,7 +53,6 @@ Using methods:
             <label for="fileId">File ID</label>
             <input id="fileId" type="text" placeholder="Required for viewer mode" autocomplete="off" />
           </div>
-
         </div>
 
         <div class="options">
@@ -72,10 +68,10 @@ Using methods:
         </div>
 
         <div class="row">
-          <button id="initBtn" type="button">Init frame</button>
-          <button id="destroyBtn" type="button" class="btn-secondary">Destroy frame</button>
-          <button id="clearBtn" type="button" class="btn-secondary">Clear log</button>
-          <div class="hint" id="status">Ready</div>
+          <button id="initBtn" type="button" class="btn">Init frame</button>
+          <button id="destroyBtn" type="button" class="btn secondary">Destroy frame</button>
+          <button id="clearBtn" type="button" class="btn secondary">Clear log</button>
+          <span class="status" id="status">Ready</span>
         </div>
 
         <div class="notice">

@@ -18,18 +18,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Execute in DOCX editor" />
     <meta
       name="example-description"
       content="Pick a .docx file, open it in a hidden editor, run executeInEditor to insert text, and save."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Execute in DOCX editor</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -59,7 +55,7 @@ Using methods:
         </div>
       </div>
 
-      <div class="grid" style="margin-top: 10px;">
+      <div class="grid">
         <div>
           <label for="mode">Mode</label>
           <select id="mode">
@@ -72,17 +68,17 @@ Using methods:
       <label for="text">Text (each line becomes a paragraph)</label>
       <textarea id="text" placeholder="Hello from executeInEditor!"></textarea>
 
-      <div class="muted" style="margin-top: 8px;">
+      <div class="muted">
         Note: the editor automation below targets the text document API. For best results, pick a <code>.docx</code> file.
       </div>
     </div>
 
     <div class="bar">
-      <button id="pick" type="button">Pick file</button>
-      <button id="run" type="button" disabled>Write &amp; Save</button>
-      <button id="toggleHidden" type="button" class="btn-secondary">Show editor</button>
-      <button id="reset" type="button" class="btn-secondary">Reset</button>
-      <div class="hint" id="hint">Select a file</div>
+      <button id="pick" type="button" class="btn">Pick file</button>
+      <button id="run" type="button" class="btn" disabled>Write &amp; Save</button>
+      <button id="toggleHidden" type="button" class="btn secondary">Show editor</button>
+      <button id="reset" type="button" class="btn secondary">Reset</button>
+      <span class="status" id="hint">Select a file</span>
     </div>
 
     <script>

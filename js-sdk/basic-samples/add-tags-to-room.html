@@ -14,21 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Add Tags to Room" />
     <meta
       name="example-description"
       content="Select a room in the selector and add tags via a button click using the DocSpace JavaScript SDK."
     />
     <meta name="example-group" content="basic" />
-
     <title>Add Tags to Room</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,20 +30,19 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-add-tags-to-room">
-    <div class="wrap">
+    <div class="top-bar">
+      <button class="btn" id="addBtn" type="button" disabled>Add Tags</button>
+      <span class="status" id="hint">Select a room</span>
+    </div>
+
+    <div class="frame-wrap">
       <iframe id="ds-frame"></iframe>
     </div>
 
-    <iframe id="ds-manager-frame"></iframe>
-
-    <div class="bar">
-      <button id="addBtn" disabled>Add Tags</button>
-      <div class="hint" id="hint">Select a room</div>
-    </div>
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
     <script>
       const tags = ["important", "team-docs"];

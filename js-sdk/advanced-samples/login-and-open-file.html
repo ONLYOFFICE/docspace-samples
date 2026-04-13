@@ -21,17 +21,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Sign in and open file" />
     <meta
       name="example-description"
       content="Authenticate with DocSpace credentials from a login form and open files in an embedded viewer without a separate DocSpace login."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Sign in and open file</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
-
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -73,14 +70,14 @@ Using methods:
         </div>
 
         <div class="row">
-          <button id="signInBtn" type="button">Sign in</button>
-          <div class="hint" id="status">Enter your credentials and click Sign in</div>
+          <button id="signInBtn" type="button" class="btn">Sign in</button>
+          <span class="status" id="status">Enter your credentials and click Sign in</span>
         </div>
 
         <!-- Shown when the browser blocks the session cookie -->
         <div class="row" id="cookieRetryRow" style="display: none;">
-          <button id="openPortalBtn" type="button" class="btn-secondary">Open DocSpace tab</button>
-          <button id="retryManagerBtn" type="button" class="btn-secondary">Try again</button>
+          <button id="openPortalBtn" type="button" class="btn secondary">Open DocSpace tab</button>
+          <button id="retryManagerBtn" type="button" class="btn secondary">Try again</button>
         </div>
       </div>
 
@@ -105,7 +102,7 @@ Using methods:
     </div>
 
     <!-- Hidden system frame used for SDK initialization and authentication -->
-    <div id="system-frame" style="position: fixed; left: -9999px; top: -9999px; width: 1px; height: 1px;"></div>
+    <div id="system-frame" class="hidden-frame"></div>
 
     <script>
       const usernameInput = document.getElementById("usernameInput");

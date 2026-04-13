@@ -16,17 +16,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Project Manager Folder Integration" />
     <meta name="example-description" content="Create a project room, generate a project folder structure, and open it in the embedded manager." />
     <meta name="example-group" content="advanced" />
-
     <title>Project Manager Folder Integration</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -35,29 +29,28 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-project-manager-folder-integration">
     <div class="page">
       <div class="card">
-        <h3 style="margin:0 0 8px;">Project</h3>
-        <div class="hint">Creates a new room + folders for your project. No direct REST calls (no CORS issues).</div>
-
-        <label for="title">Project title</label>
-        <input id="title" type="text" placeholder="Website redesign" />
-
-        <button id="createBtn" type="button" disabled>Create project</button>
-
-        <div class="hint" id="status">Waiting…</div>
-        <div style="margin-top:10px;">
-          <textarea id="out" readonly placeholder="Room and folder IDs will appear here…"></textarea>
+        <div class="field">
+          <label for="title">Project title</label>
+          <input id="title" type="text" placeholder="Website redesign" />
+        </div>
+        <div class="actions">
+          <button id="createBtn" class="btn" type="button" disabled>Create project</button>
+          <span class="status" id="status">Waiting…</span>
+        </div>
+        <div class="field">
+          <label>Result</label>
+          <textarea class="output" id="out" readonly placeholder="Room and folder IDs will appear here…"></textarea>
         </div>
       </div>
+    </div>
 
-      <div class="card" style="padding:0;">
-        <iframe id="ds-frame" class="frame"></iframe>
-      </div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

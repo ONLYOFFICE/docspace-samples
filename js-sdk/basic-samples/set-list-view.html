@@ -1,4 +1,3 @@
-
 <!--
 Example: Set list view
 
@@ -14,18 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Set list view" />
     <meta name="example-description" content="Change file list display mode." />
     <meta name="example-group" content="basic" />
-
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-
     <title>Set list view</title>
-  
-    <!-- App styles -->
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -34,16 +26,16 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-set-list-view">
-    <div class="wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="top-bar">
+      <button class="btn" id="btn" type="button">Set list view</button>
+      <span class="status" id="status"></span>
     </div>
 
-    <div class="bar">
-      <button id="btn">Set list view</button>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

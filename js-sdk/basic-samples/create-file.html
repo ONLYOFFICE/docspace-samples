@@ -8,27 +8,19 @@ Using methods:
 - manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Create file" />
     <meta
       name="example-description"
       content="Select a room in the selector, enter a file name, and create a new file using the DocSpace JavaScript SDK."
     />
     <meta name="example-group" content="basic" />
-
     <title>Create File</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,24 +29,28 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-create-file">
-    <div class="wrap">
+    <div class="top-bar">
+      <div class="field">
+        <label for="fileName">File name</label>
+        <input id="fileName" type="text" placeholder="new.pptx" autocomplete="off" />
+      </div>
+      <button class="btn" id="button" type="button" disabled>Create File</button>
+      <span class="status" id="status">Select a room</span>
+    </div>
+
+    <div class="frame-wrap">
       <iframe id="ds-frame"></iframe>
     </div>
 
-    <iframe id="ds-manager-frame"></iframe>
-
-    <div class="action-bar">
-      <input id="fileName" type="text" placeholder="new.pptx" autocomplete="off" />
-      <button id="button" disabled>Create File</button>
-    </div>
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
     <script>
       const button = document.getElementById("button");
       const input = document.getElementById("fileName");
+      const status = document.getElementById("status");
 
       let targetId = null;
       let managerReady = false;

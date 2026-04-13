@@ -8,27 +8,19 @@ Using methods:
 - manager.createTag (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createtag)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Create tag" />
     <meta
       name="example-description"
       content="Create a new custom tag in DocSpace using the JavaScript SDK and show the created tag details."
     />
     <meta name="example-group" content="basic" />
-
     <title>Create Tag</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,31 +29,29 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-create-tag">
-    <iframe id="ds-manager-frame"></iframe>
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
     <div class="page">
       <div class="card">
-        <div class="title">Create tag</div>
-        <p class="desc">
-          Enter a tag name and create it using the DocSpace SDK. The created tag details will be shown below.
-        </p>
-
-        <label for="tagName">Tag name</label>
-        <input id="tagName" type="text" placeholder="tag-123" autocomplete="off" />
-
-        <div class="row">
-          <button id="createBtn" type="button" disabled>Create Tag</button>
-          <button id="autoBtn" type="button" class="btn-secondary" disabled>Generate name</button>
-          <div class="hint" id="status">Preparing SDK…</div>
+        <div class="field">
+          <label for="tagName">Tag name</label>
+          <input id="tagName" type="text" placeholder="tag-123" autocomplete="off" />
         </div>
 
-        <div class="result" id="result">
-          <div class="result-title">Created tag</div>
-          <div class="kv" id="kv"></div>
+        <div class="actions">
+          <button class="btn" id="createBtn" type="button" disabled>Create Tag</button>
+          <button class="btn secondary" id="autoBtn" type="button" disabled>Generate name</button>
+          <span class="status" id="status">Preparing SDK…</span>
+        </div>
+
+        <div id="result" style="display:none;">
+          <div class="field">
+            <label>Created tag</label>
+            <div id="kv"></div>
+          </div>
         </div>
       </div>
     </div>

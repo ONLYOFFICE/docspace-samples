@@ -8,27 +8,19 @@ Using methods:
 - manager.getFiles (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfiles)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Get files" />
     <meta
       name="example-description"
       content="Select a room in the selector and retrieve a list of files using the DocSpace JavaScript SDK."
     />
     <meta name="example-group" content="basic" />
-
     <title>Get Files</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,25 +29,30 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-get-files">
-    <div class="wrap">
+    <div class="top-bar">
+      <button class="btn" id="getBtn" type="button" disabled>Get Files</button>
+      <span class="status" id="hint">Select a room</span>
+    </div>
+
+    <div class="frame-wrap">
       <iframe id="ds-frame"></iframe>
     </div>
 
-    <iframe id="ds-manager-frame"></iframe>
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
-    <div class="card">
-      <div class="row">
-        <button id="getBtn" disabled>Get Files</button>
-        <div class="hint" id="hint">Select a room</div>
+    <div class="page">
+      <div class="card">
+        <div class="field">
+          <label>Result</label>
+          <textarea class="output" id="out" readonly placeholder="Result will appear here…"></textarea>
+        </div>
+        <div id="count"></div>
+        <div id="err"></div>
+        <ul id="list"></ul>
       </div>
-
-      <div class="muted" id="count"></div>
-      <div class="error" id="err"></div>
-      <ul id="list"></ul>
     </div>
 
     <script>

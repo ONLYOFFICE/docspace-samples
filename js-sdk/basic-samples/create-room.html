@@ -8,27 +8,19 @@ Using methods:
 - manager.createRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createroom)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Create room" />
     <meta
       name="example-description"
       content="Create a room with parameters using the DocSpace JavaScript SDK, then show the created room details."
     />
     <meta name="example-group" content="basic" />
-
     <title>Create Room</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,75 +29,79 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-create-room">
-    <iframe id="ds-manager-frame"></iframe>
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
     <div class="page">
       <div class="card">
-        <div class="title">Create room</div>
-        <p class="desc">
-          Set room parameters and create a new room using the DocSpace SDK. After creation, the room details will be shown below.
-        </p>
-
-        <div class="grid">
-          <div>
-            <label for="title">Room title</label>
-            <input id="title" type="text" value="New Room" autocomplete="off" />
-          </div>
-
-          <div>
-            <label for="type">Room type</label>
-            <select id="type">
-              <option value="1">Form filling room</option>
-              <option value="2" selected>Collaboration room</option>
-              <option value="5">Custom room</option>
-              <option value="6">Public room</option>
-              <option value="8">Virtual data room</option>
-              <option value="9">AI Room</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="color">Color (hex, optional)</label>
-            <input id="color" type="text" placeholder="#5CC3F7" />
-          </div>
-
-          <div>
-            <label for="tags">Tags (comma-separated, optional)</label>
-            <input id="tags" type="text" placeholder="marketing, q1-2026" />
-          </div>
-
-          <div>
-            <label for="indexing">Indexing (VDR only, optional)</label>
-            <select id="indexing">
-              <option value="">Default</option>
-              <option value="true">Enabled</option>
-              <option value="false">Disabled</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="denyDownload">Deny download (VDR only, optional)</label>
-            <select id="denyDownload">
-              <option value="">Default</option>
-              <option value="true">Enabled</option>
-              <option value="false">Disabled</option>
-            </select>
-          </div>
+        <div class="field">
+          <label for="title">Room title</label>
+          <input id="title" type="text" value="New Room" autocomplete="off" />
         </div>
 
-        <div class="row">
-          <button id="createBtn" type="button" disabled>Create Room</button>
-          <button id="clearBtn" type="button" class="btn-secondary">Clear output</button>
-          <div class="hint" id="status">Preparing SDK…</div>
+        <div class="field">
+          <label for="type">Room type</label>
+          <select id="type">
+            <option value="1">Form filling room</option>
+            <option value="2" selected>Collaboration room</option>
+            <option value="5">Custom room</option>
+            <option value="6">Public room</option>
+            <option value="8">Virtual data room</option>
+            <option value="9">AI Room</option>
+          </select>
         </div>
 
-        <div class="result" id="result" style="display:none;">
-          <div class="result-title">Created room</div>
-          <div class="kv" id="kv"></div>
+        <div class="field">
+          <label for="color">Color (hex, optional)</label>
+          <input id="color" type="text" placeholder="#5CC3F7" />
+        </div>
+
+        <div class="field">
+          <label for="cover">Cover (optional)</label>
+          <input id="cover" type="text" placeholder="Cover ID" />
+        </div>
+
+        <div class="field">
+          <label for="quota">Quota (optional)</label>
+          <input id="quota" type="text" placeholder="e.g. 1073741824" />
+        </div>
+
+        <div class="field">
+          <label for="tags">Tags (comma-separated, optional)</label>
+          <input id="tags" type="text" placeholder="marketing, q1-2026" />
+        </div>
+
+        <div class="field">
+          <label for="indexing">Indexing (VDR only, optional)</label>
+          <select id="indexing">
+            <option value="">Default</option>
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="denyDownload">Deny download (VDR only, optional)</label>
+          <select id="denyDownload">
+            <option value="">Default</option>
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="createBtn" type="button" disabled>Create Room</button>
+          <button class="btn secondary" id="clearBtn" type="button">Clear output</button>
+          <span class="status" id="status">Preparing SDK…</span>
+        </div>
+
+        <div id="result" style="display:none;">
+          <div class="field">
+            <label>Created room</label>
+            <div id="kv"></div>
+          </div>
         </div>
       </div>
     </div>

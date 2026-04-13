@@ -13,17 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Download to custom handler" />
     <meta
       name="example-description"
       content="Intercept file downloads from the manager UI with downloadToEvent and handle the onDownload payload in your own application."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Download to custom handler</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,43 +34,21 @@ Using methods:
   <body class="ex-download-to-custom-handler">
     <div class="page">
       <div class="card">
-        <h3 class="title">Download to custom handler</h3>
-        <p class="desc">
-          Open the manager, trigger a file download from the embedded UI, and inspect the intercepted download URL.
-          With <code>downloadToEvent: true</code>, the SDK sends the payload to <code>onDownload</code> instead of
-          starting the browser download automatically.
-        </p>
-
-        <p class="tip">
-          Use this when your application needs to control the download flow itself: for example, to log downloads, show
-          a custom confirmation step, or forward the URL to your own backend.
-        </p>
-
-        <div class="row">
-          <label for="status">Status</label>
-          <div id="status" class="status">Ready</div>
+        <div class="actions">
+          <button class="btn" id="initBtn" type="button">Init manager</button>
+          <button class="btn secondary" id="copyBtn" type="button">Copy URL</button>
+          <button class="btn secondary" id="openBtn" type="button">Open link</button>
+          <span class="status" id="status">Ready</span>
         </div>
-
-        <div class="row">
-          <button id="initBtn" type="button">Init manager</button>
-          <button id="copyBtn" type="button" class="btn-secondary">Copy URL</button>
-          <button id="openBtn" type="button" class="btn-secondary">Open link</button>
-        </div>
-
-        <p class="tip">
-          How to test it: after the manager loads, open a file menu or toolbar action in DocSpace and click
-          <strong>Download</strong>. The URL will appear here instead of downloading immediately.
-        </p>
-
-        <div class="result">
-          <div class="result-title">Download URL</div>
-          <textarea id="downloadUrl" readonly placeholder="Download link from onDownload will appear here..."></textarea>
+        <div class="field">
+          <label for="downloadUrl">Download URL</label>
+          <textarea class="output" id="downloadUrl" readonly placeholder="Download link from onDownload will appear here..."></textarea>
         </div>
       </div>
+    </div>
 
-      <div class="frame-wrap">
-        <iframe id="ds-frame" class="frame" title="Download to custom handler frame"></iframe>
-      </div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -1 /d/Workspace/docspace-samples/js-sdk/advanced-samples/*.html)",
+      "Bash(wc -l /d/Workspace/docspace-samples/js-sdk/basic-samples/*.html)",
+      "Bash(wc -l /d/Workspace/docspace-samples/js-sdk/advanced-samples/*.html)",
+      "Bash(ls d:/Workspace/docspace-samples/js-sdk/basic-samples/*.html)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(ls d:/Workspace/docspace-samples/js-sdk/advanced-samples/*.html)",
+      "Read(//d/Workspace/docspace-approval-portal/**)",
+      "Bash(ls d:/Workspace/docspace-samples/js-sdk/.env*)"
+    ]
+  }
+}

@@ -13,18 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Get hash settings" />
     <meta name="example-description" content="Retrieve hash settings using the JavaScript SDK." />
     <meta name="example-group" content="basic" />
-
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-
     <title>Get Hash Settings</title>
-  
-    <!-- App styles -->
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
     <script>
       (function () {
         var link = document.createElement("link");
@@ -33,22 +26,26 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-get-hash-settings">
-<div class="wrap">
-  <iframe id="ds-frame"></iframe>
-</div>
+    <div class="top-bar">
+      <button class="btn" id="btn" type="button">Get Hash Settings</button>
+      <span class="status" id="hint">Ready</span>
+    </div>
 
-<div class="bar">
-  <button id="btn" type="button">Get Hash Settings</button>
-  <div class="hint" id="hint">Ready</div>
-</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
 
-<div class="card">
-  <textarea id="out" readonly placeholder="Result will appear here..."></textarea>
-</div>
+    <div class="page">
+      <div class="card">
+        <div class="field">
+          <label>Result</label>
+          <textarea class="output" id="out" readonly placeholder="Result will appear here…"></textarea>
+        </div>
+      </div>
+    </div>
 
     <script>
 const btn = document.getElementById("btn");

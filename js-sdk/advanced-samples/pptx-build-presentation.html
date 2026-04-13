@@ -67,25 +67,29 @@ Flow:
 
       <div class="grid">
         <div>
-          <label for="fileName">Deck file name</label>
-          <input id="fileName" type="text" value="New_Deck.pptx" autocomplete="off" />
+          <div class="field">
+            <label for="fileName">Deck file name</label>
+            <input id="fileName" type="text" value="New_Deck.pptx" autocomplete="off" />
+          </div>
           <div class="muted">Must end with <code>.pptx</code>.</div>
         </div>
         <div>
           <label>Actions</label>
           <div class="actions-row" style="margin-top: 6px;">
             <button id="useDest" type="button" class="btn-secondary">Use selected folder</button>
-            <button id="create" type="button" disabled>Create deck</button>
+            <button id="create" type="button" class="btn" disabled>Create deck</button>
             <button id="toggleEditor" type="button" class="btn-secondary">Show editor</button>
           </div>
-          <div class="hint" id="hint" style="margin-top: 10px;">Select a folder</div>
+          <span class="status" id="hint" style="margin-top: 10px;">Select a folder</span>
         </div>
       </div>
 
       <div class="cols" style="margin-top: 14px;">
         <div class="box">
           <h3>Log</h3>
-          <textarea id="log" readonly placeholder="Progress log..."></textarea>
+          <div class="field">
+            <textarea id="log" class="output" readonly placeholder="Progress log..."></textarea>
+          </div>
         </div>
       </div>
     </div>

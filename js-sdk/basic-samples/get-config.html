@@ -8,27 +8,19 @@ Using methods:
 - manager.getConfig (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getconfig)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Get config" />
     <meta
       name="example-description"
       content="Retrieve and display the configuration object of the embedded DocSpace frame."
     />
     <meta name="example-group" content="basic" />
-
     <title>Get Config</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,33 +29,24 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-get-config">
-    <!-- Hidden manager iframe -->
-    <iframe id="ds-manager-frame"></iframe>
+    <div class="top-bar">
+      <button class="btn" id="getBtn" type="button" disabled>Get Config</button>
+      <span class="status" id="status">Loading SDK…</span>
+    </div>
+
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
+    </div>
 
     <div class="page">
-      <!-- Visible DocSpace frame -->
-      <div class="frame-wrap">
-        <iframe id="ds-frame"></iframe>
-      </div>
-
-      <!-- Controls + output -->
       <div class="card">
-        <div class="title">Get frame configuration</div>
-        <p class="desc">
-          Click the button to retrieve the configuration object of the embedded
-          DocSpace frame.
-        </p>
-
-        <div class="row">
-          <button id="getBtn" disabled>Get Config</button>
-          <div class="status" id="status">Loading SDK…</div>
+        <div class="field">
+          <label>Result</label>
+          <pre id="output" style="display:none;"></pre>
         </div>
-
-        <pre id="output" style="display:none;"></pre>
       </div>
     </div>
 

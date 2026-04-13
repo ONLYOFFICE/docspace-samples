@@ -8,27 +8,19 @@ Using methods:
 - manager.getList (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getlist)
 -->
 
-<!-- Step 1: HTML Setup -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Get files and folders list" />
     <meta
       name="example-description"
       content="Select a room and retrieve both files and folders using getList() from the DocSpace JavaScript SDK."
     />
     <meta name="example-group" content="basic" />
-
     <title>Get List</title>
-
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -37,41 +29,40 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-get-files-and-folders-list">
-    <div class="wrap">
+    <div class="top-bar">
+      <button class="btn" id="getBtn" type="button" disabled>Get List</button>
+      <span class="status" id="hint">Select a room</span>
+    </div>
+
+    <div class="frame-wrap">
       <iframe id="ds-frame"></iframe>
     </div>
 
-    <iframe id="ds-manager-frame"></iframe>
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
-    <div class="card">
-      <div class="row">
-        <button id="getBtn" disabled>Get List</button>
-        <div class="hint" id="hint">Select a room</div>
-      </div>
+    <div class="page">
+      <div class="card">
+        <div id="err" class="status err"></div>
 
-      <div class="error" id="err"></div>
-
-      <div class="cols">
-        <div class="box">
-          <h3>Folders</h3>
-          <div class="muted" id="foldersCount"></div>
+        <div class="field">
+          <label>Folders</label>
+          <div id="foldersCount" class="status"></div>
           <ul id="folders"></ul>
         </div>
 
-        <div class="box">
-          <h3>Files</h3>
-          <div class="muted" id="filesCount"></div>
+        <div class="field">
+          <label>Files</label>
+          <div id="filesCount" class="status"></div>
           <ul id="files"></ul>
         </div>
-      </div>
 
-      <div class="box" style="margin-top: 14px;">
-        <h3>Raw response</h3>
-        <textarea id="raw" readonly placeholder="Response will appear here..."></textarea>
+        <div class="field">
+          <label for="raw">Raw response</label>
+          <textarea class="output" id="raw" readonly placeholder="Response will appear here…"></textarea>
+        </div>
       </div>
     </div>
 

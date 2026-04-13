@@ -14,17 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Public viewer with request token" />
     <meta
       name="example-description"
       content="Select a file in the manager, create a public link via backend, and open the file in viewer mode using requestToken."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Public viewer with request token</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
     <script>
       (function () {
         var link = document.createElement("link");
@@ -38,49 +35,39 @@ Using methods:
   <body class="ex-public-viewer-with-request-token">
     <div class="page">
       <div class="card">
-        <h3 class="title">Public viewer with request token</h3>
-        <p class="desc">
-          Select a file in the manager, ask your backend to create a public share link, then open the file in read-only
-          viewer mode using the returned <code>requestToken</code>.
-        </p>
-
-        <div class="grid">
-          <div>
-            <label for="requestTokenOverride">requestToken override</label>
-            <input
-              id="requestTokenOverride"
-              type="text"
-              placeholder="Optional manual token override"
-              autocomplete="off"
-            />
-          </div>
+        <div class="field">
+          <label for="requestTokenOverride">requestToken override</label>
+          <input
+            id="requestTokenOverride"
+            type="text"
+            placeholder="Optional manual token override"
+            autocomplete="off"
+          />
         </div>
-
-        <div class="row">
-          <button id="createLinkBtn" type="button">Create public link</button>
-          <button id="openViewerBtn" type="button" class="btn-secondary">Open viewer</button>
-          <div class="hint" id="status">Click a file in the manager</div>
+        <div class="actions">
+          <button class="btn" id="createLinkBtn" type="button">Create public link</button>
+          <button class="btn secondary" id="openViewerBtn" type="button">Open viewer</button>
+          <span class="status" id="status">Click a file in the manager</span>
         </div>
       </div>
 
       <div class="layout">
         <section class="panel">
           <div class="panel-header">
-            <div class="panel-title">Manager</div>
-            <div class="panel-hint" id="selectionHint">No file selected</div>
+            <span class="panel-title">Manager</span>
+            <span class="panel-hint" id="selectionHint">No file selected</span>
           </div>
-          <iframe id="manager-frame" class="frame" title="Manager frame"></iframe>
+          <iframe id="manager-frame"></iframe>
         </section>
 
         <section class="panel">
           <div class="panel-header">
-            <div class="panel-title">Viewer</div>
-            <div class="panel-hint" id="viewerHint">Viewer is waiting for a public link</div>
+            <span class="panel-title">Viewer</span>
+            <span class="panel-hint" id="viewerHint">Viewer is waiting for a public link</span>
           </div>
-          <iframe id="viewer-frame" class="frame" title="Public viewer frame"></iframe>
+          <iframe id="viewer-frame"></iframe>
         </section>
       </div>
-
     </div>
 
     <script>

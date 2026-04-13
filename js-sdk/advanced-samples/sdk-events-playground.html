@@ -16,18 +16,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="SDK events playground" />
     <meta
       name="example-description"
       content="Initialize different SDK modes and inspect emitted events such as onAppReady, onContentReady, onSelectCallback, onNoAccess, and onAppError."
     />
     <meta name="example-group" content="advanced" />
-
     <title>SDK events playground</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -77,10 +73,10 @@ Using methods:
         </div>
 
         <div class="row">
-          <button id="initBtn" type="button">Init frame</button>
-          <button id="destroyBtn" type="button" class="btn-secondary">Destroy frame</button>
-          <button id="clearBtn" type="button" class="btn-secondary">Clear log</button>
-          <div class="hint" id="status">Ready</div>
+          <button id="initBtn" type="button" class="btn">Init frame</button>
+          <button id="destroyBtn" type="button" class="btn secondary">Destroy frame</button>
+          <button id="clearBtn" type="button" class="btn secondary">Clear log</button>
+          <span class="status" id="status">Ready</span>
         </div>
 
         <div class="result">

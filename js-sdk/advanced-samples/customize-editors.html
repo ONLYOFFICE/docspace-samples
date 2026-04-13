@@ -13,17 +13,11 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Customize Editors" />
     <meta name="example-description" content="Customize the editor UI (toolbar, theme, features) via editorCustomization." />
     <meta name="example-group" content="advanced" />
-
     <title>Customize Editors</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    
-  
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -32,18 +26,20 @@ Using methods:
         document.head.appendChild(link);
       })();
     </script>
-
-</head>
+  </head>
 
   <body class="ex-customize-editors">
-    <div class="wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="top-bar">
+      <div class="field">
+        <label for="fileId">File ID</label>
+        <input id="fileId" type="text" placeholder="File ID (e.g. 361797)" />
+      </div>
+      <button id="openBtn" class="btn" type="button" disabled>Open</button>
+      <span class="status" id="hint">Enter a file ID</span>
     </div>
 
-    <div class="bar">
-      <input id="fileId" type="text" placeholder="File ID (e.g. 361797)" />
-      <button id="openBtn" type="button" disabled>Open</button>
-      <div class="hint" id="hint">Enter a file ID</div>
+    <div class="frame-wrap">
+      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

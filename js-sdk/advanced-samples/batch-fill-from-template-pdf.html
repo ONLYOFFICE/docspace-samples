@@ -80,33 +80,41 @@ Flow:
 
       <div class="grid">
         <div>
-          <label for="folderIdInput">Destination folderId (optional)</label>
-          <input id="folderIdInput" type="text" placeholder="(empty = template folder)" autocomplete="off" />
+          <div class="field">
+            <label for="folderIdInput">Destination folderId (optional)</label>
+            <input id="folderIdInput" type="text" placeholder="(empty = template folder)" autocomplete="off" />
+          </div>
           <div class="muted">If empty, files are created in the template folder.</div>
         </div>
         <div>
-          <label for="namePattern">Output name pattern</label>
-          <input id="namePattern" type="text" value="{LastName}_{FirstName}.pdf" autocomplete="off" />
+          <div class="field">
+            <label for="namePattern">Output name pattern</label>
+            <input id="namePattern" type="text" value="{LastName}_{FirstName}.pdf" autocomplete="off" />
+          </div>
           <div class="muted">Placeholders use keys from each person object.</div>
         </div>
         <div>
           <label>Actions</label>
           <div class="actions-row" style="margin-top: 6px;">
-            <button id="run" type="button" disabled>Create &amp; Fill All</button>
+            <button id="run" type="button" class="btn" disabled>Create &amp; Fill All</button>
             <button id="stop" type="button" class="btn-secondary" disabled>Stop</button>
             <button id="toggleEditor" type="button" class="btn-secondary">Show editor</button>
           </div>
-          <div class="hint" id="hint" style="margin-top: 10px;">Pick template PDF</div>
+          <span class="status" id="hint" style="margin-top: 10px;">Pick template PDF</span>
         </div>
       </div>
 
-      <label for="people">People (JSON array; keys = PDF FormKey)</label>
-      <textarea id="people" placeholder='[{"FirstName":"Alice","LastName":"Smith"}]'></textarea>
+      <div class="field">
+        <label for="people">People (JSON array; keys = PDF FormKey)</label>
+        <textarea id="people" placeholder='[{"FirstName":"Alice","LastName":"Smith"}]'></textarea>
+      </div>
 
       <div class="cols" style="margin-top: 14px;">
         <div class="box">
           <h3>Log</h3>
-          <textarea id="log" readonly placeholder="Progress log..."></textarea>
+          <div class="field">
+            <textarea id="log" class="output" readonly placeholder="Progress log..."></textarea>
+          </div>
         </div>
       </div>
     </div>

@@ -13,18 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
     <meta name="example-title" content="Room selector" />
     <meta
       name="example-description"
       content="Use the DocSpace Room Selector inside a task creation modal. Each task is linked to a selected room."
     />
     <meta name="example-group" content="advanced" />
-
     <title>Room selector</title>
     <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
-    <!-- App styles -->
     <script>
       (function () {
         var link = document.createElement("link");
@@ -57,7 +53,7 @@ Using methods:
           <tbody id="tasks"></tbody>
         </table>
 
-        <div class="hint" id="status">Loading…</div>
+        <span class="status" id="status">Loading…</span>
       </div>
     </div>
 
@@ -226,7 +222,7 @@ Using methods:
           updateCreateState();
           return;
         }
-        
+
         const roomTitle =
           selectedRoom[0].title;
 
