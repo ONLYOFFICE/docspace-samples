@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage users
 
 This example demonstrates how to manage user accounts in ONLYOFFICE DocSpace using the API.
@@ -23,16 +23,22 @@ const HEADERS = {
 };
 
 // Step 1: Create a new user
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function createUser(firstName, lastName, email) {
   const url = `${API_HOST}/api/2.0/people`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify({ firstName, lastName, email }),
   });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to create user. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Failed to create user. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
   const json = await res.json();
@@ -44,10 +50,10 @@ async function createUser(firstName, lastName, email) {
 // Step 2: Retrieve a user by ID
 async function getUser(userId) {
   const url = `${API_HOST}/api/2.0/people/${userId}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to retrieve user. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Failed to retrieve user. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
   const userData = await res.json();
@@ -58,14 +64,14 @@ async function getUser(userId) {
 // Step 3: Terminate a user
 async function terminateUser(userId) {
   const url = `${API_HOST}/api/2.0/people/status/Terminated`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify({ userIds: [userId], resendAll: false }),
   });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to terminate user. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Failed to terminate user. Status code: ${res.status}, Message: ${text}`);
     return;
   }
   console.log(`User ${userId} terminated successfully`);
@@ -74,10 +80,10 @@ async function terminateUser(userId) {
 // Step 4: Delete user profile
 async function deleteUser(userId) {
   const url = `${API_HOST}/api/2.0/people/${userId}`;
-  const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'DELETE', headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to delete user. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Failed to delete user. Status code: ${res.status}, Message: ${text}`);
     return;
   }
   console.log(`User ${userId} deleted successfully`);

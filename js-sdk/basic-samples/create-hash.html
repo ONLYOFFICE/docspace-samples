@@ -14,17 +14,17 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Create hash" />
+    <meta name="example-title" content="Create Hash" />
     <meta
       name="example-description"
       content="Generate a secure hash from a plain-text password using DocSpace SDK methods."
     />
     <meta name="example-group" content="basic" />
     <title>Create Hash</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -36,7 +36,7 @@ Using methods:
     <div class="page">
       <div class="card">
         <div class="field">
-          <label for="password">Password</label>
+          <label for="password">Plain-text password</label>
           <input id="password" type="text" placeholder="Enter password" />
         </div>
 
@@ -53,7 +53,10 @@ Using methods:
       </div>
     </div>
 
-    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
+    <!-- Hidden manager frame for executing SDK methods -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-manager-frame"></div>
+    </div>
 
     <script>
       const createBtn = document.getElementById("createBtn");
@@ -64,6 +67,19 @@ Using methods:
 
       let sdkReady = false;
 
+      function updateCreateState() {
+        const hasPassword = Boolean((passwordInput.value || "").trim());
+        createBtn.disabled = !(sdkReady && hasPassword);
+      }
+
+      // Auto-fill from demo session if available
+      (function () {
+        const s = window.__demoConfig?.session;
+        if (s?.user?.password) passwordInput.value = String(s.user.password);
+      })();
+
+      passwordInput.addEventListener("input", updateCreateState);
+
       const docSpace = DocSpace.SDK.initManager({
         frameId: "ds-manager-frame",
         width: "0",
@@ -72,11 +88,11 @@ Using methods:
         events: {
           onAppReady: () => {
             sdkReady = true;
-            createBtn.disabled = false;
+            updateCreateState();
             status.textContent = "SDK ready.";
           },
           onAppError: () => {
-            status.textContent = "SDK error. Please check portal URL / доступ.";
+            status.textContent = "SDK error — check portal URL";
           }
         }
       });
@@ -97,10 +113,10 @@ Using methods:
           output.value = String(passwordHash || "");
           copyBtn.disabled = !output.value;
           status.textContent = "Done.";
-        } catch (e) {
-          status.textContent = "Failed to generate hash.";
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
         } finally {
-          createBtn.disabled = false;
+          updateCreateState();
         }
       };
 

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Enable custom filter mode for a file
 
 This example demonstrates how to enable the Custom Filter mode for a specific file in ONLYOFFICE DocSpace using the API.
@@ -24,7 +24,8 @@ def enable_custom_filter(file_id):
   response = requests.put(
     f'{API_HOST}/api/2.0/files/file/{file_id}/customfilter',
     headers=headers,
-    json=payload
+    json=payload,
+    timeout=30,
   )
 
   if response.status_code == 200:

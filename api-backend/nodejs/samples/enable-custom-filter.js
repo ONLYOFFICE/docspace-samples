@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Enable custom filter mode for a file
 
 This example demonstrates how to enable the Custom Filter mode for a specific file in ONLYOFFICE DocSpace using the API.
@@ -17,18 +17,24 @@ const FILE_ID = 123456; // Replace with your actual file ID
 const headers = { Authorization: API_KEY };
 
 // Step 1: Enable Custom Filter mode
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function enableCustomFilter(fileId) {
   const payload = { enabled: true };
 
-  return fetch(`${API_HOST}/api/2.0/files/file/${fileId}/customfilter`, {
+  return fetchWithTimeout(`${API_HOST}/api/2.0/files/file/${fileId}/customfilter`, {
     method: 'PUT',
     headers: headers,
     body: JSON.stringify(payload),
   })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Custom Filter enabling failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Custom Filter enabling failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

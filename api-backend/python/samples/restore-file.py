@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Restore file to previous version
 
 This example demonstrates how to retrieve the edit history of a file in ONLYOFFICE DocSpace and restore it to a specific previous version using the API.
@@ -22,7 +22,7 @@ HEADERS = {
 # Step 1: Get file version history
 def get_file_versions(file_id):
   url = f"{API_HOST}/api/2.0/files/file/{file_id}/edit/history"
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   
   if response.status_code == 200:
     data = response.json()
@@ -39,7 +39,7 @@ def get_file_versions(file_id):
 def restore_file_version(file_id, version_number):
   url = f"{API_HOST}/api/2.0/files/file/{file_id}/restoreversion"
   params = { "version": version_number }
-  response = requests.get(url, headers=HEADERS, params=params)
+  response = requests.get(url, headers=HEADERS, params=params, timeout=30)
 
   if response.status_code == 200:
     print(f"File restored to version {version_number}")

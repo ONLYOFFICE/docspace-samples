@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage rooms
 
 This example demonstrates how to manage rooms in ONLYOFFICE DocSpace using the API.
@@ -26,11 +26,12 @@ HEADERS = {
 
 # Step 1: Create a room
 def create_room(room_name, description):
-  url = f'{BASE_URL}/api/2.0/files/room'
+  url = f'{BASE_URL}/api/2.0/files/rooms'
   data = {
     'title': room_name,
     'description': description
   }
+  response = requests.post(url, headers=HEADERS, json=data, timeout=30)
   if response.status_code == 200:
     room_id = response.json()['response']['id']
     print(f'Room created successfully: {room_id}')
@@ -41,9 +42,8 @@ def create_room(room_name, description):
 
 # Step 2: Retrieve room details
 def get_room_details(room_id):
-  url = f'{BASE_URL}/api/2.0/files/room/{room_id}'
-  response = requests.get(url, headers=headers)
-  room_info = response.json()
+  url = f'{BASE_URL}/api/2.0/files/rooms/{room_id}'
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     room_info = response.json()
     print(f'Room details: {room_info}')
@@ -54,11 +54,11 @@ def get_room_details(room_id):
 
 # Step 3: Rename a room
 def rename_room(room_id, new_name):
-  url = f'{BASE_URL}/api/2.0/files/room/{room_id}/rename'
+  url = f'{BASE_URL}/api/2.0/files/rooms/{room_id}'
   data = {
     'title': new_name
   }
-  requests.put(url, headers=headers, json=data)
+  response = requests.put(url, headers=HEADERS, json=data, timeout=30)
   if response.status_code == 200:
     print(f'Room {room_id} renamed successfully.')
   else:
@@ -66,8 +66,8 @@ def rename_room(room_id, new_name):
 
 # Step 4: Archive a room
 def archive_room(room_id):
-  url = f'{BASE_URL}/api/2.0/files/room/{room_id}/archive'
-  requests.put(url, headers=headers)
+  url = f'{BASE_URL}/api/2.0/files/rooms/{room_id}/archive'
+  response = requests.put(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'Room {room_id} archived successfully.')
   else:
@@ -75,30 +75,21 @@ def archive_room(room_id):
 
 # Step 5: Delete a room
 def delete_room(room_id):
-  url = f'{BASE_URL}/api/2.0/files/room/{room_id}'
-  requests.delete(url, headers=headers)
+  url = f'{BASE_URL}/api/2.0/files/rooms/{room_id}'
+  response = requests.delete(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'Room {room_id} deleted successfully.')
   else:
     print(f'Failed to delete room: {response.status_code} - {response.text}')
 
-def main():
-  room_name = 'New Room' # Replace with actual room name
-  description = 'This is a test room.' # Replace with actual room description
-  new_room_name = 'Updated Room Name' # Replace with actual new room name
-  room_id = 1234 # Replace with actual room ID
+if __name__ == '__main__':
+  room_name = 'New Room'  # Replace with actual room name
+  description = 'This is a test room.'  # Replace with actual room description
+  new_room_name = 'Updated Room Name'  # Replace with actual new room name
+  room_id = 1234  # Replace with actual room ID
 
-#Step 1
-create_room(room_name, description)
-
-#Step 2
-get_room_details(room_id)
-
-#Step 3
-rename_room(room_id, new_room_name)
-
-#Step 4
-archive_room(room_id)
-
-#Step 5
-delete_room(room_id)
+  create_room(room_name, description)
+  get_room_details(room_id)
+  rename_room(room_id, new_room_name)
+  archive_room(room_id)
+  delete_room(room_id)

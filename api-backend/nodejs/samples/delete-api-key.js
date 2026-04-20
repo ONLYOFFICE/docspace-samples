@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Delete an API Key
 
 This example demonstrates how to delete an existing API key in ONLYOFFICE DocSpace by its unique identifier (UUID). 
@@ -16,12 +16,18 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Delete the API key by ID
 function deleteApiKey(keyId) {
   const url = `${API_HOST}/api/2.0/keys/${keyId}`;
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'DELETE',
     headers: HEADERS,
   })

@@ -1,10 +1,11 @@
 <!--
 Example: Add Tags to Room
 
-Select a room in the selector, then add tags via button click.
+Select a room in the selector, enter the tag names to add, then click Add Tags.
 
 Using methods:
 - DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
 - manager.createTag (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createtag)
 - manager.addTagsToRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#addtagstoroom)
 -->
@@ -15,16 +16,13 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
     <meta name="example-title" content="Add Tags to Room" />
-    <meta
-      name="example-description"
-      content="Select a room in the selector and add tags via a button click using the DocSpace JavaScript SDK."
-    />
+    <meta name="example-description" content="Select a room from the room selector and add one or more tags to it." />
     <meta name="example-group" content="basic" />
     <title>Add Tags to Room</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -33,42 +31,88 @@ Using methods:
   </head>
 
   <body class="ex-add-tags-to-room">
-    <div class="top-bar">
-      <button class="btn" id="addBtn" type="button" disabled>Add Tags</button>
-      <span class="status" id="hint">Select a room</span>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <span class="status" id="hint">Select a room</span>
+        </div>
+      </div>
+
+      <div class="result-split__panel card" style="flex:0 0 320px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label>Selected room ID</label>
+          <input id="roomIdDisplay" type="text" readonly placeholder="— select a room —" />
+        </div>
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label>Tags at selection time</label>
+          <input id="currentTagsDisplay" type="text" readonly placeholder="— select a room first —" />
+        </div>
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label for="tagsInput">Tags to add <span style="color:#9ca3af;font-weight:400">(comma-separated)</span></label>
+          <input id="tagsInput" type="text" placeholder="e.g. important, team-docs" />
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn" id="addBtn" type="button" disabled>Add Tags</button>
+          <span class="status" id="actionStatus"></span>
+        </div>
+        <div class="field" style="flex:1;display:flex;flex-direction:column;margin-top:12px">
+          <label>Result</label>
+          <textarea class="output" id="resultOut" readonly style="flex:1;resize:none" placeholder="Result will appear here…"></textarea>
+        </div>
+      </div>
     </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+    <!-- Hidden manager frame for executing SDK methods -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-manager-frame"></div>
     </div>
-
-    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
 
     <script>
-      const tags = ["important", "team-docs"];
+      const hint               = document.getElementById("hint");
+      const roomIdDisplay      = document.getElementById("roomIdDisplay");
+      const currentTagsDisplay = document.getElementById("currentTagsDisplay");
+      const tagsInput          = document.getElementById("tagsInput");
+      const addBtn             = document.getElementById("addBtn");
+      const actionStatus       = document.getElementById("actionStatus");
+      const resultOut          = document.getElementById("resultOut");
 
-      const addBtn = document.getElementById("addBtn");
-      const hint = document.getElementById("hint");
-
-      let roomId = null;
+      let roomId       = null;
       let managerReady = false;
 
-      // 1) UI: user selects a room
+      function updateUI() {
+        const hasTags = tagsInput.value.trim().length > 0;
+        addBtn.disabled = !roomId || !managerReady || !hasTags;
+        if (!roomId)            hint.textContent = "Select a room";
+        else if (!managerReady) hint.textContent = "Loading…";
+        else                    hint.textContent = "Ready";
+      }
+
+      tagsInput.addEventListener("input", updateUI);
+
+      // 1) Room selector
       DocSpace.SDK.initRoomSelector({
         frameId: "ds-frame",
-        width: "900px",
-        height: "640px",
+        width: "700px",
+        height: "520px",
         theme: "base",
         events: {
           onSelectCallback: (data) => {
             const item = Array.isArray(data) ? data[0] : data;
-            roomId = item?.roomId ?? item?.id ?? null;
+            roomId = item?.id ? String(item.id).trim() : null;
+            roomIdDisplay.value = roomId ? String(roomId) : "";
+            const tags = Array.isArray(item?.tags) ? item.tags : [];
+            currentTagsDisplay.value = tags.length ? tags.join(", ") : "(no tags)";
+            actionStatus.textContent = "";
+            resultOut.value = "";
             updateUI();
           }
         }
       });
 
-      // 2) Background: manager executes addTagsToRoom
+      // 2) Background manager for SDK method calls
       const manager = DocSpace.SDK.initManager({
         frameId: "ds-manager-frame",
         width: "0",
@@ -78,29 +122,42 @@ Using methods:
           onAppReady: () => {
             managerReady = true;
             updateUI();
+          },
+          onAppError: () => {
+            hint.textContent = "Manager error — check portal URL";
+            updateUI();
           }
         }
       });
 
-      function updateUI(text) {
-        if (text) hint.textContent = text;
-        else hint.textContent = !roomId ? "Select a room" : managerReady ? "Ready" : "Loading…";
-
-        addBtn.disabled = !roomId || !managerReady;
-      }
-
       addBtn.onclick = async () => {
         if (!roomId || !managerReady) return;
 
+        const tags = tagsInput.value
+          .split(",")
+          .map(t => t.trim())
+          .filter(Boolean);
+
+        if (!tags.length) return;
+
         addBtn.disabled = true;
-        updateUI("Adding…");
+        actionStatus.textContent = "Adding…";
+        resultOut.value = "";
 
         try {
           for (const name of tags) {
-            try { await manager.createTag(name); } catch {}
+            try { await manager.createTag(name); } catch {} // tag may already exist — safe to ignore
           }
           await manager.addTagsToRoom(String(roomId), tags);
-          updateUI("Done");
+          actionStatus.textContent = "Done";
+          resultOut.value = JSON.stringify({ roomId, addedTags: tags }, null, 2);
+          // Update displayed tags by merging with newly added ones
+          const prev = currentTagsDisplay.value === "(no tags)" ? [] : currentTagsDisplay.value.split(", ");
+          const updated = [...new Set([...prev, ...tags])];
+          currentTagsDisplay.value = updated.join(", ");
+        } catch (error) {
+          actionStatus.textContent = "Error";
+          resultOut.value = error?.message || String(error);
         } finally {
           updateUI();
         }

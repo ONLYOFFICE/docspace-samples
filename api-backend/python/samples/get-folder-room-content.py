@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get folder and room contents
 
 This example demonstrates how to retrieve the contents of a folder or room in ONLYOFFICE DocSpace. The same API endpoint returns both files and subfolders.
@@ -14,44 +14,40 @@ API_HOST = 'https://yourportal.onlyoffice.com'
 API_KEY = 'your_api_key'
 
 # Headers with API key for authentication
-headers = {
+HEADERS = {
   'Authorization': f'Bearer {API_KEY}',
   'Accept': 'application/json'
 }
 
 # Step 1: Retrieve folder or room contents
 def get_folder_contents(folder_id):
-  url = f'{API_HOST}/api/2.0/files/:folderId'
-  response = requests.get(url, headers=headers)
+  url = f'{API_HOST}/api/2.0/files/{folder_id}'
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
-  print("Status Code:", response.status_code)
-  print("Raw Response:", response.text)
+  if response.status_code != 200:
+    print(f"Failed to get folder contents. Status code: {response.status_code}, Message: {response.text}")
+    return None
 
-  try:
-    data = response.json()
-    if isinstance(data, dict) and "response" in data:
-      contents = data["response"]
-      files = contents.get("files", [])
-      folders = contents.get("folders", [])
+  data = response.json()
+  if not isinstance(data, dict) or 'response' not in data:
+    print(f"Unexpected response format: {data}")
+    return None
 
-      print(f'\nContents of Folder ID {folder_id}:')
+  contents = data['response']
+  files = contents.get('files', [])
+  folders = contents.get('folders', [])
 
-      print('\nFiles:')
-      for file in files:
-        print(f"- {file.get('title', 'No Title')} ({file.get('fileExst', 'Unknown Extension')}) — {file.get('contentLength', 'Unknown Size')}")
+  print(f'\nContents of Folder ID {folder_id}:')
 
-      print('\nFolders:')
-      for folder in folders:
-        print(f"- {folder.get('title', 'No Title')}")
+  print('\nFiles:')
+  for file in files:
+    print(f"- {file.get('title', 'No Title')} ({file.get('fileExst', 'Unknown Extension')}) — {file.get('contentLength', 'Unknown Size')}")
 
-        return contents
-    else:
-      print("Unexpected response format:", data)
-  except Exception as e:
-    print(f"Error parsing JSON: {e}")
-    print("Raw response:", response.text)
+  print('\nFolders:')
+  for folder in folders:
+    print(f"- {folder.get('title', 'No Title')}")
 
-return None
+  return contents
 
 if __name__ == '__main__':
   folder_id = 1074098  # Replace with actual folder or room ID

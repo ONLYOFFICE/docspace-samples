@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage IP restrictions
 
 This example demonstrates how to retrieve and update IP restriction settings in ONLYOFFICE DocSpace using API requests.
@@ -21,11 +21,17 @@ const HEADERS = {
 };
 
 // Step 1: Update IP restrictions settings
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function saveRestrictions(ipRestrictions, enable = true) {
   const url = `${API_HOST}/api/2.0/settings/iprestrictions`;
   const body = JSON.stringify({ enable, ipRestrictions });
 
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS, body });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS, body });
   if (!res.ok) {
     const text = await res.text();
     console.log(`IP restrictions update failed. Status code: ${res.status}, Message: ${text}`);
@@ -40,7 +46,7 @@ async function saveRestrictions(ipRestrictions, enable = true) {
 async function getRestrictions() {
   const url = `${API_HOST}/api/2.0/settings/iprestrictions`;
 
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
     const text = await res.text();
     console.log(`IP restrictions retrieval failed. Status code: ${res.status}, Message: ${text}`);

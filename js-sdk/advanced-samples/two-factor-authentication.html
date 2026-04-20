@@ -2,7 +2,7 @@
 Example: Two-factor authentication
 
 This example demonstrates a two-step verification process using a phone number and 4-digit code before granting access to DocSpace via the SDK.
-Once verified, users are redirected to a file management interface embedded in an iframe.
+Once verified, the form is replaced by a file management interface embedded in an iframe.
 
 Using methods:
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
@@ -15,16 +15,13 @@ Using methods:
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="example-title" content="Two-Factor Authentication" />
-    <meta
-      name="example-description"
-      content="Phone + 4-digit code verification before unlocking DocSpace in an iframe. All UI elements are visible on one page."
-    />
+    <meta name="example-description" content="Simulate two-factor authentication: enter a phone number to receive a code, verify it, and unlock the embedded DocSpace manager." />
     <meta name="example-group" content="advanced" />
     <title>Two-Factor Authentication</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -33,102 +30,98 @@ Using methods:
   </head>
 
   <body class="ex-two-factor-authentication">
-    <div class="page">
-      <div class="card">
+
+    <!-- Phase 1: verification form, centered -->
+    <div id="formPhase" class="ex-2fa-form-phase">
+      <div class="card ex-2fa-card">
         <div class="field">
           <label for="inputPhone">Phone number</label>
-          <div class="row">
-            <input type="tel" id="inputPhone" placeholder="Phone Number" />
-            <button id="btnPhone" type="button">Generate code</button>
+          <div class="ex-2fa-row">
+            <input type="tel" id="inputPhone" placeholder="+1 555 000 0000" />
+            <button id="btnPhone" type="button" class="btn">Generate code</button>
           </div>
         </div>
         <div class="field">
           <label for="inputCode">Verification code</label>
-          <div class="row">
-            <input type="text" id="inputCode" placeholder="4-digit Code" maxlength="4" />
-            <button id="btnCode" type="button" disabled>Verify</button>
+          <div class="ex-2fa-row">
+            <input type="text" id="inputCode" placeholder="4-digit code" maxlength="4" />
+            <button id="btnCode" type="button" class="btn" disabled>Verify</button>
           </div>
         </div>
-        <div class="hint" id="hint">Enter a phone number to generate a code.</div>
+        <span class="status" id="hint">Enter a phone number to generate a code.</span>
       </div>
+    </div>
 
-      <div class="frameWrap">
-        <iframe id="ds-frame" class="frame" title="DocSpace"></iframe>
+    <!-- Phase 2: full-page manager, shown after verification -->
+    <div id="managerPhase" class="ex-2fa-manager-phase" style="display:none">
+      <div class="frame-wrap">
+        <iframe id="ds-frame" title="DocSpace"></iframe>
+      </div>
+      <div class="bottom-bar">
+        <span class="status" id="managerStatus">Opening DocSpace…</span>
       </div>
     </div>
 
     <script>
-      const elPhone = document.getElementById("inputPhone");
-      const elBtnPhone = document.getElementById("btnPhone");
-
-      const elCode = document.getElementById("inputCode");
-      const elBtnCode = document.getElementById("btnCode");
-
-      const hint = document.getElementById("hint");
+      const elPhone       = document.getElementById("inputPhone");
+      const elBtnPhone    = document.getElementById("btnPhone");
+      const elCode        = document.getElementById("inputCode");
+      const elBtnCode     = document.getElementById("btnCode");
+      const hint          = document.getElementById("hint");
+      const formPhase     = document.getElementById("formPhase");
+      const managerPhase  = document.getElementById("managerPhase");
+      const managerStatus = document.getElementById("managerStatus");
 
       let generatedCode = "";
       let managerInited = false;
 
-      function setHint(text) {
-        hint.textContent = text;
-      }
+      function setHint(text) { hint.textContent = text; }
 
       function updateVerifyState() {
-        const code = elCode.value.trim();
-        elBtnCode.disabled = !generatedCode || code.length !== 4;
+        elBtnCode.disabled = !generatedCode || elCode.value.trim().length !== 4;
       }
 
       elPhone.addEventListener("input", () => {
-        const phone = elPhone.value.trim();
-        if (!phone) {
-          setHint("Enter a phone number to generate a code.");
-          return;
-        }
-        setHint("Click "Generate code".");
+        setHint(elPhone.value.trim() ? 'Click "Generate code".' : "Enter a phone number to generate a code.");
       });
 
       elCode.addEventListener("input", updateVerifyState);
 
       elBtnPhone.addEventListener("click", () => {
         const phone = elPhone.value.trim();
-        if (!phone) {
-          alert("Please enter a phone number");
-          elPhone.focus();
-          return;
-        }
+        if (!phone) { setHint("Enter a phone number first."); elPhone.focus(); return; }
 
         generatedCode = String(Math.floor(1000 + Math.random() * 9000));
-        alert("Your verification code is: " + generatedCode);
-
-        setHint("Enter the 4-digit code and click "Verify".");
+        setHint('Code sent (demo): ' + generatedCode + ' — enter it below and click "Verify".');
         elCode.focus();
         updateVerifyState();
       });
 
       elBtnCode.addEventListener("click", () => {
-        const code = elCode.value.trim();
+        if (!generatedCode) { setHint("Generate a code first."); return; }
 
-        if (!generatedCode) {
-          setHint("Generate a code first.");
-          return;
-        }
-
-        if (code !== generatedCode) {
-          alert("Authorization error: Invalid verification code");
+        if (elCode.value.trim() !== generatedCode) {
           setHint("Invalid code. Try again.");
           elCode.focus();
           return;
         }
 
-        setHint("Verified. DocSpace unlocked.");
-
         if (managerInited) return;
         managerInited = true;
 
+        // Switch to manager phase
+        formPhase.style.display    = "none";
+        managerPhase.style.display = "";
+
         DocSpace.SDK.initManager({
           frameId: "ds-frame",
-          width: "100%",
-          height: "700px"
+          width:   "100%",
+          height:  "100%",
+          theme:   "base",
+          events: {
+            onAppReady:    () => { managerStatus.textContent = "Ready"; },
+            onAppError:    () => { managerStatus.textContent = "Manager error"; }
+          }
         });
       });
 

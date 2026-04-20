@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Update group manager
 
 This example demonstrates how to update group manager in ONLYOFFICE DocSpace.
@@ -20,9 +20,15 @@ const HEADERS = {
 };
 
 // Step 1: Create a new group and add members
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function createGroup(groupName, managerId, memberIds) {
   const url = `${API_HOST}/api/2.0/group`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify({
@@ -33,8 +39,8 @@ async function createGroup(groupName, managerId, memberIds) {
   });
 
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Group creation failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Group creation failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
 
@@ -47,15 +53,15 @@ async function createGroup(groupName, managerId, memberIds) {
 // Step 2: Reassign group ownership
 async function reassignGroupManager(groupId, newManagerId) {
   const url = `${API_HOST}/api/2.0/group/${groupId}`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify({ groupManager: newManagerId }),
   });
 
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Group manager reassignment failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Group manager reassignment failed. Status code: ${res.status}, Message: ${text}`);
     return;
   }
 

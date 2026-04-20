@@ -1,7 +1,9 @@
 <!--
 Example: Open modal
 
-This example demonstrates how to open a predefined modal window in DocSpace using the JavaScript SDK.
+This example demonstrates how to open a predefined modal window in the embedded
+DocSpace manager using the JavaScript SDK. Buttons on your page can trigger
+DocSpace dialogs (Upload, Create room, Invite users, etc.) programmatically.
 
 Using methods:
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
@@ -13,14 +15,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Open modal" />
-    <meta name="example-description" content="Open a predefined DocSpace modal window." />
+    <meta name="example-title" content="Open Modal" />
+    <meta name="example-description" content="Programmatically open DocSpace dialogs (Upload, Create room, Invite users) from your page." />
     <meta name="example-group" content="basic" />
-    <title>Open modal</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Open Modal</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -29,30 +31,100 @@ Using methods:
   </head>
 
   <body class="ex-open-modal">
-    <div class="top-bar">
-      <button class="btn" id="btn" type="button">Open modal</button>
-      <span class="status" id="status"></span>
-    </div>
-
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <select id="modalType" class="bottom-bar-select" disabled>
+            <option value="">Loading…</option>
+          </select>
+          <button class="btn" id="btn" type="button" disabled>Open modal</button>
+          <span class="status" id="status">Loading…</span>
+        </div>
+      </div>
+      <div class="result-split__panel card" style="flex:0 0 300px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label>How it works</label>
+          <p class="ex-open-modal__desc">
+            Select a modal type and click <strong>Open modal</strong> — DocSpace will show the
+            corresponding dialog inside the embedded frame, as if the user clicked it themselves.
+          </p>
+        </div>
+        <div class="field" style="margin-top:12px;flex:1;display:flex;flex-direction:column">
+          <label>SDK Config</label>
+          <textarea class="output" id="configOut" readonly style="flex:1;resize:none"></textarea>
+        </div>
+      </div>
     </div>
 
     <script>
-      const btn = document.getElementById("btn");
+      const btn        = document.getElementById("btn");
+      const select     = document.getElementById("modalType");
+      const status     = document.getElementById("status");
+      const configOut  = document.getElementById("configOut");
 
-      const manager = DocSpace.SDK.initManager({
+      const config = {
         frameId: "ds-frame",
-        width: "900px",
+        width: "700px",
         height: "520px",
-        theme: "base"
-      });
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            // Populate dropdown from the actual SDK ModalType enum
+            const mt = window.DocSpace?.ModalType;
+            if (mt && typeof mt === "object") {
+              select.textContent = "";
+              for (const [name, value] of Object.entries(mt)) {
+                if (typeof value === "number") {
+                  const opt = document.createElement("option");
+                  opt.value = value;
+                  opt.textContent = name.replace(/([A-Z])/g, " $1").trim();
+                  select.appendChild(opt);
+                }
+              }
+            } else {
+              // Fallback if enum not exposed
+              select.textContent = "";
+              [
+                { value: "1", label: "Create room" },
+                { value: "2", label: "Invite users" },
+                { value: "3", label: "Upload files" },
+              ].forEach(function (item) {
+                const opt = document.createElement("option");
+                opt.value = item.value;
+                opt.textContent = item.label;
+                select.appendChild(opt);
+              });
+            }
+            select.disabled = false;
+            btn.disabled = false;
+            status.textContent = "Ready";
+          },
+          onAppError: () => {
+            status.textContent = "SDK error — check portal URL";
+          }
+        }
+      };
+
+      configOut.value = JSON.stringify(
+        config, (k, v) => typeof v === "function" ? "[Function]" : v, 2
+      );
+
+      const manager = DocSpace.SDK.initManager(config);
 
       btn.onclick = async () => {
+        const type = Number(select.value);
+        btn.disabled = true;
+        status.textContent = "Opening…";
         try {
-          await manager.openModal(3);
-        } catch (e) {
-          alert(e?.message || e);
+          await manager.openModal(type);
+          status.textContent = "Ready";
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
+        } finally {
+          btn.disabled = false;
         }
       };
     </script>

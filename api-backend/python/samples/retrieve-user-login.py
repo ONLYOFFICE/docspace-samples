@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Retrieve user login audit events
 
 This example demonstrates how to retrieve user login audit activities in ONLYOFFICE DocSpace.
@@ -24,7 +24,7 @@ HEADERS = {
 # Step 1: Retrieve the most recent login audit events
 def get_last_login_events():
   url = f'{API_HOST}/api/2.0/security/audit/login/last'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     login_events = response.json()
@@ -45,7 +45,7 @@ def get_login_events_by_filter(user_id=None, action=None, start_date=None, end_d
   }
   params = {k: v for k, v in params.items() if v is not None}
 
-  response = requests.get(url, headers=HEADERS, params=params)
+  response = requests.get(url, headers=HEADERS, params=params, timeout=30)
 
   if response.status_code == 200:
     filtered_events = response.json()

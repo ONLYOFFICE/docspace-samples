@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Create a virtual data room (VDR) with a watermark
 
 This example demonstrates how to create a Virtual Data Room (VDR) in ONLYOFFICE DocSpace using the API.
@@ -34,7 +34,7 @@ def create_vdr_room(room_title, room_description):
     }
   }
 
-  response = requests.post(url, headers=HEADERS, json=data)
+  response = requests.post(url, headers=HEADERS, json=data, timeout=30)
 
   if response.status_code == 200:
     return response.json()

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Reassign a user’s content to another user
 
 This example demonstrates how to reassign a user’s data to another user in ONLYOFFICE DocSpace via the API:
@@ -20,13 +20,19 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Step 1: Check if reassignment is necessary
 async function checkReassignmentNeeded(userId, targetType = 'User') {
   const params = new URLSearchParams({ UserId: userId, Type: targetType });
-  const res = await fetch(`${API_HOST}/api/2.0/people/reassign/necessary?${params}`, {
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/people/reassign/necessary?${params}`, {
     method: 'GET',
     headers: HEADERS,
   });
@@ -44,7 +50,7 @@ async function checkReassignmentNeeded(userId, targetType = 'User') {
 // Step 2: Start reassignment process
 async function startReassignment(fromUserId, toUserId, deleteProfile = false) {
   const payload = { fromUserId, toUserId, deleteProfile };
-  const res = await fetch(`${API_HOST}/api/2.0/people/reassign/start`, {
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/people/reassign/start`, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(payload),
@@ -60,7 +66,7 @@ async function startReassignment(fromUserId, toUserId, deleteProfile = false) {
 // Step 3: Monitor progress
 async function getProgress(userId) {
   while (true) {
-    const res = await fetch(`${API_HOST}/api/2.0/people/reassign/progress/${userId}`, {
+    const res = await fetchWithTimeout(`${API_HOST}/api/2.0/people/reassign/progress/${userId}`, {
       method: 'GET',
       headers: HEADERS,
     });
@@ -82,7 +88,7 @@ async function getProgress(userId) {
 
 // Step 4: Terminate the reassignment
 async function terminateReassignment(userId) {
-  const res = await fetch(`${API_HOST}/api/2.0/people/reassign/terminate`, {
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/people/reassign/terminate`, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify({ userId }),

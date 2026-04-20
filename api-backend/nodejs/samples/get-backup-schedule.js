@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get backup schedule
 
 This example demonstrates how to retrieve the current portal’s backup schedule in ONLYOFFICE DocSpace using the API.
@@ -15,6 +15,12 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 function getBackupSchedule(dump) {
   // Optional query parameter: Dump=True to request dump-based schedule info
@@ -26,14 +32,14 @@ function getBackupSchedule(dump) {
   const qs = params.toString();
   const url = `${API_HOST}/api/2.0/backup/getbackupschedule${qs ? `?${qs}` : ''}`;
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'GET',
     headers: HEADERS,
   })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Backup schedule retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Backup schedule retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

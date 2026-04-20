@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Start a backup manually
 
 This example demonstrates how to start a backup in ONLYOFFICE DocSpace on demand via the API.
@@ -30,7 +30,8 @@ def start_backup():
   response = requests.post(
     f'{API_HOST}/api/2.0/backup/startbackup',
     headers=HEADERS,
-    json=payload
+    json=payload,
+    timeout=30,
   )
 
   # Handle API response

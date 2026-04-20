@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage active portal connections
 
 This example shows how to manage active user sessions in ONLYOFFICE DocSpace.
@@ -23,13 +23,19 @@ const HEADERS = {
 };
 
 // Step 1: Retrieve all active portal connections
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function getAllActiveConnections() {
   const url = `${API_HOST}/api/2.0/security/activeconnections`;
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Active connections retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Active connections retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })
@@ -47,11 +53,11 @@ function getAllActiveConnections() {
 // Step 2: Log out all sessions except the current one
 function logOutAllExceptCurrent() {
   const url = `${API_HOST}/api/2.0/security/activeconnections/logoutallexceptthis`;
-  return fetch(url, { method: 'PUT', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'PUT', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Logout-all-except-current failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Logout-all-except-current failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })
@@ -69,11 +75,11 @@ function logOutAllExceptCurrent() {
 // Step 3: Log out a specific session by its login event ID
 function logOutActiveConnection(loginEventId) {
   const url = `${API_HOST}/api/2.0/security/activeconnections/logout/${loginEventId}`;
-  return fetch(url, { method: 'PUT', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'PUT', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Logout connection ${loginEventId} failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Logout connection ${loginEventId} failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })
@@ -91,11 +97,11 @@ function logOutActiveConnection(loginEventId) {
 // Step 4: Log out all sessions for a specific user
 function logOutAllActiveConnectionsForUser(userId) {
   const url = `${API_HOST}/api/2.0/security/activeconnections/logoutall/${userId}`;
-  return fetch(url, { method: 'PUT', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'PUT', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Logout all for user ${userId} failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Logout all for user ${userId} failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

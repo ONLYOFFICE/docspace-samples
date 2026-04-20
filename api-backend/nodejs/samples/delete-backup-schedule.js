@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Delete backup schedule
 
 This example demonstrates how to delete the current portal’s backup schedule in ONLYOFFICE DocSpace using the API.
@@ -15,6 +15,12 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 async function deleteBackupSchedule(dump) {
   const params = new URLSearchParams();
@@ -26,7 +32,7 @@ async function deleteBackupSchedule(dump) {
   const url = `${API_HOST}/api/2.0/backup/deletebackupschedule${qs ? `?${qs}` : ''}`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       method: 'DELETE',
       headers: HEADERS,
     });

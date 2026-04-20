@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Restore portal from a backup
 
 This example demonstrates how to restore an ONLYOFFICE DocSpace portal from a specific backup using the API.
@@ -32,7 +32,8 @@ def restore_portal():
   response = requests.post(
     f'{API_HOST}/api/2.0/backup/startrestore',
     headers=HEADERS,
-    json=payload
+    json=payload,
+    timeout=30,
   )
 
   # Handle API response

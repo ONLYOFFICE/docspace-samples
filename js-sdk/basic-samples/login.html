@@ -1,11 +1,15 @@
 <!--
 Example: Login
 
-This example demonstrates how to log in to DocSpace using the JavaScript SDK by hashing the password.
+This example demonstrates how to log in to DocSpace using the JavaScript SDK
+by hashing the password and calling the login method.
 
 Using methods:
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- system.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
+- system.createHash (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createhash)
+- system.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
-- manager.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
 -->
 
 <!DOCTYPE html>
@@ -14,13 +18,13 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
     <meta name="example-title" content="Login" />
-    <meta name="example-description" content="Log in to DocSpace using hashed password." />
+    <meta name="example-description" content="Enter email and password to sign in to DocSpace. The SDK hashes the password before sending — the manager opens after a successful login." />
     <meta name="example-group" content="basic" />
     <title>Login</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -29,34 +33,140 @@ Using methods:
   </head>
 
   <body class="ex-login">
-    <div class="page">
+
+    <!-- Step 1: Login form -->
+    <div id="loginWrap">
       <div class="card">
-        <div class="actions">
-          <button class="btn" id="btn" type="button">Login</button>
-          <span class="status" id="status">Ready</span>
+        <div class="field">
+          <label for="loginInput">Email</label>
+          <input id="loginInput" type="email" placeholder="user@example.com" autocomplete="username" />
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password" />
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn" id="loginBtn" type="button" disabled>Sign in</button>
+          <span class="status" id="status">Enter your credentials</span>
         </div>
       </div>
     </div>
 
-    <iframe id="ds-frame" class="hidden-frame"></iframe>
+    <!-- Hidden system frame used for authentication -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-system-frame"></div>
+    </div>
+
+    <!-- Step 2: Manager (shown after successful login) -->
+    <div id="managerWrap" style="display:none">
+      <div class="frame-wrap">
+        <iframe id="ds-frame"></iframe>
+      </div>
+      <div class="bottom-bar">
+        <button class="btn secondary" id="backBtn">← Sign out</button>
+        <span class="status" id="managerStatus">Loading…</span>
+      </div>
+    </div>
 
     <script>
-      const btn = document.getElementById("btn");
+      const loginInput  = document.getElementById("loginInput");
+      const passwordInput = document.getElementById("passwordInput");
+      const loginBtn    = document.getElementById("loginBtn");
+      const status      = document.getElementById("status");
+      const loginWrap   = document.getElementById("loginWrap");
+      const managerWrap = document.getElementById("managerWrap");
+      const managerStatus = document.getElementById("managerStatus");
 
-      const manager = DocSpace.SDK.initManager({
-        frameId: "ds-frame",
-        width: "900px",
-        height: "520px",
-        theme: "base"
+      let system = null;
+
+      // Auto-fill from demo session if available
+      (function () {
+        const s = window.__demoConfig?.session;
+        if (s?.user?.email) {
+          loginInput.value = s.user.email;
+          if (s.user.password) passwordInput.value = s.user.password;
+          loginBtn.disabled = false;
+          status.textContent = "Ready";
+        }
+      })();
+
+      function checkForm() {
+        const ok = loginInput.value.trim() && passwordInput.value;
+        loginBtn.disabled = !ok;
+        status.textContent = ok ? "Ready" : "Enter your credentials";
+      }
+
+      loginInput.addEventListener("input", checkForm);
+      passwordInput.addEventListener("input", checkForm);
+
+      async function doLogin() {
+        const email    = loginInput.value.trim();
+        const password = passwordInput.value;
+        if (!email || !password) return;
+
+        loginBtn.disabled = true;
+
+        try {
+          if (!system) {
+            status.textContent = "Initializing SDK…";
+            system = await new Promise((resolve, reject) => {
+              let systemInstance;
+              systemInstance = DocSpace.SDK.initSystem({
+                frameId: "ds-system-frame",
+                theme: "base",
+                events: {
+                  onAppReady: () => resolve(systemInstance),
+                  onAppError: (e) => reject(new Error(error?.message || "SDK init error"))
+                }
+              });
+            });
+          }
+
+          status.textContent = "Hashing password…";
+          const hashSettings   = await system.getHashSettings();
+          const passwordHash   = await system.createHash(password, hashSettings);
+
+          status.textContent = "Signing in…";
+          await system.login(email, passwordHash);
+
+          // Show manager
+          loginWrap.style.display   = "none";
+          managerWrap.style.display = "";
+          managerStatus.textContent = "Loading…";
+
+          DocSpace.SDK.initManager({
+            frameId: "ds-frame",
+            width: "900px",
+            height: "520px",
+            theme: "base",
+            events: {
+              onContentReady: () => {
+                managerStatus.textContent = "Ready";
+              },
+              onAppError: () => {
+                managerStatus.textContent = "Error loading manager";
+              }
+            }
+          });
+
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
+          loginBtn.disabled = false;
+        }
+      }
+
+      loginBtn.addEventListener("click", doLogin);
+      passwordInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doLogin();
       });
 
-      btn.onclick = async () => {
-        try {
-          await manager.login('user@example.com', 'hash');
-        } catch (e) {
-          alert(e?.message || e);
-        }
-      };
+      document.getElementById("backBtn").addEventListener("click", () => {
+        system = null;
+        managerWrap.style.display = "none";
+        loginWrap.style.display   = "";
+        loginBtn.disabled = false;
+        status.textContent = "Ready";
+      });
     </script>
   </body>
 </html>

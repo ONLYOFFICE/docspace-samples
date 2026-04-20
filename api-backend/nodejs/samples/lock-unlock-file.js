@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Lock and unlock a file
 
 This example demonstrates how to lock or unlock the specified file in ONLYOFFICE DocSpace and get a list of users and their access levels for the file.
@@ -19,11 +19,17 @@ const HEADERS = {
 };
 
 // Step 1: Lock a file by ID
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function lockFile(fileId) {
   const url = `https://${API_HOST}/api/2.0/files/file/${fileId}/lock`;
   const data = { lockFile: true };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(data),
@@ -45,7 +51,7 @@ function unlockFile(fileId) {
   const url = `https://${API_HOST}/api/2.0/files/file/${fileId}/lock`;
   const data = { lockFile: false };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(data),
@@ -65,7 +71,7 @@ function unlockFile(fileId) {
 // Step 3: View users with access to the file
 function getProtectedFileUsers(fileId) {
   const url = `https://${API_HOST}/api/2.0/files/file/${fileId}/protectusers`;
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'GET',
     headers: HEADERS,
   })
@@ -82,8 +88,8 @@ function getProtectedFileUsers(fileId) {
 }
 
 // Run
-const file_id = '123456'; // Replace with a valid file ID
+const fileId = '123456'; // Replace with a valid file ID
 
-lockFile(file_id)
-  .then(() => unlockFile(file_id))
-  .then(() => getProtectedFileUsers(file_id));
+lockFile(fileId)
+  .then(() => unlockFile(fileId))
+  .then(() => getProtectedFileUsers(fileId));

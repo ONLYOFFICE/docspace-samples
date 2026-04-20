@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Lock and unlock a file
 
 This example demonstrates how to lock or unlock the specified file in ONLYOFFICE DocSpace and get a list of users and their access levels for the file.
@@ -25,7 +25,7 @@ def lock_file(file_id):
   url = f'{API_HOST}/api/2.0/files/file/{file_id}/lock'
   data = { 'lockFile': True }
 
-  response = requests.put(url, headers=HEADERS, json=data)
+  response = requests.put(url, headers=HEADERS, json=data, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -38,7 +38,7 @@ def unlock_file(file_id):
   url = f'{API_HOST}/api/2.0/files/file/{file_id}/lock'
   data = { 'lockFile': False }
 
-  response = requests.put(url, headers=HEADERS, json=data)
+  response = requests.put(url, headers=HEADERS, json=data, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -49,7 +49,7 @@ def unlock_file(file_id):
 # Step 3: View users with access to the file
 def get_protected_file_users(file_id):
   url = f'{API_HOST}/api/2.0/files/file/{file_id}/protectusers'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     return response.json()
   else:

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage files in "My Documents"
 
 This example demonstrates how to interact with a user's personal space ("My Documents") in ONLYOFFICE DocSpace using the API.
@@ -25,7 +25,7 @@ HEADERS = {
 # Step 1: Get "My Documents" contents
 def get_my_documents():
   url = f'{API_HOST}/api/2.0/files/@my'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -38,7 +38,7 @@ def upload_file_to_my(file_path):
   url = f'{API_HOST}/api/2.0/files/@my/upload'
   with open(file_path, 'rb') as file:
     files = {'file': (file_path, file)}
-    response = requests.post(url, headers=HEADERS, files=files)
+    response = requests.post(url, headers=HEADERS, files=files, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -50,7 +50,7 @@ def upload_file_to_my(file_path):
 def create_file_in_my(file_title):
   url = f'{API_HOST}/api/2.0/files/@my/file'
   data = {'title': file_title}
-  response = requests.post(url, headers=HEADERS, json=data)
+  response = requests.post(url, headers=HEADERS, json=data, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -66,7 +66,7 @@ def delete_file(file_id, immediately=True, delete_after=False):
     'deleteAfter': delete_after
   }
 
-  requests.delete(url, headers=HEADERS, json=data)
+  response = requests.delete(url, headers=HEADERS, json=data, timeout=30)
   if response.status_code == 200:
     print(f"File deletion from \"My Documents\" succeeded: {response.json()}")
   else:

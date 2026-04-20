@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Create a backup schedule
 
 This example demonstrates how to create a daily backup schedule in ONLYOFFICE DocSpace using the API (e.g., run every day at 03:00, keep the last 7 backups, optionally include a full portal dump).
@@ -14,6 +14,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 async function createBackupSchedule() {
   const payload = {
@@ -28,7 +34,7 @@ async function createBackupSchedule() {
   };
 
   try {
-    const res = await fetch(`${API_HOST}/api/2.0/backup/createbackupschedule`, {
+    const res = await fetchWithTimeout(`${API_HOST}/api/2.0/backup/createbackupschedule`, {
       method: 'POST',
       headers: HEADERS,
       body: JSON.stringify(payload),

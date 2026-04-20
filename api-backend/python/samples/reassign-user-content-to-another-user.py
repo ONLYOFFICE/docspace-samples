@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Reassign a user’s content to another user
 
 This example demonstrates how to reassign a user’s data to another user in ONLYOFFICE DocSpace via the API:
@@ -22,47 +22,47 @@ HEADERS = {'Authorization': API_KEY}
 # Step 1: Check if reassignment is necessary
 def check_reassignment_needed(user_id, target_type='User'):
   params = {'UserId': user_id, 'Type': target_type}
-  r = requests.get(f'{API_HOST}/api/2.0/people/reassign/necessary', headers=HEADERS, params=params)
-  if r.status_code == 200:
-    necessary = r.json().get('response', False)
+  response = requests.get(f'{API_HOST}/api/2.0/people/reassign/necessary', headers=HEADERS, params=params, timeout=30)
+  if response.status_code == 200:
+    necessary = response.json().get('response', False)
     print(f"Reassignment required: {necessary}")
     return necessary
   else:
-    print(f"Failed to check necessity. Status code: {r.status_code}, Message: {r.text}")
+    print(f"Failed to check necessity. Status code: {response.status_code}, Message: {response.text}")
     return False
 
 # Step 2: Start reassignment process
 def start_reassignment(from_user_id, to_user_id, delete_profile=False):
   payload = {"fromUserId": from_user_id, "toUserId": to_user_id, "deleteProfile": delete_profile}
-  r = requests.post(f'{API_HOST}/api/2.0/people/reassign/start', headers=HEADERS, json=payload)
-  if r.status_code == 200:
+  response = requests.post(f'{API_HOST}/api/2.0/people/reassign/start', headers=HEADERS, json=payload, timeout=30)
+  if response.status_code == 200:
     print("Reassignment started.")
   else:
-    print(f"Failed to start reassignment. Status code: {r.status_code}, Message: {r.text}")
+    print(f"Failed to start reassignment. Status code: {response.status_code}, Message: {response.text}")
 
 # Step 3: Monitor progress
 def get_progress(user_id):
   while True:
-    r = requests.get(f'{API_HOST}/api/2.0/people/reassign/progress/{user_id}', headers=HEADERS)
-    if r.status_code == 200:
-      data = r.json().get('response', {})
+    response = requests.get(f'{API_HOST}/api/2.0/people/reassign/progress/{user_id}', headers=HEADERS, timeout=30)
+    if response.status_code == 200:
+      data = response.json().get('response', {})
       print(f"Progress: {data.get('percentage')}%")
       if data.get('isCompleted'):
         print("Reassignment completed.")
         break
       time.sleep(2)
     else:
-      print(f"Failed to fetch progress. Status code: {r.status_code}, Message: {r.text}")
+      print(f"Failed to fetch progress. Status code: {response.status_code}, Message: {response.text}")
       break
 
 # Step 4: terminate the reassignment
 def terminate_reassignment(user_id):
   payload = {'userId': user_id}
-  r = requests.put(f'{API_HOST}/api/2.0/people/reassign/terminate', headers=HEADERS, json=payload)
-  if r.status_code == 200:
+  response = requests.put(f'{API_HOST}/api/2.0/people/reassign/terminate', headers=HEADERS, json=payload, timeout=30)
+  if response.status_code == 200:
     print("Reassignment terminated.")
   else:
-    print(f"Failed to terminate reassignment. Status code: {r.status_code}, Message: {r.text}")
+    print(f"Failed to terminate reassignment. Status code: {response.status_code}, Message: {response.text}")
 
 if __name__ == '__main__':
   from_user_id = 'SOURCE-USER-ID'

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Start a backup manually
 
 This example demonstrates how to start a backup in ONLYOFFICE DocSpace on demand via the API.
@@ -17,6 +17,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 async function startBackup() {
   // Backup payload: Local storage, full portal dump
@@ -26,7 +32,7 @@ async function startBackup() {
   };
 
   // Send request to start backup
-  const res = await fetch(`${API_HOST}/api/2.0/backup/startbackup`, {
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/backup/startbackup`, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(payload),

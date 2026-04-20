@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: List API keys
 
 This example demonstrates how to retrieve all API keys associated with the current user in ONLYOFFICE DocSpace.
@@ -16,16 +16,22 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Get all API keys for the current user
 function listApiKeys() {
   const url = `${API_HOST}/api/2.0/keys`;
 
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`API keys retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`API keys retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

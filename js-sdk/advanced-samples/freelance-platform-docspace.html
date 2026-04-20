@@ -1,8 +1,8 @@
 <!--
-Example: Collaborative project workflow
+Example: Freelance Project Workspace
 
-This example shows how to build a freelance project workspace using DocSpace SDK.
-When a project is created, a room is generated, a freelancer is assigned via API, task files are managed, and the room is archived on completion.
+Shows how a freelance platform can integrate DocSpace: create a project room,
+optionally invite a freelancer, and open the embedded manager inside that room.
 
 Using methods:
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
@@ -15,14 +15,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Freelance Platform + DocSpace" />
-    <meta name="example-description" content="Create a project room, share a link, and manage project files with the embedded manager." />
+    <meta name="example-title" content="Freelance Project Workspace" />
+    <meta name="example-description" content="Set up a DocSpace workspace for a freelance project: create a room, copy a public link, and manage project files in the embedded manager." />
     <meta name="example-group" content="advanced" />
-    <title>Freelance Platform + DocSpace</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Freelance Project Workspace</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -31,62 +31,61 @@ Using methods:
   </head>
 
   <body class="ex-freelance-platform-docspace">
-    <div class="page">
-      <div class="card">
-        <div class="field">
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <span class="status" id="status">Waiting…</span>
+        </div>
+      </div>
+
+      <div class="result-split__panel card" style="flex:0 0 340px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
           <label for="projectTitle">Project title</label>
           <input id="projectTitle" type="text" placeholder="Acme Website Landing Page" />
         </div>
-        <div class="field">
-          <label for="freelancer">Freelancer email (optional)</label>
+
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label for="freelancer">Freelancer email <span style="color:#9ca3af;font-weight:400">(optional)</span></label>
           <input id="freelancer" type="text" placeholder="freelancer@example.com" />
         </div>
-        <div class="actions">
+
+        <div class="actions" style="flex:0 0 auto;margin-top:12px">
           <button id="createBtn" class="btn" type="button" disabled>Create project room</button>
-          <span class="status" id="status">Waiting…</span>
         </div>
-        <div class="field">
+
+        <div class="field" style="flex:1;display:flex;flex-direction:column;margin-top:10px">
           <label>Result</label>
-          <textarea class="output" id="out" readonly placeholder="Room link and details will appear here…"></textarea>
+          <textarea class="output" id="out" readonly
+            style="flex:1;resize:none;font-family:ui-monospace,monospace;font-size:12px"
+            placeholder="Room link and details will appear here…"></textarea>
         </div>
       </div>
     </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
-    </div>
-
     <script>
       const projectTitle = document.getElementById("projectTitle");
-      const freelancer = document.getElementById("freelancer");
-      const createBtn = document.getElementById("createBtn");
-      const status = document.getElementById("status");
-      const out = document.getElementById("out");
-
-      function setOut(obj){
-        out.value = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
-      }
-
-      function updateState(){
-        createBtn.disabled = !managerReady || !projectTitle.value.trim();
-      }
+      const freelancer   = document.getElementById("freelancer");
+      const createBtn    = document.getElementById("createBtn");
+      const statusEl     = document.getElementById("status");
+      const out          = document.getElementById("out");
 
       let managerReady = false;
 
+      function setStatus(text) { statusEl.textContent = text; }
+      function setOut(obj)  { out.value = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); }
+      function updateState() { createBtn.disabled = !managerReady || !projectTitle.value.trim(); }
+
       const manager = DocSpace.SDK.initManager({
         frameId: "ds-frame",
-        width: "100%",
+        width: "700px",
         height: "520px",
         theme: "base",
         events: {
-          onAppReady: () => {
-            managerReady = true;
-            status.textContent = "Ready";
-            updateState();
-          },
-          onAppError: () => {
-            status.textContent = "Error";
-          }
+          onAppReady: () => { managerReady = true; setStatus("Ready"); updateState(); },
+          onAppError: () => setStatus("Error")
         }
       });
 
@@ -97,7 +96,7 @@ Using methods:
         if (!title) return;
 
         createBtn.disabled = true;
-        status.textContent = "Creating…";
+        setStatus("Creating…");
         setOut("");
 
         try {
@@ -105,7 +104,7 @@ Using methods:
           if (!room || !room.id) throw new Error("Room was not created");
 
           const roomId = String(room.id);
-          const link = `{PORTAL_SRC}rooms/shared/${roomId}/filter?folder=${roomId}`;
+          const link   = `{PORTAL_SRC}rooms/shared/${roomId}/filter?folder=${roomId}`;
 
           manager.setConfig({
             rootPath: "/rooms/shared/" + roomId,
@@ -113,16 +112,11 @@ Using methods:
             showHeader: false
           });
 
-          status.textContent = "Done";
-          setOut({
-            roomId,
-            roomTitle: title,
-            roomLink: link,
-            freelancer: freelancer.value.trim() || null
-          });
-        } catch (e) {
-          status.textContent = "Error";
-          setOut(e && (e.message || e) ? String(e.message || e) : "Failed");
+          setStatus("Done");
+          setOut({ roomId, roomTitle: title, roomLink: link, freelancer: freelancer.value.trim() || null });
+        } catch (error) {
+          setStatus("Error");
+          setOut(error?.message || String(error) || "Failed");
         } finally {
           updateState();
         }

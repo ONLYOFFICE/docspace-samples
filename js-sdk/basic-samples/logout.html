@@ -17,10 +17,10 @@ Using methods:
     <meta name="example-description" content="Log out from the current DocSpace session." />
     <meta name="example-group" content="basic" />
     <title>Logout</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -38,23 +38,33 @@ Using methods:
       </div>
     </div>
 
-    <iframe id="ds-frame" class="hidden-frame"></iframe>
+    <!-- Hidden frame for SDK method calls -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-frame"></div>
+    </div>
 
     <script>
       const btn = document.getElementById("btn");
+
+      const status = document.getElementById("status");
 
       const manager = DocSpace.SDK.initManager({
         frameId: "ds-frame",
         width: "900px",
         height: "520px",
-        theme: "base"
+        theme: "base",
+        events: {
+          onAppReady: () => { status.textContent = "Ready"; },
+          onAppError: () => { status.textContent = "SDK error — check portal URL"; }
+        }
       });
 
       btn.onclick = async () => {
         try {
           await manager.logout();
-        } catch (e) {
-          alert(e?.message || e);
+          status.textContent = "Done";
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
         }
       };
     </script>

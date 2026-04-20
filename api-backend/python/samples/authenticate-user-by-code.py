@@ -58,4 +58,4 @@ if __name__ == '__main__':
   if not token:
     code = input('Enter TOTP code: ').strip()
     token = confirm_with_code(code, meta) or sys.exit('Confirm failed')
-  print('Token:', token)
+  print('Authenticated successfully.')

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Invite users
 
 This example automates the process of creating new users and sending them invitations in ONLYOFFICE DocSpace.
@@ -32,7 +32,7 @@ def create_users(users):
       'lastName': user['last_name'],
       'email': user['email']
     }
-    response = requests.post(url, json=data, headers=HEADERS)
+    response = requests.post(url, json=data, headers=HEADERS, timeout=30)
     if response.status_code == 200:
       user_data = response.json()['response']
       print(f'User created successfully: {user_data}')
@@ -47,7 +47,7 @@ def send_invitations(users):
   data = {
     "invitations": [{"email": user["email"], "type": "All"} for user in users]
   }
-  response = requests.post(url, json=data, headers=HEADERS)
+  response = requests.post(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'Invitations sent successfully to users.')
   else:

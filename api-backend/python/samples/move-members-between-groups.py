@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Move members between groups
 
 This example demonstrates how to move all members from one group to another in ONLYOFFICE DocSpace using the API.
@@ -22,7 +22,7 @@ HEADERS = {
 # Step 1: Move members from one group to another
 def move_group_members(from_group_id, to_group_id):
   url = f'{API_HOST}/api/2.0/group/{from_group_id}/members/{to_group_id}'
-  response = requests.put(url, headers=HEADERS)
+  response = requests.put(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     print(f'Members moved from group {from_group_id} to group {to_group_id}')

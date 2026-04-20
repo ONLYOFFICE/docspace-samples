@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Create an API Key
 
 This example demonstrates how to programmatically generate an API key in ONLYOFFICE DocSpace with specific permissions and an expiration period. 
@@ -29,7 +29,7 @@ def create_api_key(name, permissions, expires_in_days):
     'expiresInDays': expires_in_days
   }
 
-  response = requests.post(url, headers=HEADERS, json=payload)
+  response = requests.post(url, headers=HEADERS, json=payload, timeout=30)
 
   if response.status_code == 200:
     data = response.json().get('response', {})

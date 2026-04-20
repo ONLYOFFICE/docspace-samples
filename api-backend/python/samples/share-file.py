@@ -30,7 +30,7 @@ def share_file(file_id, share, notify=False, message=''):
     if message:
         data['message'] = message
 
-    response = requests.put(url, headers=HEADERS, json=data)
+    response = requests.put(url, headers=HEADERS, json=data, timeout=30)
     if response.status_code == 200:
         return response.json()
 

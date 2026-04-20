@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage user photo
 
 This example demonstrates how to upload and delete user profile photos in ONLYOFFICE DocSpace using API requests.
@@ -21,16 +21,22 @@ const HEADERS = {
 };
 
 // Step 1: Upload user photo
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function uploadUserPhoto(userId, photoUrl) {
   const url = `${API_HOST}/api/2.0/people/${userId}/photo`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify({ files: photoUrl }),
   });
 
   if (res.ok) {
-    console.log(`Failed to upload user photo: ${res.status} - ${text}`);
+    console.log('User photo uploaded successfully.');
   } else {
     const text = await res.text();
     console.log(`Failed to upload user photo: ${res.status} - ${text}`);
@@ -40,10 +46,10 @@ async function uploadUserPhoto(userId, photoUrl) {
 // Step 2: Delete user photo
 async function deleteUserPhoto(userId) {
   const url = `${API_HOST}/api/2.0/people/${userId}/photo`;
-  const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'DELETE', headers: HEADERS });
 
   if (res.ok) {
-    console.log(`Failed to delete user photo: ${res.status} - ${text}`);
+    console.log('User photo deleted successfully.');
   } else {
     const text = await res.text();
     console.log(`Failed to delete user photo: ${res.status} - ${text}`);

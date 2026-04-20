@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage files
 
 This example demonstrates how to manage files in ONLYOFFICE DocSpace using the API.
@@ -22,11 +22,17 @@ const HEADERS = {
 };
 
 // Step 1: Create an empty file
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function createFile(folderId, fileName) {
   const url = `${BASE_URL}/api/2.0/files/${folderId}/file`;
   const data = { title: fileName };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(data),
@@ -55,7 +61,7 @@ function uploadFile(folderId, filePath) {
   const blob = new Blob([buffer], { type: 'application/octet-stream' });
   form.append('file', blob, path.basename(filePath));
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${API_KEY}` },
     body: form,
@@ -84,7 +90,7 @@ function updateFile(fileId, newFilePath) {
   const blob = new Blob([buffer], { type: 'application/octet-stream' });
   form.append('file', blob, path.basename(newFilePath));
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${API_KEY}` },
     body: form,
@@ -106,7 +112,7 @@ function deleteFile(fileId) {
   const url = `${BASE_URL}/api/2.0/files/file/${fileId}`;
   const data = { immediately: true };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'DELETE',
     headers: HEADERS,
     body: JSON.stringify(data),
@@ -123,21 +129,19 @@ function deleteFile(fileId) {
     });
 }
 
-function main() {
-  const folder_id = 776261; // Replace with actual folder ID
-  const file_name = 'NewDocument1.docx'; // Replace with actual file name
-  const file_path = 'path/to/upload_file.txt'; // Replace with actual file path
-  const updated_file_path = 'path/to/updated_file.txt'; // Replace with actual updated file path
-  const file_id = 1187261; // Replace with actual file ID
+(async () => {
+  const folderId = 776261; // Replace with actual folder ID
+  const fileName = 'NewDocument1.docx'; // Replace with actual file name
+  const filePath = 'path/to/upload_file.txt'; // Replace with actual file path
+  const updatedFilePath = 'path/to/updated_file.txt'; // Replace with actual updated file path
+  const fileId = 1187261; // Replace with actual file ID
 
   // Step 1
-  createFile(folder_id, file_name)
+  await createFile(folderId, fileName);
   // Step 2
-  uploadFile(folder_id, file_path)
+  await uploadFile(folderId, filePath);
   // Step 3
-  updateFile(file_id, updated_file_path)
+  await updateFile(fileId, updatedFilePath);
   // Step 4
-  deleteFile(file_id)
-}
-
-main();
+  await deleteFile(fileId);
+})();

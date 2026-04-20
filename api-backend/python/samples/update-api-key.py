@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Update an API Key
 
 This example demonstrates how to update an existing API key in DocSpace using the API.
@@ -29,7 +29,7 @@ def update_api_key(key_id, new_name, new_permissions, is_active=True):
     'isActive': is_active
   }
 
-  response = requests.put(url, headers=HEADERS, json=payload)
+  response = requests.put(url, headers=HEADERS, json=payload, timeout=30)
 
   if response.status_code == 200 and response.json().get('response') is True:
     print('API key updated successfully.')

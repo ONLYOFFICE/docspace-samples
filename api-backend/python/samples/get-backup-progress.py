@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get backup progress
 
 This example demonstrates how to check the progress of a backup process in ONLYOFFICE DocSpace using the API.
@@ -26,7 +26,8 @@ def get_backup_progress():
   response = requests.get(
       f'{API_HOST}/api/2.0/backup/getbackupprogress',
       headers=HEADERS,
-      params=params
+      params=params,
+      timeout=30,
   )
 
   # Handle response

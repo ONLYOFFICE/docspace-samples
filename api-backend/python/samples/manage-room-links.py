@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage room links
 
 This example demonstrates how to set and retrieve room invitation or external links in ONLYOFFICE DocSpace using the API.
@@ -31,7 +31,7 @@ def set_room_link(room_id, access_level=2, expiration_date=None, internal=True, 
     'primary': primary
   }
 
-  response = requests.put(url, headers=HEADERS, json=data)
+  response = requests.put(url, headers=HEADERS, json=data, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -42,7 +42,7 @@ def set_room_link(room_id, access_level=2, expiration_date=None, internal=True, 
 # Step 2: Retrieve all links for a room
 def get_room_links(room_id):
   url = f'{API_HOST}/api/2.0/files/rooms/{room_id}/links'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     return response.json()

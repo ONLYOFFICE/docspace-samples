@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Create and open a new file
 
 This example demonstrates how to create a new file inside a specific folder in ONLYOFFICE DocSpace using the API. 
@@ -29,7 +29,7 @@ def create_file(folder_id, file_title):
     'type': 'text'
   }
 
-  response = requests.post(url, json=data, headers=HEADERS)
+  response = requests.post(url, json=data, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     file_info = response.json().get('response', {})

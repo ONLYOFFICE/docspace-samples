@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Retrieve billing and payment information
 
 This example demonstrates how to read billing-related information in ONLYOFFICE DocSpace via the API:
@@ -18,13 +18,19 @@ const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 
 const HEADERS = { Authorization: API_KEY };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Customer info
 async function getCustomerInfo() {
-  const res = await fetch(`${API_HOST}/api/2.0/portal/payment/customerinfo`, { headers: HEADERS });
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/portal/payment/customerinfo`, { headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get customer info: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get customer info: ${res.status} - ${text}`);
     return null;
   }
   const data = await res.json();
@@ -35,10 +41,10 @@ async function getCustomerInfo() {
 
 // Step 2: Customer balance
 async function getCustomerBalance() {
-  const res = await fetch(`${API_HOST}/api/2.0/portal/payment/customer/balance`, { headers: HEADERS });
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/portal/payment/customer/balance`, { headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get balance: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get balance: ${res.status} - ${text}`);
     return null;
   }
   const data = await res.json();
@@ -52,10 +58,10 @@ async function getCustomerBalance() {
 
 // Step 3: Current quota
 async function getCurrentQuota() {
-  const res = await fetch(`${API_HOST}/api/2.0/portal/payment/quota`, { headers: HEADERS });
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/portal/payment/quota`, { headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get current quota: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get current quota: ${res.status} - ${text}`);
     return null;
   }
   const data = await res.json();
@@ -66,10 +72,10 @@ async function getCurrentQuota() {
 
 // Step 4: Available quotas
 async function getAvailableQuotas() {
-  const res = await fetch(`${API_HOST}/api/2.0/portal/payment/quotas`, { headers: HEADERS });
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/portal/payment/quotas`, { headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get available quotas: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get available quotas: ${res.status} - ${text}`);
     return null;
   }
   const data = await res.json();
@@ -84,10 +90,10 @@ async function getAvailableQuotas() {
 
 // Step 5: Auto Top-Up settings
 async function getTopupSettings() {
-  const res = await fetch(`${API_HOST}/api/2.0/portal/payment/topupsettings`, { headers: HEADERS });
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/portal/payment/topupsettings`, { headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get topup settings: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get topup settings: ${res.status} - ${text}`);
     return null;
   }
   const data = await res.json();
@@ -103,10 +109,10 @@ async function getTopupSettings() {
 
 // Step 6: Supported currencies
 async function getSupportedCurrencies() {
-  const res = await fetch(`${API_HOST}/api/2.0/portal/payment/currencies`, { headers: HEADERS });
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/portal/payment/currencies`, { headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get currencies: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get currencies: ${res.status} - ${text}`);
     return null;
   }
   const data = await res.json();

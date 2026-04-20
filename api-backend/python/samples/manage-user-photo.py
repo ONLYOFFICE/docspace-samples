@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage user photo
 
 This example demonstrates how to upload and delete user profile photos in ONLYOFFICE DocSpace using API requests.
@@ -27,7 +27,7 @@ def upload_user_photo(user_id, photo_url):
   url = f'{API_HOST}/api/2.0/people/{user_id}/photo'
   data = {"files": photo_url}
 
-  response = requests.put(url, json=data, headers=HEADERS)
+  response = requests.put(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'User photo uploaded successfully for {user_id}')
   else:
@@ -36,7 +36,7 @@ def upload_user_photo(user_id, photo_url):
 # Step 2: Delete user photo
 def delete_user_photo(user_id):
   url = f'{API_HOST}/api/2.0/people/{user_id}/photo'
-  response = requests.delete(url, headers=HEADERS)
+  response = requests.delete(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'User photo deleted successfully for {user_id}')
   else:

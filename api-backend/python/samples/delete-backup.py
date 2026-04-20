@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Delete a backup
 
 This example demonstrates how to delete a specific backup in ONLYOFFICE DocSpace using the API by providing its unique backup ID.
@@ -21,7 +21,8 @@ def delete_backup(backup_id: str):
   # Send DELETE request to remove the specified backup
   response = requests.delete(
     f'{API_HOST}/api/2.0/backup/deletebackup/{backup_id}',
-    headers=HEADERS
+    headers=HEADERS,
+    timeout=30,
   )
 
   if response.status_code == 200:

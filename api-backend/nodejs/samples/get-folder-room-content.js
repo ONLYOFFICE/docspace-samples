@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get folder and room contents
 
 This example demonstrates how to retrieve the contents of a folder or room in ONLYOFFICE DocSpace. The same API endpoint returns both files and subfolders.
@@ -18,10 +18,16 @@ const headers = {
 };
 
 // Step 1: Retrieve folder or room contents
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function getFolderContents(folderId) {
   const url = `https://${API_HOST}/api/2.0/files/${folderId}`;
 
-  return fetch(url, { method: 'GET', headers: headers })
+  return fetchWithTimeout(url, { method: 'GET', headers: headers })
     .then((res) =>
       res.text().then((text) => ({ status: res.status, text }))
     )
@@ -58,7 +64,7 @@ function getFolderContents(folderId) {
           console.log('Unexpected response format:', data);
           return null;
         }
-      } catch (e) {
+      } catch (error) {
         console.log(`Error parsing JSON: ${e.message}`);
         console.log('Raw response:', text);
         return null;
@@ -71,5 +77,5 @@ function getFolderContents(folderId) {
 }
 
 // Run
-const folder_id = 1074098; // Replace with actual folder or room ID
-getFolderContents(folder_id);
+const folderId = 1074098; // Replace with actual folder or room ID
+getFolderContents(folderId);

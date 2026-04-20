@@ -16,20 +16,16 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
 
-    <meta name="example-title" content="Draggable & resizable modals" />
-    <meta
-      name="example-description"
-      content="Embed multiple DocSpace instances into draggable and resizable modal windows and auto-login via the SDK."
-    />
+    <meta name="example-title" content="Draggable and Resizable Modals" />
+    <meta name="example-description" content="Open DocSpace in floating modal windows that you can drag and resize. Each modal is an independent SDK instance with auto-login." />
     <meta name="example-group" content="advanced" />
 
-    <title>Draggable & resizable modals</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Draggable and Resizable Modals</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
 
-    <!-- App styles -->
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -41,10 +37,6 @@ Using methods:
     <div class="page">
       <div class="card">
         <div class="title">DocSpace modals</div>
-        <p class="desc">
-          Open multiple windows, drag them by the header, and resize from the bottom-right corner.
-          For auto-login, provide user email and a password hash (generate it via the Authorization sample).
-        </p>
 
         <div class="grid">
           <div class="field">
@@ -57,21 +49,9 @@ Using methods:
           </div>
         </div>
 
-        <div class="hint" style="margin-top: 8px;">
-          Need a password hash?
-          <a id="authLink" href="#" target="_blank" rel="noreferrer">Open the Authorization sample</a>.
-        </div>
-
         <div class="row">
           <button id="newWin" type="button" class="btn" disabled>New window</button>
-          <button id="loginAll" type="button" class="btn-secondary" disabled>Login all</button>
-          <button id="closeAll" type="button" class="btn-secondary" disabled>Close all</button>
-          <span class="status" id="status">Preparing SDK…</span>
-        </div>
-
-        <div class="hint" style="margin-top: 8px;">
-          Tip: this page is served via the local samples server. Set <code>PORTAL_SRC</code> in <code>js-sdk/.env</code>
-          or on the main samples page.
+          <span class="status" id="status">Preparing SDK...</span>
         </div>
       </div>
     </div>
@@ -83,7 +63,7 @@ Using methods:
         <div class="ds-modal__header" data-role="drag">
           <div class="ds-modal__title"></div>
           <div class="ds-modal__meta"></div>
-          <button class="ds-modal__close" type="button" aria-label="Close">✕</button>
+          <button class="ds-modal__close" type="button" aria-label="Close">&times;</button>
         </div>
         <div class="ds-modal__body">
           <iframe class="ds-modal__frame" allow="clipboard-read; clipboard-write; microphone; camera"></iframe>
@@ -98,35 +78,34 @@ Using methods:
 
       const loginEl = document.getElementById("login");
       const passwordHashEl = document.getElementById("passwordHash");
-      const authLinkEl = document.getElementById("authLink");
-
       const newWinBtn = document.getElementById("newWin");
-      const loginAllBtn = document.getElementById("loginAll");
-      const closeAllBtn = document.getElementById("closeAll");
       const statusEl = document.getElementById("status");
+
+      (function () {
+        const s = window.__demoConfig?.session;
+        if (s?.user?.email) loginEl.value = String(s.user.email);
+      })();
 
       const MIN_W = 360;
       const MIN_H = 240;
 
       let nextZ = 10;
       let winSeq = 0;
-      const wins = new Map(); // id -> { el, frameId, system, pos, size, loggedIn }
-
-      let interaction = null; // { id, type, startX, startY, startLeft, startTop, startW, startH }
+      let sdkReady = false;
+      let interaction = null;
+      let reloginTimer = null;
+      const wins = new Map();
 
       function canAutoLogin() {
         return Boolean((loginEl.value || "").trim()) && Boolean((passwordHashEl.value || "").trim());
       }
 
-      function setStatus(v) {
-        statusEl.textContent = v;
+      function setStatus(text) {
+        statusEl.textContent = text;
       }
 
       function updateControls() {
-        const any = wins.size > 0;
         newWinBtn.disabled = !sdkReady;
-        loginAllBtn.disabled = !sdkReady || !any || !canAutoLogin();
-        closeAllBtn.disabled = !sdkReady || !any;
       }
 
       function bringToFront(winEl) {
@@ -134,8 +113,8 @@ Using methods:
         winEl.style.zIndex = String(nextZ);
       }
 
-      function clamp(n, min, max) {
-        return Math.max(min, Math.min(max, n));
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
       }
 
       function normalizeRect(rect) {
@@ -150,24 +129,32 @@ Using methods:
         const w = wins.get(winId);
         if (!w) return;
         if (!canAutoLogin()) {
-          w.meta.textContent = "No credentials (optional)";
+          w.meta.textContent = "No credentials";
           return;
         }
 
         const login = (loginEl.value || "").trim();
         const passwordHash = (passwordHashEl.value || "").trim();
 
-        w.meta.textContent = "Logging in…";
+        w.meta.textContent = "Logging in...";
 
         try {
           await w.system.login(login, passwordHash);
           w.loggedIn = true;
           w.meta.textContent = "Logged in";
-        } catch (e) {
+        } catch (error) {
           w.loggedIn = false;
           w.meta.textContent = "Login failed";
-          console.error(`[${winId}] login failed`, e);
         }
+      }
+
+      function scheduleRelogin() {
+        updateControls();
+        if (!canAutoLogin()) return;
+        clearTimeout(reloginTimer);
+        reloginTimer = setTimeout(() => {
+          for (const id of wins.keys()) tryLogin(id);
+        }, 250);
       }
 
       function closeWin(winId) {
@@ -181,10 +168,6 @@ Using methods:
         w.el.remove();
         wins.delete(winId);
         updateControls();
-      }
-
-      function closeAll() {
-        for (const id of Array.from(wins.keys())) closeWin(id);
       }
 
       function applyRect(winId) {
@@ -216,15 +199,18 @@ Using methods:
         const iframe = frag.querySelector(".ds-modal__frame");
 
         title.textContent = "DocSpace #" + winSeq;
-        meta.textContent = "Loading…";
-
+        meta.textContent = "Loading...";
         iframe.id = frameId;
-
         el.dataset.id = winId;
         bringToFront(el);
 
-        const baseLeft = 80 + (wins.size % 6) * 22;
-        const baseTop = 130 + (wins.size % 6) * 22;
+        const panelRect = document.querySelector(".page .card")?.getBoundingClientRect();
+        const viewWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const preferredTop = Math.max(panelRect ? Math.round(panelRect.bottom + 20) : 10, 400);
+        const centeredLeft = Math.max(24, Math.round((viewWidth - 560) / 2));
+        const offset = (wins.size % 5) * 24;
+        const baseLeft = centeredLeft + offset;
+        const baseTop = preferredTop + offset;
 
         wins.set(winId, {
           el,
@@ -314,8 +300,6 @@ Using methods:
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
 
-      let sdkReady = false;
-
       function mountSystem(winId) {
         const w = wins.get(winId);
         if (!w) return;
@@ -330,9 +314,8 @@ Using methods:
               w.meta.textContent = "Ready";
               await tryLogin(winId);
             },
-            onAppError: (e) => {
-              w.meta.textContent = "SDK error";
-              console.error(`[${winId}] sdk error`, e);
+            onAppError: () => {
+              w.meta.textContent = "SDK error — check portal URL";
             }
           }
         });
@@ -344,36 +327,13 @@ Using methods:
         updateControls();
       }
 
-      function loginAll() {
-        for (const id of wins.keys()) tryLogin(id);
-        updateControls();
+      function ensureSdkLoaded() {
+        return Boolean(window.DocSpace && window.DocSpace.SDK);
       }
 
       newWinBtn.addEventListener("click", openNewWindow);
-      loginAllBtn.addEventListener("click", loginAll);
-      closeAllBtn.addEventListener("click", closeAll);
-
-      loginEl.addEventListener("input", updateControls);
-      passwordHashEl.addEventListener("input", updateControls);
-
-      // Prepare: ensure the SDK script is present.
-      function ensureSdkLoaded() {
-        if (window.DocSpace && window.DocSpace.SDK) return true;
-        return false;
-      }
-
-      (function setupAuthLink() {
-        const portalSrcParam = new URLSearchParams(window.location.search).get("portalSrc");
-        if (portalSrcParam) {
-          authLinkEl.href =
-            "/example?file=" +
-            encodeURIComponent("/advanced-samples/authorization.html") +
-            "&portalSrc=" +
-            encodeURIComponent(portalSrcParam);
-        } else {
-          authLinkEl.href = "/advanced-samples/authorization.html";
-        }
-      })();
+      loginEl.addEventListener("input", scheduleRelogin);
+      passwordHashEl.addEventListener("input", scheduleRelogin);
 
       if (ensureSdkLoaded()) {
         sdkReady = true;
@@ -388,3 +348,4 @@ Using methods:
     </script>
   </body>
 </html>
+

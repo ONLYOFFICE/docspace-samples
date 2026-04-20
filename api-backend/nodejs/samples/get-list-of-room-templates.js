@@ -19,10 +19,16 @@ const HEADERS = {
 };
 
 // Step 1: Get room templates list
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function getRoomTemplates() {
   const url = `${API_HOST}/api/2.0/files/rooms?searchArea=Templates`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'GET',
     headers: HEADERS,
   });

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage the Trash section
 
 This example demonstrates how to retrieve, restore, and empty the contents of the Trash section in ONLYOFFICE DocSpace using the API.
@@ -20,12 +20,18 @@ const HEADERS = {
 };
 
 // Step 1: Get contents of the Trash section
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function getTrashSection() {
   const url = `${API_HOST}/api/2.0/files/@trash`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to get Trash: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to get Trash: ${res.status} - ${text}`);
     return null;
   }
   return res.json();
@@ -34,10 +40,10 @@ async function getTrashSection() {
 // Step 2: Empty the Trash section
 async function emptyTrash() {
   const url = `${API_HOST}/api/2.0/files/fileops/emptytrash`;
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to empty Trash: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to empty Trash: ${res.status} - ${text}`);
     return false;
   }
 
@@ -55,10 +61,10 @@ async function restoreFile(fileId, destFolderId) {
     content: true,
   });
 
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS, body });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS, body });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Failed to restore file ${fileId}: ${res.status} - ${t}`);
+    const text = await res.text();
+    console.log(`Failed to restore file ${fileId}: ${res.status} - ${text}`);
     return false;
   }
 
@@ -70,9 +76,9 @@ async function restoreFile(fileId, destFolderId) {
 (async () => {
   await getTrashSection();
 
-  const file_id = '123456';   // Replace with a real file ID from Trash
-  const folder_id = '654321'; // Replace with destination folder ID
-  await restoreFile(file_id, folder_id);
+  const fileId = '123456';   // Replace with a real file ID from Trash
+  const folderId = '654321'; // Replace with destination folder ID
+  await restoreFile(fileId, folderId);
 
   await emptyTrash();
 })();

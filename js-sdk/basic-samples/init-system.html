@@ -12,14 +12,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Init system" />
-    <meta name="example-description" content="Initialize the DocSpace system interface." />
+    <meta name="example-title" content="Init System" />
+    <meta name="example-description" content="Initialize a hidden system frame used for background SDK operations like login, hash generation, and API calls." />
     <meta name="example-group" content="basic" />
-    <title>Init system</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Init System</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -28,32 +28,47 @@ Using methods:
   </head>
 
   <body class="ex-init-system">
-    <div class="page">
-      <div class="card">
-        <div class="actions">
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
           <button class="btn" id="btn" type="button">Init system</button>
           <span class="status" id="status">Ready</span>
         </div>
       </div>
+      <div class="result-split__panel card" style="flex:0 0 360px;min-height:520px">
+        <div class="field">
+          <label>SDK Config</label>
+          <textarea class="output" id="configOut" readonly></textarea>
+        </div>
+      </div>
     </div>
-
-    <iframe id="ds-frame" class="hidden-frame"></iframe>
 
     <script>
       const btn = document.getElementById("btn");
+      const status = document.getElementById("status");
 
-      const manager = DocSpace.SDK.initManager({
+      const config = {
         frameId: "ds-frame",
-        width: "900px",
+        width: "700px",
         height: "520px",
         theme: "base"
-      });
+      };
+
+      document.getElementById("configOut").value = JSON.stringify(config, null, 2);
 
       btn.onclick = async () => {
+        status.textContent = "Initializing…";
+        btn.disabled = true;
         try {
-          await DocSpace.SDK.initSystem({ frameId: 'ds-frame', width: '900px', height: '520px', theme: 'base' });
-        } catch (e) {
-          alert(e?.message || e);
+          await DocSpace.SDK.initSystem(config);
+          status.textContent = "Done";
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
+        } finally {
+          btn.disabled = false;
         }
       };
     </script>

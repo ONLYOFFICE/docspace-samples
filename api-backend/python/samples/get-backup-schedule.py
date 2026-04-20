@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get backup schedule
 
 This example demonstrates how to retrieve the current portal’s backup schedule in ONLYOFFICE DocSpace using the API.
@@ -26,7 +26,8 @@ def get_backup_schedule(dump: bool | None = None):
   response = requests.get(
     f'{API_HOST}/api/2.0/backup/getbackupschedule',
     headers=HEADERS,
-    params=params
+    params=params,
+    timeout=30,
   )
 
   if response.status_code == 200:

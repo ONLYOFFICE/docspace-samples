@@ -1,11 +1,15 @@
 <!--
 Example: Public viewer with request token
 
-This example demonstrates a complete flow:
-select a file in the manager, create a public link via backend, inspect shareLink/requestToken, and open the embedded viewer.
+Pick a file via the file selector, create a public link via backend,
+and open the embedded viewer using the returned requestToken.
+
+Prerequisites:
+- Start local backend from `js-sdk` so `/api/create-public-share-link` is available.
+- Set `PORTAL_SRC` and `ADMIN_API_KEY` in `js-sdk/.env`.
 
 Using methods:
-- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
 - DocSpace.SDK.initViewer (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initviewer)
 -->
 
@@ -14,17 +18,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Public viewer with request token" />
-    <meta
-      name="example-description"
-      content="Select a file in the manager, create a public link via backend, and open the file in viewer mode using requestToken."
-    />
+    <meta name="example-title" content="Public Viewer with Request Token" />
+    <meta name="example-description" content="Select a file, generate a public share link via the backend, and embed it in a read-only viewer using a request token for secure access." />
     <meta name="example-group" content="advanced" />
-    <title>Public viewer with request token</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Public Viewer with Request Token</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -33,249 +34,166 @@ Using methods:
   </head>
 
   <body class="ex-public-viewer-with-request-token">
-    <div class="page">
-      <div class="card">
-        <div class="field">
-          <label for="requestTokenOverride">requestToken override</label>
-          <input
-            id="requestTokenOverride"
-            type="text"
-            placeholder="Optional manual token override"
-            autocomplete="off"
-          />
+    <div class="result-split">
+      <div class="result-split__frame">
+        <!-- Step 1: file selector -->
+        <div class="frame-wrap" id="selectorWrap">
+          <iframe id="selector-frame"></iframe>
         </div>
-        <div class="actions">
-          <button class="btn" id="createLinkBtn" type="button">Create public link</button>
-          <button class="btn secondary" id="openViewerBtn" type="button">Open viewer</button>
-          <span class="status" id="status">Click a file in the manager</span>
+        <!-- Step 2: viewer shown after Open -->
+        <div class="frame-wrap" id="viewerWrap" style="display:none">
+          <iframe id="viewer-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <button id="backBtn" class="btn btn--secondary" type="button" style="display:none">← Select another file</button>
+          <span class="status" id="hint">Select a file</span>
         </div>
       </div>
 
-      <div class="layout">
-        <section class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Manager</span>
-            <span class="panel-hint" id="selectionHint">No file selected</span>
-          </div>
-          <iframe id="manager-frame"></iframe>
-        </section>
+      <div class="result-split__panel card" style="flex:0 0 320px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label>Selected file</label>
+          <input id="selectedTitle" type="text" readonly placeholder="— select a file —" />
+        </div>
 
-        <section class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Viewer</span>
-            <span class="panel-hint" id="viewerHint">Viewer is waiting for a public link</span>
-          </div>
-          <iframe id="viewer-frame"></iframe>
-        </section>
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label for="requestTokenOverride">requestToken <span style="color:#9ca3af;font-weight:400">(optional override)</span></label>
+          <input id="requestTokenOverride" type="text" placeholder="Paste token to override" autocomplete="off" />
+        </div>
+
+        <div class="actions" style="flex:0 0 auto;margin-top:12px">
+          <button class="btn" id="openBtn" type="button" disabled>Create link &amp; Open</button>
+          <span class="status" id="actionStatus"></span>
+        </div>
+
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label>Share link</label>
+          <input id="shareLink" type="text" readonly placeholder="— will appear after creation —"
+            style="font-family:ui-monospace,monospace;font-size:12px" />
+        </div>
       </div>
     </div>
 
     <script>
+      const hint                   = document.getElementById("hint");
+      const selectedTitle          = document.getElementById("selectedTitle");
       const requestTokenOverrideEl = document.getElementById("requestTokenOverride");
-      const createLinkBtn = document.getElementById("createLinkBtn");
-      const openViewerBtn = document.getElementById("openViewerBtn");
-      const statusEl = document.getElementById("status");
-      const selectionHintEl = document.getElementById("selectionHint");
-      const viewerHintEl = document.getElementById("viewerHint");
+      const openBtn                = document.getElementById("openBtn");
+      const actionStatus           = document.getElementById("actionStatus");
+      const shareLinkEl            = document.getElementById("shareLink");
+      const selectorWrap           = document.getElementById("selectorWrap");
+      const viewerWrap             = document.getElementById("viewerWrap");
+      const backBtn                = document.getElementById("backBtn");
 
-      let managerInstance = null;
       let viewerInstance = null;
-      let selectedItem = null;
-      let lastShareData = null;
-      const BACKEND_ENDPOINT = window.location.origin + "/api/create-public-share-link";
+      let selected = null;
 
-      function setStatus(value) {
-        statusEl.textContent = value;
+      function setHint(text)   { hint.textContent = text; }
+      function setStatus(text) { actionStatus.textContent = text; }
+
+      function showSelector() {
+        selectorWrap.style.display = "";
+        viewerWrap.style.display   = "none";
+        backBtn.style.display      = "none";
       }
 
-      function firstObjectWithId(value) {
-        if (!value) return null;
-        if (Array.isArray(value)) {
-          for (const item of value) {
-            const found = firstObjectWithId(item);
-            if (found) return found;
-          }
-          return null;
-        }
-        if (typeof value !== "object") return null;
-        if (value.id !== undefined && value.id !== null) return value;
-        for (const key of Object.keys(value)) {
-          const found = firstObjectWithId(value[key]);
-          if (found) return found;
-        }
-        return null;
-      }
-
-      function firstValueByKeys(source, keys) {
-        if (!source || typeof source !== "object") return "";
-        for (const key of keys) {
-          const value = source[key];
-          if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
-        }
-        for (const key of ["data", "result", "response", "payload", "item"]) {
-          if (source[key] && typeof source[key] === "object") {
-            const nested = firstValueByKeys(source[key], keys);
-            if (nested) return nested;
-          }
-        }
-        return "";
-      }
-
-      function destroyInstance(instance) {
-        if (!instance || typeof instance.destroyFrame !== "function") return;
-        try {
-          instance.destroyFrame();
-        } catch {}
-      }
-
-      function updateSelectionHint() {
-        if (!selectedItem || !selectedItem.id) {
-          selectionHintEl.textContent = "No file selected";
-          return;
-        }
-        const title = selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName || "";
-        selectionHintEl.textContent = title ? title + " (ID: " + selectedItem.id + ")" : "ID: " + selectedItem.id;
-      }
-
-      function initManager() {
-        destroyInstance(managerInstance);
-        managerInstance = null;
-        selectedItem = null;
-        lastShareData = null;
-        updateSelectionHint();
-        viewerHintEl.textContent = "Viewer is waiting for a public link";
-        setStatus("Initializing manager...");
-
-        managerInstance = DocSpace.SDK.initManager({
-          frameId: "manager-frame",
-          width: "100%",
-          height: "620px",
-          theme: "base",
-          showHeader: true,
-          showMenu: true,
-          events: {
-            onAppReady: () => {
-              setStatus("Manager ready");
-            },
-            onContentReady: () => {
-              setStatus("Content loaded");
-            },
-            onFileManagerClick: (event) => {
-              selectedItem = firstObjectWithId(event);
-              lastShareData = null;
-              updateSelectionHint();
-              setStatus(selectedItem && selectedItem.id ? "File selected" : "Selection updated");
-            },
-            onAppError: (event) => {
-              setStatus("Manager error");
-            }
-          }
-        });
+      function showViewer() {
+        selectorWrap.style.display = "none";
+        viewerWrap.style.display   = "";
+        backBtn.style.display      = "";
       }
 
       function destroyViewer() {
-        destroyInstance(viewerInstance);
+        if (viewerInstance && typeof viewerInstance.destroyFrame === "function") {
+          try { viewerInstance.destroyFrame(); } catch {}
+        }
         viewerInstance = null;
-        viewerHintEl.textContent = "Viewer is waiting for a public link";
       }
 
-      async function callBackend(payload) {
-        const response = await fetch(BACKEND_ENDPOINT, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json"
+      // File selector
+      DocSpace.SDK.initFileSelector({
+        frameId: "selector-frame",
+        width: "700px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            if (!item?.id) return;
+            selected = { id: String(item.id), title: item?.title || item?.name || `File ${item.id}` };
+            selectedTitle.value = selected.title;
+            openBtn.disabled = false;
+            setHint(`Selected: ${selected.title}`);
+            setStatus("");
           },
-          body: JSON.stringify(payload)
-        });
-
-        const json = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          throw new Error(json?.details || json?.error || "HTTP " + response.status);
+          onAppError: () => setHint("Selector error")
         }
+      });
 
-        return json;
-      }
+      backBtn.onclick = () => {
+        destroyViewer();
+        showSelector();
+        setHint(selected ? `Selected: ${selected.title}` : "Select a file");
+        setStatus("");
+      };
 
-      async function createPublicLink() {
-        if (!selectedItem || !selectedItem.id) {
-          setStatus("Select a file first");
-          return;
-        }
+      openBtn.addEventListener("click", async () => {
+        if (!selected?.id) return;
 
-        const payload = {
-          fileId: String(selectedItem.id),
-          title: selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName || null,
-          createPrimaryLink: true
-        };
-
-        setStatus("Requesting public link...");
+        openBtn.disabled = true;
+        shareLinkEl.value = "";
+        setStatus("Creating public link…");
+        showViewer();
+        setHint("Creating link…");
 
         try {
-          const response = await callBackend(payload);
-          const shareLink = firstValueByKeys(response, ["shareLink", "url", "link"]);
-          const requestToken =
-            String(requestTokenOverrideEl.value || "").trim() || firstValueByKeys(response, ["requestToken", "token", "shareToken"]);
-          const fileId = firstValueByKeys(response, ["fileId", "id"]) || String(selectedItem.id);
+          const res = await fetch(window.location.origin + "/api/create-public-share-link", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ fileId: selected.id })
+          });
+          const json = await res.json().catch(() => null);
+          if (!res.ok) throw new Error(json?.details || json?.error || "HTTP " + res.status);
 
-          lastShareData = {
-            fileId,
-            shareLink,
-            requestToken
-          };
+          const shareLink    = String(json?.shareLink    || "").trim();
+          const requestToken = String(requestTokenOverrideEl.value || "").trim()
+                            || String(json?.requestToken || "").trim();
+          const resolvedId   = String(json?.fileId || selected.id).trim();
 
-          viewerHintEl.textContent = shareLink || "Public link created";
-          setStatus("Public link created");
-        } catch (error) {
-          setStatus("Failed to create public link: " + (error.message || String(error)));
-        }
-      }
+          if (!shareLink)    throw new Error("shareLink missing in response");
+          if (!requestToken) throw new Error("requestToken missing in response");
 
-      function openViewer() {
-        if (!lastShareData || !lastShareData.requestToken || !lastShareData.fileId) {
-          setStatus("Create a public link first");
-          return;
-        }
+          shareLinkEl.value = shareLink;
+          setStatus("Opening viewer…");
+          setHint("Loading viewer…");
 
-        destroyViewer();
-        setStatus("Opening viewer...");
-
-        viewerInstance = DocSpace.SDK.initViewer({
-          frameId: "viewer-frame",
-          id: lastShareData.fileId,
-          requestToken: lastShareData.requestToken,
-          width: "100%",
-          height: "620px",
-          theme: "base",
-          showHeader: false,
-          showTitle: true,
-          events: {
-            onAppReady: () => {
-              setStatus("Viewer ready");
-            },
-            onContentReady: () => {
-              setStatus("Viewer content loaded");
-            },
-            onNoAccess: (event) => {
-              setStatus("No access");
-            },
-            onNotFound: (event) => {
-              setStatus("Not found");
-            },
-            onAppError: (event) => {
-              setStatus("Viewer error");
+          destroyViewer();
+          viewerInstance = DocSpace.SDK.initViewer({
+            frameId: "viewer-frame",
+            id: resolvedId,
+            requestToken,
+            width: "700px",
+            height: "520px",
+            theme: "base",
+            showHeader: false,
+            showTitle: true,
+            events: {
+              onAppReady:     () => { setStatus("Viewer ready"); setHint("Viewer ready"); },
+              onContentReady: () => { setStatus("Content loaded"); setHint("Content loaded"); },
+              onNoAccess:     () => { setStatus("No access");     setHint("No access"); },
+              onNotFound:     () => { setStatus("Not found");     setHint("Not found"); },
+              onAppError:     () => { setStatus("Viewer error");  setHint("Error"); }
             }
-          }
-        });
-      }
-
-      createLinkBtn.addEventListener("click", createPublicLink);
-      openViewerBtn.addEventListener("click", openViewer);
-
-      initManager();
-      destroyViewer();
+          });
+        } catch (error) {
+          setStatus("Error: " + (error?.message || String(error)));
+          setHint("Error");
+          showSelector();
+        } finally {
+          openBtn.disabled = false;
+        }
+      });
     </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage folders
 
 This example demonstrates how to manage folders in ONLYOFFICE DocSpace using the API.
@@ -30,7 +30,7 @@ def create_folder(parent_folder_id, folder_name):
     'title': folder_name
   }
 
-  response = requests.post(url, headers=HEADERS, json=data)
+  response = requests.post(url, headers=HEADERS, json=data, timeout=30)
   if response.status_code == 200:
     print("Folder created successfully.")
   else:
@@ -40,7 +40,7 @@ def create_folder(parent_folder_id, folder_name):
 # Step 2: Retrieve folder details
 def get_folder_details(folder_id):
   url = f'{BASE_URL}/api/2.0/files/folder/{folder_id}'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f"Folder details: {response.json()}")
   else:
@@ -54,7 +54,7 @@ def rename_folder(folder_id, new_name):
     'title': new_name
   }
 
-  response = requests.put(url, headers=HEADERS, json=data)
+  response = requests.put(url, headers=HEADERS, json=data, timeout=30)
   if response.status_code == 200:
     print("Folder rename succeeded.")
   else:
@@ -64,7 +64,7 @@ def rename_folder(folder_id, new_name):
 # Step 4: Delete a folder
 def delete_folder(folder_id):
   url = f'{BASE_URL}/api/2.0/files/folder/{folder_id}'
-  response = requests.delete(url, headers=HEADERS)
+  response = requests.delete(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print("Folder deletion succeeded.")
   else:

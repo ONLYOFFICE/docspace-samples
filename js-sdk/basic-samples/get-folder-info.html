@@ -5,6 +5,7 @@ This example demonstrates how to retrieve information about the current folder i
 
 Using methods:
 - DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
 - manager.getFolderInfo (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfolderinfo)
 -->
 
@@ -13,17 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Get folder info" />
-    <meta
-      name="example-description"
-      content="Select a room and retrieve info about the current folder using the DocSpace JavaScript SDK."
-    />
+    <meta name="example-title" content="Get Folder Info" />
+    <meta name="example-description" content="Select a room and retrieve metadata about the current folder: title, ID, type, and more." />
     <meta name="example-group" content="basic" />
     <title>Get Folder Info</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -32,23 +30,25 @@ Using methods:
   </head>
 
   <body class="ex-get-folder-info">
-    <div class="top-bar">
-      <button class="btn" id="btn" type="button" disabled>Get Folder Info</button>
-      <span class="status" id="hint">Select a room</span>
-    </div>
-
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
-    </div>
-
-    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
-
-    <div class="page">
-      <div class="card">
-        <div id="err"></div>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <!-- Hidden manager frame for executing SDK methods -->
+        <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+          <div id="ds-manager-frame"></div>
+        </div>
+        <div class="bottom-bar">
+          <span class="status" id="hint">Select a room</span>
+          <button class="btn" id="btn" type="button" disabled>Get Folder Info</button>
+        </div>
+      </div>
+      <div class="result-split__panel card">
+        <div id="err" class="err-line"></div>
         <div class="field">
           <label>Result</label>
-          <textarea class="output" id="out" readonly placeholder="Folder info will appear here…"></textarea>
+          <textarea class="output" id="out" readonly placeholder="Select a room, then click Get Folder Info…"></textarea>
         </div>
       </div>
     </div>
@@ -65,13 +65,19 @@ Using methods:
       // 1) UI: user selects a room
       DocSpace.SDK.initRoomSelector({
         frameId: "ds-frame",
-        width: "900px",
+        width: "700px",
         height: "520px",
         theme: "base",
         events: {
           onSelectCallback: (data) => {
             const item = Array.isArray(data) ? data[0] : data;
-            roomId = item?.roomId ?? item?.id ?? null;
+            roomId = item?.id ? String(item.id).trim() : null;
+            if (!roomId) {
+              btn.disabled = true;
+              hint.textContent = "Select a room";
+              err.textContent = "Room ID is missing in selection payload.";
+              return;
+            }
 
             err.textContent = "";
             out.value = "";
@@ -105,7 +111,7 @@ Using methods:
             onAppError: (e) => {
               btn.disabled = true;
               hint.textContent = "Error";
-              err.textContent = e && (e.message || e) ? String(e.message || e) : "Manager init failed.";
+              err.textContent = error?.message || "Manager init failed.";
             }
           }
         });
@@ -123,12 +129,11 @@ Using methods:
           const info = await manager.getFolderInfo();
           out.value = JSON.stringify(info, null, 2);
           hint.textContent = "Done";
-        } catch (e) {
+        } catch (error) {
           hint.textContent = "Error";
-          err.textContent = e && (e.message || e) ? String(e.message || e) : "Failed to get folder info.";
+          err.textContent = error?.message || "Failed to get folder info.";
         } finally {
           btn.disabled = false;
-          hint.textContent = "Ready";
         }
       };
     </script>

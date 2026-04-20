@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get backup history
 
 This example demonstrates how to retrieve the list of existing backups in ONLYOFFICE DocSpace using the API.
@@ -16,6 +16,12 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 function getBackupHistory() {
   // Optional: set Dump=True for DB-only backups
@@ -23,14 +29,14 @@ function getBackupHistory() {
   const url = `${API_HOST}/api/2.0/backup/getbackuphistory?${params.toString()}`;
 
   // Send request to retrieve backup history
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'GET',
     headers: HEADERS,
   })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Backup history retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Backup history retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

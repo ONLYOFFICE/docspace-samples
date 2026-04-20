@@ -19,6 +19,12 @@ const HEADERS = {
   Accept: 'application/json',
 };
 
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function unwrapResponse(json) {
   return json && typeof json === 'object' && 'response' in json ? json.response : json;
 }
@@ -47,7 +53,7 @@ async function setExternalLink(fileId, password, expiresAt) {
     },
   };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(body),
@@ -73,11 +79,14 @@ async function setExternalLink(fileId, password, expiresAt) {
 
     if (result) {
       const linkData = pickShareLink(result);
+      const maskedToken = linkData.requestToken
+        ? `${linkData.requestToken.slice(0, 6)}...`
+        : '(none)';
       console.log('External link created or updated successfully.');
       console.log('Share link:', linkData.shareLink);
-      console.log('Request token:', linkData.requestToken);
+      console.log('Request token:', maskedToken);
       console.log('Expiration date:', linkData.expirationDate);
-      console.log('Password:', linkData.password);
+      // Password is not logged to avoid leaking it into CI logs or shell history.
     }
   } catch (err) {
     console.error(err?.message || err);

@@ -2,589 +2,495 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>DocSpace JS SDK samples</title>
+  <title>DocSpace JS SDK — Samples</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
-    /* OnlyOffice-style clean corporate UI */
     :root {
-      --bg: #f6f6f6;
-      --card: #ffffff;
-      --text: #333;
-      --muted: #6b7280;
-      --border: #e6e6e6;
-      --shadow: 0 3px 6px rgba(0,0,0,0.10);
-      --blue: #0073e6;
-      --blueHover: #005bb5;
+      --bg:      #f6f6f6;
+      --card:    #ffffff;
+      --text:    #333;
+      --muted:   #6b7280;
+      --border:  #e6e6e6;
+      --shadow:  0 3px 6px rgba(0,0,0,0.10);
+      --blue:    #0073e6;
+      --blueHov: #005bb5;
+      --green:   #16a34a;
+      --red:     #dc2626;
+      --orange:  #ea580c;
       --pillBasicBg: rgba(0,115,230,0.10);
-      --pillAdvBg: rgba(124,58,237,0.10);
-      --pillAdv: #6d28d9;
+      --pillAdvBg:   rgba(124,58,237,0.10);
+      --pillAdv:     #6d28d9;
+      --tagAuth:     #b45309; --tagAuthBg:     rgba(180,83,9,.09);    --tagAuthBd:     rgba(180,83,9,.25);
+      --tagRooms:    #0f766e; --tagRoomsBg:    rgba(15,118,110,.09);  --tagRoomsBd:    rgba(15,118,110,.25);
+      --tagEditor:   #4338ca; --tagEditorBg:   rgba(67,56,202,.09);   --tagEditorBd:   rgba(67,56,202,.25);
+      --tagPdf:      #be123c; --tagPdfBg:      rgba(190,18,60,.09);   --tagPdfBd:      rgba(190,18,60,.25);
+      --tagSharing:  #0369a1; --tagSharingBg:  rgba(3,105,161,.09);   --tagSharingBd:  rgba(3,105,161,.25);
+      --tagEvents:   #475569; --tagEventsBg:   rgba(71,85,105,.09);   --tagEventsBd:   rgba(71,85,105,.25);
     }
-
     * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; color: var(--text); }
 
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg);
-      margin: 0;
-      color: var(--text);
+    .page { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    h1 { margin: 8px 0 6px; font-size: 28px; font-weight: 700; color: #111; }
+    .subtitle { margin: 0 0 18px; color: var(--muted); line-height: 1.5; max-width: 900px; }
+
+    .layout { display: grid; grid-template-columns: 420px 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); padding: 15px; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.04); }
+    .card h2 { margin: 0 0 10px; font-weight: 700; color: #111; font-size: 18px; }
+    .card h3 { margin: 0 0 8px; font-weight: 600; color: #111; font-size: 15px; }
+
+    .hr { height: 1px; background: #eee; margin: 12px 0; }
+
+    label { display: block; margin: 10px 0 5px; font-weight: 600; font-size: 14px; }
+    input[type=text], input[type=url], input[type=search] {
+      width: 100%; padding: 9px 10px; border-radius: 6px; border: 1px solid #ccc;
+      font-size: 14px; outline: none; background: #fff;
     }
+    input:focus { border-color: rgba(0,115,230,0.6); box-shadow: 0 0 0 3px rgba(0,115,230,0.15); }
 
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    h1 {
-      margin: 8px 0 6px;
-      font-size: 28px;
-      font-weight: 700;
-      color: #111;
-    }
-
-    .subtitle {
-      margin: 0 0 18px;
-      color: var(--muted);
-      line-height: 1.5;
-      max-width: 900px;
-    }
-
-    /* Layout */
-    .layout {
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-
-    @media (max-width: 980px) {
-      .layout { grid-template-columns: 1fr; }
-    }
-
-    /* Cards */
-    .card {
-      background: var(--card);
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(0,0,0,0.04);
-    }
-
-    .card h2 {
-      margin: 0 0 10px;
-      font-weight: 700;
-      color: #111;
-      font-size: 18px;
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-      font-weight: 700;
-      color: #111;
-      font-size: 16px;
-    }
-
-    .hr {
-      height: 1px;
-      background: #eee;
-      margin: 10px 0 12px;
-    }
-
-    /* Config block */
-    label {
-      display: block;
-      margin: 12px 0 6px 0;
-      font-weight: 600;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      outline: none;
-      background: #fff;
-    }
-
-    input:focus {
-      border-color: rgba(0,115,230,0.6);
-      box-shadow: 0 0 0 3px rgba(0,115,230,0.15);
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     button {
-      padding: 9px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      border: none;
-      border-radius: 6px;
-      background-color: var(--blue);
-      color: white;
-      transition: background-color 0.2s ease;
+      padding: 8px 15px; font-size: 14px; cursor: pointer; border: none; border-radius: 6px;
+      background: var(--blue); color: #fff; transition: background .2s;
       box-shadow: 0 1px 2px rgba(0,0,0,0.12);
     }
+    button:hover:not(:disabled) { background: var(--blueHov); }
+    button:disabled { opacity: .55; cursor: default; }
+    .btn-secondary { background: #f3f4f6; color: #374151; box-shadow: none; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e5e7eb; }
 
-    button:hover {
-      background-color: var(--blueHover);
-    }
-
-    .btn-secondary {
-      background: #eef2ff;
-      color: #1f3a8a;
-      box-shadow: none;
-      border: 1px solid rgba(31,58,138,0.15);
-    }
-
-    .btn-secondary:hover {
-      background: #e0e7ff;
-    }
+    .msg { font-size: 13px; color: var(--red); margin: 8px 0 0; min-height: 16px; }
 
     /* Filters */
-    .filters {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-      align-items: center;
-    }
+    .filters { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .filter-group { display: flex; flex-wrap: wrap; gap: 5px; }
+    .filter-pill { display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: #9ca3af; font-size: 12px; font-weight: 600; cursor: pointer; user-select: none; transition: background .15s, color .15s, border-color .15s; }
+    .filter-pill:hover:not(.active) { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+    .filter-pill.active { background: rgba(0,115,230,0.10); color: var(--blue); border-color: rgba(0,115,230,0.28); }
+    .search { width: 100%; }
 
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-      cursor: pointer;
-      user-select: none;
-      font-weight: 600;
-      font-size: 13px;
-      color: #111;
-    }
+    /* Examples grid */
+    .examples-wrap { display: grid; gap: 16px; }
+    .examples-section { padding: 15px; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .section-meta { color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .section-desc { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 12px; }
 
-    .toggle input {
-      width: auto;
-      margin: 0;
-      accent-color: var(--blue);
-    }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
 
-    .search {
-      flex: 1;
-      min-width: 220px;
-    }
+    .example-card { display: flex; flex-direction: column; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #fff; transition: transform .15s, box-shadow .15s, border-color .15s; cursor: pointer; }
+    .example-card:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(0,0,0,.08); border-color: rgba(0,0,0,.12); }
+    .example-name { display: block; font-size: 15px; font-weight: 700; color: #111; line-height: 1.25; margin: 0 0 6px; }
 
-    /* Sections */
-    .examples-wrap {
-      display: grid;
-      gap: 16px;
-    }
+    .pill { display: inline-flex; align-items: center; line-height: 1; font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
+    .pill.basic    { color: var(--blue);    background: var(--pillBasicBg); border-color: rgba(0,115,230,.2); }
+    .pill.advanced { color: var(--pillAdv); background: var(--pillAdvBg);   border-color: rgba(109,40,217,.2); }
+    .pill.auth     { color: var(--tagAuth);    background: var(--tagAuthBg);    border-color: var(--tagAuthBd); }
+    .pill.rooms    { color: var(--tagRooms);   background: var(--tagRoomsBg);   border-color: var(--tagRoomsBd); }
+    .pill.editor   { color: var(--tagEditor);  background: var(--tagEditorBg);  border-color: var(--tagEditorBd); }
+    .pill.pdf      { color: var(--tagPdf);     background: var(--tagPdfBg);     border-color: var(--tagPdfBd); }
+    .pill.sharing  { color: var(--tagSharing); background: var(--tagSharingBg); border-color: var(--tagSharingBd); }
+    .pill.events   { color: var(--tagEvents);  background: var(--tagEventsBg);  border-color: var(--tagEventsBd); }
 
-    .examples-section {
-      padding: 15px;
-    }
+    .example-desc { color: #666; font-size: 14px; line-height: 1.45; margin: 0; flex: 1; }
+    .example-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+    .example-pills { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+    .open-hint { font-size: 13px; color: var(--blue); font-weight: 600; white-space: nowrap; }
+    .empty { padding: 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--muted); background: #fff; }
 
-    .section-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .section-meta {
-      color: var(--muted);
-      font-size: 13px;
-      white-space: nowrap;
-    }
-
-    .section-desc {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      margin: 0 0 12px;
-    }
-
-    /* Grid of cards */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    @media (max-width: 640px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-
-    .example-card {
-      display: block;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      text-decoration: none;
-      color: inherit;
-      background: #fff;
-      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-      cursor: pointer;
-    }
-
-    .example-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 18px rgba(0,0,0,0.08);
-      border-color: rgba(0,0,0,0.12);
-    }
-
-    .example-title {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-
-    .example-title strong {
-      font-size: 15px;
-      font-weight: 700;
-      color: #111;
-      line-height: 1.25;
-    }
-
-    .pill {
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    .pill.basic {
-      color: var(--blue);
-      background: var(--pillBasicBg);
-      border-color: rgba(0,115,230,0.2);
-    }
-
-    .pill.advanced {
-      color: var(--pillAdv);
-      background: var(--pillAdvBg);
-      border-color: rgba(109,40,217,0.2);
-    }
-
-    .example-desc {
-      color: #666;
-      font-size: 14px;
-      line-height: 1.45;
-      margin: 0 0 10px;
-    }
-
-    .example-path {
-      font-size: 12px;
-      color: var(--muted);
-      word-break: break-all;
-      margin-top: 6px;
-    }
-
-    .open-hint {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--blue);
-      font-weight: 600;
-    }
-
-    .empty {
-      padding: 12px;
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-      color: var(--muted);
-      background: #fff;
-    }
   </style>
 </head>
 
 <body>
-  <div class="page">
-    <h1>DocSpace JS SDK samples</h1>
-    <p class="subtitle">
-      The following examples will show you how to use ONLYOFFICE DocSpace 
-      SDK based on JavaScript to integrate ONLYOFFICE DocSpace into your own web application, allowing users to create and submit documents directly from your website.
-    </p>
+<div class="page">
+  <h1>DocSpace JS SDK — Samples</h1>
+  <p class="subtitle">
+    Interactive examples showing how to integrate ONLYOFFICE DocSpace into your web application
+    using the JavaScript SDK. Open any example to see it in action.
+  </p>
 
-    <div class="layout">
-      <!-- LEFT: CONFIG -->
-      <div class="card" id="config">
+  <div class="layout">
+
+    <!-- ── LEFT: config panel ───────────────────────────────────── -->
+    <div id="leftPanel">
+
+      <div class="card" id="configCard">
         <h2>Configuration</h2>
-
-        <label for="portalSrc">Portal URL:</label>
-        <input id="portalSrc" type="text" placeholder="https://your-docspace.example.com" />
-
+        <label for="portalSrc">DocSpace URL</label>
+        <input id="portalSrc" type="url"
+          placeholder="https://example.onlyoffice.com" />
+        <p style="margin:8px 0 0;font-size:13px;color:var(--muted);line-height:1.5">
+          Enter the URL of your DocSpace portal. It will be used to load
+          the SDK and open examples.
+        </p>
+        <div id="cspHint" style="margin:10px 0 0;padding:9px 12px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:13px;line-height:1.5;color:#92400e">
+          <strong>⚠ CSP required</strong><br/>
+          Before opening examples, add this page's origin to the allowed list in your DocSpace portal:<br/>
+          <b>Settings → Developer Tools → JavaScript SDK</b>
+        </div>
         <div class="actions">
-          <button id="saveConfig" type="button">Save Config</button>
-          <button id="clearConfig" class="btn-secondary" type="button">Clear</button>
+          <button onclick="saveCustomPortal()">Apply</button>
+          <button class="btn-secondary" onclick="cancelCustomPortal()">Cancel</button>
         </div>
-
-        <div class="hr"></div>
-
-        <h3>Filters</h3>
-        <div class="filters">
-          <label class="toggle" title="Show Basic samples">
-            <input id="showBasic" type="checkbox" checked />
-            Basic
-          </label>
-
-          <label class="toggle" title="Show Advanced samples">
-            <input id="showAdvanced" type="checkbox" checked />
-            Advanced
-          </label>
-
-          <input id="search" class="search" type="search" placeholder="Search examples..." />
-        </div>
+        <p class="msg" id="customMsg"></p>
       </div>
 
-      <!-- RIGHT: EXAMPLES -->
-      <div class="examples-wrap">
-        <div class="card examples-section">
-          <div class="section-head">
-            <h2>Basic samples</h2>
-            <div class="section-meta" id="basicCount"></div>
-          </div>
-          <p class="section-desc">
-            Small, focused examples demonstrating individual SDK actions.
-          </p>
-          <div class="grid" id="basicGrid"></div>
-          <div class="empty" id="basicEmpty" style="display:none;">No basic samples found.</div>
+      <div class="card" id="filterCard" style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 10px">
+          <h3 style="margin:0">Filter examples</h3>
+          <button id="resetBtn" onclick="resetFilters()" style="display:none;background:none;border:none;box-shadow:none;padding:0;font-size:12px;color:var(--muted);cursor:pointer;font-weight:600">✕ Reset</button>
         </div>
-
-        <div class="card examples-section">
-          <div class="section-head">
-            <h2>Advanced samples</h2>
-            <div class="section-meta" id="advancedCount"></div>
+        <div class="filters">
+          <div class="filter-group">
+            <button class="filter-pill" data-filter="basic">Basic</button>
+            <button class="filter-pill" data-filter="advanced">Advanced</button>
+            <button class="filter-pill" data-filter="auth">Auth</button>
+            <button class="filter-pill" data-filter="rooms">Rooms</button>
+            <button class="filter-pill" data-filter="editor">Editor</button>
+            <button class="filter-pill" data-filter="pdf">PDF &amp; Forms</button>
+            <button class="filter-pill" data-filter="sharing">Sharing</button>
+            <button class="filter-pill" data-filter="events">Events</button>
           </div>
-          <p class="section-desc">
-            Larger scenarios combining multiple features and UI flows.
-          </p>
-          <div class="grid" id="advancedGrid"></div>
-          <div class="empty" id="advancedEmpty" style="display:none;">No advanced samples found.</div>
+          <input id="search" class="search" type="search" placeholder="Search…" />
         </div>
+        <p id="customPortalToggle" style="display:none;margin:12px 0 0;font-size:13px">
+          <a href="#" onclick="toggleConfigCard(event)" style="color:var(--blue);text-decoration:none">Use your own portal →</a>
+        </p>
       </div>
     </div>
+
+    <!-- ── RIGHT: examples list ──────────────────────────────────── -->
+    <div class="examples-wrap">
+      <div class="card examples-section" id="basicSection">
+        <div class="section-head">
+          <h2>Basic samples</h2>
+          <div class="section-meta" id="basicCount"></div>
+        </div>
+        <p class="section-desc">Small, focused examples demonstrating individual SDK methods.</p>
+        <div class="grid" id="basicGrid"></div>
+        <div class="empty" id="basicEmpty" style="display:none">No basic samples found.</div>
+      </div>
+
+      <div class="card examples-section" id="advancedSection">
+        <div class="section-head">
+          <h2>Advanced samples</h2>
+          <div class="section-meta" id="advancedCount"></div>
+        </div>
+        <p class="section-desc">Larger scenarios combining multiple SDK features and UI flows.</p>
+        <div class="grid" id="advancedGrid"></div>
+        <div class="empty" id="advancedEmpty" style="display:none">No advanced samples found.</div>
+      </div>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    // Will be fetched dynamically
-    let examples = [];
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let examples = [];
+let allowCustomPortal = true;
+let hasPortalSrc = false;
+let serverPortalSrc = '';   // kept private, never shown in the input
+let demoEnabled = false;
 
-    // Load config from localStorage or get from /api/config
-    async function loadConfig() {
-      let config = localStorage.getItem('docspaceConfig');
-      if (config) {
-        try {
-          return JSON.parse(config);
-        } catch { return null; }
-      }
-      // Fetch from API
-      const response = await fetch('/api/config');
-      if (response.ok) {
-        return await response.json();
-      }
-      return null;
+function normalizePortalUrl(value) {
+  const raw = (value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
+    return url.toString().replace(/\/+$/, '');
+  } catch (_) {
+    return '';
+  }
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  const config = await fetchJSON('/api/config');
+
+  allowCustomPortal = !config || config.allowCustomPortal !== false;
+  hasPortalSrc = !!(config && config.hasPortalSrc);
+  demoEnabled   = !!(config && config.demoEnabled);
+
+  if (demoEnabled) await autoStartDemo();
+
+  if (hasPortalSrc) {
+    // Server has a portal configured: hide config card, collapse left panel
+    document.getElementById('configCard').style.display = 'none';
+    document.getElementById('filterCard').style.marginTop = '0';
+    document.querySelector('.layout').style.gridTemplateColumns = '380px 1fr';
+    // Show "use your own portal" link only if switching is allowed
+    if (allowCustomPortal) {
+      document.getElementById('customPortalToggle').style.display = '';
+    }
+  }
+
+  // Store server URL privately — never expose it in the input field
+  serverPortalSrc = normalizePortalUrl((config && config.portalSrc) ? config.portalSrc : '');
+
+  // Only pre-fill the input with a URL the user explicitly saved themselves
+  const saved = allowCustomPortal ? normalizePortalUrl(localStorage.getItem('sdk_portalSrc') || '') : '';
+  if (saved) {
+    document.getElementById('portalSrc').value = saved;
+    document.getElementById('cspHint').style.display = '';
+  } else if (allowCustomPortal) {
+    localStorage.removeItem('sdk_portalSrc');
+  }
+
+  // Show CSP hint only while the user has typed something
+  document.getElementById('portalSrc').addEventListener('input', e => {
+    document.getElementById('cspHint').style.display = e.target.value.trim() ? '' : 'none';
+  });
+
+  await loadExamples();
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => { btn.classList.toggle('active'); renderCards(); });
+  });
+  document.getElementById('search').addEventListener('input', renderCards);
+});
+
+// ── Portal URL ────────────────────────────────────────────────────────────────
+function saveCustomPortal() {
+  const portalInput = document.getElementById('portalSrc');
+  const normalizedPortalUrl = normalizePortalUrl(portalInput.value || '');
+  if (!normalizedPortalUrl) {
+    document.getElementById('customMsg').textContent = 'Please enter a valid http(s) URL first.';
+    return;
+  }
+  portalInput.value = normalizedPortalUrl;
+  localStorage.setItem('sdk_portalSrc', normalizedPortalUrl);
+  document.getElementById('customMsg').textContent = '';
+  renderCards();
+}
+
+function clearCustomPortal() {
+  localStorage.removeItem('sdk_portalSrc');
+  document.getElementById('portalSrc').value = '';
+  document.getElementById('customMsg').textContent = '';
+  document.getElementById('cspHint').style.display = 'none';
+  renderCards();
+}
+
+// ── Cancel / hide config card ─────────────────────────────────────────────────
+function cancelCustomPortal() {
+  document.getElementById('portalSrc').value = localStorage.getItem('sdk_portalSrc') || '';
+  document.getElementById('customMsg').textContent = '';
+  document.getElementById('configCard').style.display = 'none';
+  document.getElementById('filterCard').style.marginTop = '0';
+  document.querySelector('.layout').style.gridTemplateColumns = '380px 1fr';
+  if (allowCustomPortal) document.getElementById('customPortalToggle').style.display = '';
+}
+
+// ── Toggle config card ────────────────────────────────────────────────────────
+function toggleConfigCard(e) {
+  if (e) e.preventDefault();
+  document.getElementById('configCard').style.display = '';
+  document.getElementById('filterCard').style.marginTop = '16px';
+  document.querySelector('.layout').style.gridTemplateColumns = '420px 1fr';
+  document.getElementById('customPortalToggle').style.display = 'none';
+}
+
+// ── Build example URL ─────────────────────────────────────────────────────────
+function buildExampleUrl(example) {
+  const portalSrc = normalizePortalUrl(document.getElementById('portalSrc').value || '') || normalizePortalUrl(serverPortalSrc);
+  if (!portalSrc) {
+    if (document.getElementById('configCard').style.display === 'none') {
+      toggleConfigCard(null);
+    }
+    document.getElementById('customMsg').textContent = 'Enter a valid DocSpace URL above to open examples.';
+    document.getElementById('portalSrc').focus();
+    return null;
+  }
+  document.getElementById('customMsg').textContent = '';
+  const exampleBaseUrl = example.file || '/example?file=' + encodeURIComponent(example.sourceFile || '');
+  return exampleBaseUrl + '&portalSrc=' + encodeURIComponent(portalSrc);
+}
+
+// ── Tag labels ────────────────────────────────────────────────────────────────
+const TAG_LABELS = { auth: 'Auth', rooms: 'Rooms', editor: 'Editor', pdf: 'PDF & Forms', sharing: 'Sharing', events: 'Events' };
+
+// ── Tag map ───────────────────────────────────────────────────────────────────
+const TAG_MAP = {
+  auth:    ['create-hash', 'get-hash-settings', 'get-user-info', 'login', 'logout',
+            'authorization', 'two-factor', 'authenticated-editor', 'init-system'],
+  rooms:   ['create-room', 'get-rooms', 'add-tags-to-room', 'remove-tags-from-room',
+            'create-tag', 'create-file', 'create-folder', 'get-files', 'get-folder',
+            'init-manager', 'init-room-selector', 'init-file-selector',
+            'task-file-create', 'basic-task-create', 'task-room-selector',
+            'file-manager-task', 'insert-rooms-and-files', 'freelance-platform',
+            'project-manager-folder', 'room-creation', 'room-with-member',
+            'approval-room', 'create-draggable', 'create-tabbed',
+            'download-to-custom', 'react-manager', 'manager-to-editor',
+            'manager-click-to-public', 'batch-public-links'],
+  editor:  ['init-editor', 'init-viewer', 'execute-in-docx', 'execute-in-spreadsheet',
+            'customize-editors', 'pptx-build', 'open-file-in-onlyoffice',
+            'manager-to-editor', 'authenticated-editor', 'create-pdf-form-template',
+            'fill-form-by-tags', 'batch-fill', 'open-document-for-filling'],
+  pdf:     ['batch-fill', 'create-pdf-form', 'fill-form-by-tags',
+            'web-form-to-pdf', 'open-document-for-filling'],
+  sharing: ['public-share-link', 'public-viewer', 'manager-click-to-public',
+            'batch-public-links'],
+  events:  ['sdk-events', 'error-handling', 'mark-iframe', 'get-config', 'set-config',
+            'destroy-frame', 'get-selection', 'set-list-view', 'open-modal',
+            'init-frame', 'download-to-custom'],
+};
+
+function getExampleTags(example) {
+  const sourceFile = (example.sourceFile || example.file || '').toLowerCase();
+  return Object.keys(TAG_MAP).filter(tag =>
+    TAG_MAP[tag].some(pattern => sourceFile.indexOf(pattern) !== -1)
+  );
+}
+
+// ── Card rendering ─────────────────────────────────────────────────────────────
+function getGroup(example) {
+  const groupName = (example.group || '').toLowerCase();
+  if (groupName === 'basic' || groupName === 'advanced') return groupName;
+  return (example.file || '').toLowerCase().includes('advanced') ? 'advanced' : 'basic';
+}
+
+function makeCard(example) {
+  const card = document.createElement('div');
+  card.className = 'example-card';
+  card.tabIndex  = 0;
+  card.setAttribute('role', 'button');
+
+  const title = document.createElement('strong');
+  title.className = 'example-name';
+  title.textContent = example.name || 'Untitled';
+
+  const desc = document.createElement('div');
+  desc.className   = 'example-desc';
+  desc.textContent = example.description || 'No description provided.';
+
+  // Bottom row: "Open sample →" left, all pills right
+  const bottom = document.createElement('div');
+  bottom.className = 'example-bottom';
+
+  const hint = document.createElement('div');
+  hint.className   = 'open-hint';
+  hint.textContent = 'Open sample →';
+
+  const pills = document.createElement('div');
+  pills.className  = 'example-pills';
+
+  const group = getGroup(example);
+  const groupPill = document.createElement('span');
+  groupPill.className   = 'pill ' + group;
+  groupPill.textContent = group === 'advanced' ? 'Advanced' : 'Basic';
+  pills.appendChild(groupPill);
+
+  getExampleTags(example).forEach(tag => {
+    const tagPill = document.createElement('span');
+    tagPill.className   = 'pill ' + tag;
+    tagPill.textContent = TAG_LABELS[tag] || tag;
+    pills.appendChild(tagPill);
+  });
+
+  bottom.appendChild(hint);
+  bottom.appendChild(pills);
+
+  card.appendChild(title);
+  card.appendChild(desc);
+  card.appendChild(bottom);
+
+  const open = () => {
+    const url = buildExampleUrl(example);
+    if (!url) return;
+    window.open(url, '_blank');
+  };
+  card.onclick   = open;
+  card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+  return card;
+}
+
+function resetFilters() {
+  document.querySelectorAll('.filter-pill.active').forEach(btn => btn.classList.remove('active'));
+  renderCards();
+}
+
+function renderCards() {
+  const searchQuery = ((document.getElementById('search').value) || '').trim().toLowerCase();
+
+  const activePills = new Set();
+  document.querySelectorAll('.filter-pill.active').forEach(btn => activePills.add(btn.dataset.filter));
+
+  // Show/hide reset button
+  document.getElementById('resetBtn').style.display = activePills.size > 0 ? '' : 'none';
+
+  // No active pills → show everything
+  const hasGroupFilter = activePills.has('basic') || activePills.has('advanced');
+  const hasTopicFilter = ['auth','rooms','editor','pdf','sharing','events'].some(t => activePills.has(t));
+
+  const showBasicSection = !hasGroupFilter || activePills.has('basic');
+  const showAdvancedSection = !hasGroupFilter || activePills.has('advanced');
+  const basicExamples = [];
+  const advancedExamples = [];
+
+  examples.forEach(example => {
+    if (searchQuery) {
+      const searchText = ((example.name || '') + ' ' + (example.description || '') + ' ' + (example.file || '')).toLowerCase();
+      if (!searchText.includes(searchQuery)) return;
+    }
+    const group = getGroup(example);
+    if (hasGroupFilter && !activePills.has(group)) return;
+
+    if (hasTopicFilter) {
+      const tags = getExampleTags(example);
+      if (!tags.some(tag => activePills.has(tag))) return;
     }
 
-    // Save config to localStorage
-    function saveConfig(config) {
-      localStorage.setItem('docspaceConfig', JSON.stringify(config));
-    }
+    (group === 'advanced' ? advancedExamples : basicExamples).push(example);
+  });
 
-    function clearConfig() {
-      localStorage.removeItem('docspaceConfig');
-    }
+  function fill(sectionId, gridId, emptyId, countId, exampleList, showSection) {
+    document.getElementById(sectionId).style.display = showSection ? '' : 'none';
+    document.getElementById(gridId).innerHTML = '';
+    if (showSection) exampleList.forEach(example => document.getElementById(gridId).appendChild(makeCard(example)));
+    document.getElementById(countId).textContent = exampleList.length + ' item' + (exampleList.length !== 1 ? 's' : '');
+    document.getElementById(emptyId).style.display = (showSection && exampleList.length === 0) ? 'block' : 'none';
+  }
+  fill('basicSection',    'basicGrid',    'basicEmpty',    'basicCount',    basicExamples,    showBasicSection);
+  fill('advancedSection', 'advancedGrid', 'advancedEmpty', 'advancedCount', advancedExamples, showAdvancedSection);
+}
 
-    // Apply config values to inputs
-    function applyConfigToInputs(config) {
-      if (!config) return;
-      document.getElementById('portalSrc').value = config.portalSrc || '';
-    }
+async function loadExamples() {
+  const exampleData = await fetchJSON('/api/examples');
+  const hiddenSamples = ['set-list-view'];
+  examples = (Array.isArray(exampleData) ? exampleData : []).filter(example => {
+    const filePath = String(example && (example.sourceFile || example.file || '')).toLowerCase();
+    return !hiddenSamples.some(sampleName => filePath.indexOf(sampleName) !== -1);
+  });
+  renderCards();
+}
 
-    function buildExampleUrl(ex) {
-      const portalSrc = document.getElementById('portalSrc').value.trim();
-      if (!portalSrc) {
-        alert('Please enter Portal URL');
-        return null;
-      }
+// ── Demo session (silent auto-start) ─────────────────────────────────────────
+async function autoStartDemo() {
+  try {
+    const status = await fetchJSON('/api/demo/status');
+    if (status && status.active && status.ready) return; // session already ready
+    await fetch('/api/demo/start', { method: 'POST' });
+  } catch (err) {
+    console.warn('[samples] demo auto-start failed:', err?.message || err);
+  }
+  // Errors are intentionally swallowed — demo is best-effort, never blocks the UI
+}
 
-      // IMPORTANT:
-      // ex.file must be like: "/example?file=/basic-samples/xxx/init-system.html"
-      let exampleUrl = ex.file || "";
-
-      // If backend still returns plain html path, fallback (optional but helpful during transition)
-      if (!exampleUrl.startsWith("/example?file=")) {
-        exampleUrl = `/example?file=${encodeURIComponent(ex.file || "")}`;
-      }
-
-      // pass portalSrc to the server so it can inject into HTML before it loads sdk script
-      exampleUrl += `&portalSrc=${encodeURIComponent(portalSrc)}`;
-
-
-      return exampleUrl;
-    }
-
-
-    function getGroup(ex) {
-      const g = (ex.group || '').toLowerCase();
-      if (g === 'basic' || g === 'advanced') return g;
-
-      const file = (ex.file || '').toLowerCase();
-      if (file.includes('advanced-samples')) return 'advanced';
-      return 'basic';
-    }
-
-    function makeCard(ex) {
-      const card = document.createElement('div');
-      card.className = 'example-card';
-      card.tabIndex = 0;
-      card.setAttribute('role', 'button');
-
-      const titleRow = document.createElement('div');
-      titleRow.className = 'example-title';
-
-      const title = document.createElement('strong');
-      title.textContent = ex.name || 'Untitled example';
-
-      const group = getGroup(ex);
-      const pill = document.createElement('span');
-      pill.className = 'pill ' + group;
-      pill.textContent = group === 'advanced' ? 'Advanced' : 'Basic';
-
-      titleRow.appendChild(title);
-      titleRow.appendChild(pill);
-
-      const desc = document.createElement('div');
-      desc.className = 'example-desc';
-      desc.textContent = ex.description ? ex.description : 'No description provided.';
-
-      const path = document.createElement('div');
-      path.className = 'example-path';
-      path.textContent = ex.file || '';
-
-      const hint = document.createElement('div');
-      hint.className = 'open-hint';
-      hint.textContent = 'Open sample →';
-
-      card.appendChild(titleRow);
-      card.appendChild(desc);
-      card.appendChild(hint);
-
-
-      const open = () => {
-        const url = buildExampleUrl(ex);
-        if (!url) return;
-        window.open(url, '_blank');
-      };
-
-      card.onclick = open;
-      card.onkeydown = (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          open();
-        }
-      };
-
-      return card;
-    }
-
-    function renderCards() {
-      const basicGrid = document.getElementById('basicGrid');
-      const advGrid = document.getElementById('advancedGrid');
-      const basicCount = document.getElementById('basicCount');
-      const advCount = document.getElementById('advancedCount');
-      const basicEmpty = document.getElementById('basicEmpty');
-      const advEmpty = document.getElementById('advancedEmpty');
-
-      const showBasic = document.getElementById('showBasic').checked;
-      const showAdv = document.getElementById('showAdvanced').checked;
-      const q = (document.getElementById('search').value || '').trim().toLowerCase();
-
-      basicGrid.innerHTML = '';
-      advGrid.innerHTML = '';
-
-      const filtered = examples.filter(ex => {
-        if (!q) return true;
-        const hay = ((ex.name || '') + ' ' + (ex.description || '') + ' ' + (ex.file || '')).toLowerCase();
-        return hay.includes(q);
-      });
-
-      const basic = [];
-      const advanced = [];
-
-      filtered.forEach(ex => {
-        if (getGroup(ex) === 'advanced') advanced.push(ex);
-        else basic.push(ex);
-      });
-
-      if (showBasic) basic.forEach(ex => basicGrid.appendChild(makeCard(ex)));
-      if (showAdv) advanced.forEach(ex => advGrid.appendChild(makeCard(ex)));
-
-      basicCount.textContent = `${basic.length} items`;
-      advCount.textContent = `${advanced.length} items`;
-
-      basicEmpty.style.display = (showBasic && basic.length === 0) ? 'block' : 'none';
-      advEmpty.style.display = (showAdv && advanced.length === 0) ? 'block' : 'none';
-
-      if (!showBasic) basicEmpty.style.display = 'none';
-      if (!showAdv) advEmpty.style.display = 'none';
-    }
-
-    async function buildExamplesList() {
-      try {
-        const response = await fetch('/api/examples');
-        if (response.ok) {
-          examples = await response.json();
-          renderCards();
-        } else {
-          examples = [];
-          renderCards();
-        }
-      } catch (e) {
-        examples = [];
-        renderCards();
-        console.error(e);
-      }
-    }
-
-    // On load
-    window.onload = async () => {
-      const config = await loadConfig();
-      applyConfigToInputs(config);
-      await buildExamplesList();
-    };
-
-    // Save button
-    document.getElementById('saveConfig').onclick = () => {
-      const config = {
-        portalSrc: document.getElementById('portalSrc').value.trim()
-      };
-      saveConfig(config);
-      alert('Config saved');
-    };
-
-    // Clear button
-    document.getElementById('clearConfig').onclick = () => {
-      clearConfig();
-      document.getElementById('portalSrc').value = '';
-      renderCards();
-    };
-
-    // Re-render on filters/search changes
-    document.getElementById('showBasic').addEventListener('change', renderCards);
-    document.getElementById('showAdvanced').addEventListener('change', renderCards);
-    document.getElementById('search').addEventListener('input', renderCards);
-  </script>
+// ── Network helpers ────────────────────────────────────────────────────────────
+async function fetchJSON(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) {
+    return null;
+  }
+}
+</script>
 </body>
 </html>

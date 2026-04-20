@@ -1,11 +1,12 @@
 <!--
 Example: Create file
 
-This example demonstrates how to create a new file inside a DocSpace room using a button.
+Select a room, type a file name, and create it. The new file opens immediately in the editor.
 
 Using methods:
 - DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
 - manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
 -->
 
 <!DOCTYPE html>
@@ -13,17 +14,17 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Create file" />
+    <meta name="example-title" content="Create File" />
     <meta
       name="example-description"
-      content="Select a room in the selector, enter a file name, and create a new file using the DocSpace JavaScript SDK."
+      content="Select a room, enter a file name, create it — and the new file opens immediately in the editor."
     />
     <meta name="example-group" content="basic" />
     <title>Create File</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -32,46 +33,68 @@ Using methods:
   </head>
 
   <body class="ex-create-file">
-    <div class="top-bar">
-      <div class="field">
-        <label for="fileName">File name</label>
-        <input id="fileName" type="text" placeholder="new.pptx" autocomplete="off" />
+
+    <!-- Step 1: room selector -->
+    <div id="selectorWrap">
+      <div class="frame-wrap">
+        <iframe id="ds-frame"></iframe>
       </div>
-      <button class="btn" id="button" type="button" disabled>Create File</button>
-      <span class="status" id="status">Select a room</span>
+      <div class="bottom-bar">
+        <input id="fileName" type="text" placeholder="new.pptx" autocomplete="off" />
+        <button class="btn" id="button" type="button" disabled>Create File</button>
+        <span class="status" id="status">Select a room</span>
+      </div>
     </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+    <!-- Step 2: editor (shown after file is created) -->
+    <div id="editorWrap" style="display:none">
+      <div class="frame-wrap">
+        <iframe id="editor-frame"></iframe>
+      </div>
+      <div class="bottom-bar">
+        <button class="btn secondary" id="backBtn" onclick="showSelector()">← Create another</button>
+        <span class="status" id="editorStatus">Opening editor…</span>
+      </div>
     </div>
 
-    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
+    <!-- Hidden manager frame for executing SDK methods -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-manager-frame"></div>
+    </div>
 
     <script>
-      const button = document.getElementById("button");
-      const input = document.getElementById("fileName");
-      const status = document.getElementById("status");
+      const button   = document.getElementById("button");
+      const input    = document.getElementById("fileName");
+      const status   = document.getElementById("status");
 
-      let targetId = null;
+      let targetId     = null;
       let managerReady = false;
 
       function extractId(data) {
         const item = Array.isArray(data) ? data[0] : data;
-        return item?.folderId ?? item?.roomId ?? item?.id ?? null;
+        return item?.id ? String(item.id).trim() : null;
       }
 
       function updateButtonState() {
         button.disabled = !managerReady || !targetId || !input.value.trim();
       }
 
+      function showSelector() {
+        document.getElementById("editorWrap").style.display   = "none";
+        document.getElementById("selectorWrap").style.display = "";
+        input.value = "";
+        updateButtonState();
+      }
+
       DocSpace.SDK.initRoomSelector({
         frameId: "ds-frame",
         width: "960px",
-        height: "640px",
+        height: "600px",
         theme: "base",
         events: {
           onSelectCallback: (data) => {
             targetId = extractId(data);
+            status.textContent = targetId ? "Room selected" : "Select a room";
             updateButtonState();
           }
         }
@@ -86,6 +109,10 @@ Using methods:
           onAppReady: () => {
             managerReady = true;
             updateButtonState();
+          },
+          onAppError: () => {
+            status.textContent = "Manager error — check portal URL";
+            updateButtonState();
           }
         }
       });
@@ -97,8 +124,37 @@ Using methods:
         if (!name) return;
 
         button.disabled = true;
-        await manager.createFile(String(targetId), name);
-        button.disabled = false;
+        status.textContent = "Creating…";
+
+        try {
+          const result = await manager.createFile(String(targetId), name);
+          const fileId = String(result?.id || "").trim();
+          if (!fileId) throw new Error("File ID is missing in createFile response.");
+          if (typeof window.__demoTrack === "function") {
+            window.__demoTrack('file', fileId); // demo only — replace with your own file ID handling
+          }
+
+          document.getElementById("selectorWrap").style.display = "none";
+          document.getElementById("editorWrap").style.display   = "";
+
+          DocSpace.SDK.initEditor({
+            frameId: "editor-frame",
+            id:      fileId,
+            width:   "960px",
+            height:  "600px",
+            events: {
+              onAppReady: () => {
+                document.getElementById("editorStatus").textContent = "File created and opened in editor";
+              },
+              onAppError: () => {
+                document.getElementById("editorStatus").textContent = "Editor failed to load";
+              }
+            }
+          });
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
+          button.disabled = false;
+        }
       };
     </script>
   </body>

@@ -30,6 +30,12 @@ const AUTH_HEADERS = {
 };
 
 // Step 1: Create an upload session
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function createUploadSession(folderId, fileName, fileSize) {
   const url = `${API_HOST}/api/2.0/files/${folderId}/upload/create_session`;
   const body = {
@@ -39,7 +45,7 @@ async function createUploadSession(folderId, fileName, fileSize) {
     folderId,
   };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(body),
@@ -68,7 +74,7 @@ async function uploadChunks(location, fileBuffer, fileName) {
     const blob = new Blob([chunkBuffer], { type: 'application/octet-stream' });
     form.append('file', blob, fileName);
 
-    const res = await fetch(location, {
+    const res = await fetchWithTimeout(location, {
       method: 'POST',
       headers: AUTH_HEADERS,
       body: form,

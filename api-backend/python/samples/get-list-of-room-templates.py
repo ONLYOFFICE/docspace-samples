@@ -24,7 +24,7 @@ HEADERS = {
 # Step 1: Get room templates list
 def get_room_templates():
     url = f'{API_HOST}/api/2.0/files/rooms?searchArea=Templates'
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return response.json()

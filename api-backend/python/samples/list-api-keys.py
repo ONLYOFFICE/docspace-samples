@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: List API keys
 
 This example demonstrates how to retrieve all API keys associated with the current user in ONLYOFFICE DocSpace.
@@ -22,7 +22,7 @@ HEADERS = {
 # Step 1: Get all API keys for the current user
 def list_api_keys():
   url = f'{API_HOST}/api/2.0/keys'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     keys = response.json().get('response', [])

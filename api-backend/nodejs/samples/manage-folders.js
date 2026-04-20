@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage folders
 
 This example demonstrates how to manage folders in ONLYOFFICE DocSpace using the API.
@@ -22,10 +22,16 @@ const HEADERS = {
 };
 
 // Step 1: Create a folder
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function createFolder(parentFolderId, folderName) {
   const url = `${BASE_URL}/api/2.0/files/folder/${parentFolderId}`;
   const data = { title: folderName };
-  return fetch(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) })
+  return fetchWithTimeout(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) })
     .then(async (res) => {
       if (res.status === 200) return res.json();
       const text = await res.text();
@@ -41,7 +47,7 @@ function createFolder(parentFolderId, folderName) {
 // Step 2: Retrieve folder details
 function getFolderDetails(folderId) {
   const url = `${BASE_URL}/api/2.0/files/folder/${folderId}`;
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then(async (res) => {
       if (res.status === 200) return res.json();
       const text = await res.text();
@@ -58,7 +64,7 @@ function getFolderDetails(folderId) {
 function renameFolder(folderId, newName) {
   const url = `${BASE_URL}/api/2.0/files/folder/${folderId}/rename`;
   const data = { title: newName };
-  return fetch(url, { method: 'PUT', headers: HEADERS, body: JSON.stringify(data) })
+  return fetchWithTimeout(url, { method: 'PUT', headers: HEADERS, body: JSON.stringify(data) })
     .then(async (res) => {
       if (res.status === 200) return res.json();
       const text = await res.text();
@@ -74,7 +80,7 @@ function renameFolder(folderId, newName) {
 // Step 4: Delete a folder
 function deleteFolder(folderId) {
   const url = `${BASE_URL}/api/2.0/files/folder/${folderId}`;
-  return fetch(url, { method: 'DELETE', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'DELETE', headers: HEADERS })
     .then(async (res) => {
       if (res.status === 200) return res.json();
       const text = await res.text();
@@ -88,21 +94,21 @@ function deleteFolder(folderId) {
 }
 
 async function main() {
-  const parent_folder_id = 1234;
-  const folder_id = 1234;
-  const folder_name = 'New Folder';
-  const new_folder_name = 'Updated Folder Name';
+  const parentFolderId = 1234;
+  const folderId = 1234;
+  const folderName = 'New Folder';
+  const newFolderName = 'Updated Folder Name';
 
-  const created = await createFolder(parent_folder_id, folder_name);
+  const created = await createFolder(parentFolderId, folderName);
   if (!created) return;
 
-  const details = await getFolderDetails(folder_id);
+  const details = await getFolderDetails(folderId);
   if (!details) return;
 
-  const renamed = await renameFolder(folder_id, new_folder_name);
+  const renamed = await renameFolder(folderId, newFolderName);
   if (!renamed) return;
 
-  await deleteFolder(folder_id);
+  await deleteFolder(folderId);
 }
 
 main();

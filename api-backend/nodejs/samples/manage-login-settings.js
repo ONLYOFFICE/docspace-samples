@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage login settings
 
 This example demonstrates how to configure login security settings, including failed login attempt limits, account blocking duration,
@@ -22,9 +22,15 @@ const HEADERS = {
 };
 
 // Step 1: Update login settings
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function updateLoginSettings(attemptCount, blockTime, checkPeriod) {
   const url = `${API_HOST}/api/2.0/settings/security/loginsettings`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify({ attemptCount, blockTime, checkPeriod }),
@@ -41,7 +47,7 @@ async function updateLoginSettings(attemptCount, blockTime, checkPeriod) {
 // Step 2: Retrieve current login settings
 async function getLoginSettings() {
   const url = `${API_HOST}/api/2.0/settings/security/loginsettings`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (res.ok) {
     const settings = await res.json();
@@ -57,7 +63,7 @@ async function getLoginSettings() {
 // Step 3: Reset login settings to default
 async function resetLoginSettings() {
   const url = `${API_HOST}/api/2.0/settings/security/loginsettings`;
-  const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'DELETE', headers: HEADERS });
 
   if (res.ok) {
     console.log('Login settings reset to default successfully.');

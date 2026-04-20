@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Change file or folder ownership
 
 This example demonstrates how to transfer ownership of files and/or folders in ONLYOFFICE DocSpace to another user using the API. 
@@ -33,7 +33,7 @@ payload = {
 # Step 2: Send the ownership change request
 def change_ownership(payload):
   url = f'{API_HOST}/api/2.0/files/owner'
-  response = requests.post(url, headers=HEADERS, json=payload)
+  response = requests.post(url, headers=HEADERS, json=payload, timeout=30)
 
   if response.status_code == 200:
     result = response.json().get('response', [])

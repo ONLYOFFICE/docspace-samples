@@ -1,4 +1,4 @@
-﻿'''
+'''
 
 Example: Manage active portal connections
 
@@ -28,7 +28,7 @@ HEADERS = {
 # Step 1: Retrieve all active portal connections
 def get_all_active_connections():
   url = f'{API_HOST}/api/2.0/security/activeconnections'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     active_connections = response.json()
@@ -41,7 +41,7 @@ def get_all_active_connections():
 # Step 2: Log out all sessions except the current one
 def log_out_all_except_current():
   url = f'{API_HOST}/api/2.0/security/activeconnections/logoutallexceptthis'
-  response = requests.put(url, headers=HEADERS)
+  response = requests.put(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     result = response.json()
@@ -54,7 +54,7 @@ def log_out_all_except_current():
 # Step 3: Log out a specific session by its login event ID
 def log_out_active_connection(login_event_id):
   url = f'{API_HOST}/api/2.0/security/activeconnections/logout/{login_event_id}'
-  response = requests.put(url, headers=HEADERS)
+  response = requests.put(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     result = response.json()
@@ -67,7 +67,7 @@ def log_out_active_connection(login_event_id):
 # Step 4: Log out all sessions for a specific user
 def log_out_all_active_connections_for_user(user_id):
   url = f'{API_HOST}/api/2.0/security/activeconnections/logoutall/{user_id}'
-  response = requests.put(url, headers=HEADERS)
+  response = requests.put(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     result = response.json()

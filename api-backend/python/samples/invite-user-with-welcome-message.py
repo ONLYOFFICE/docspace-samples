@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Invite user with welcome message
 
 This example demonstrates how to invite a user to ONLYOFFICE DocSpace using the API,check their registration status,
@@ -19,7 +19,7 @@ HEADERS = {'Authorization': API_KEY}
 # Step 1: Get invitation link for a specific employee type
 def get_invite_link(employee_type='Guest'):
   url = f'{API_HOST}/api/2.0/portal/users/invite/{employee_type}'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     invite_url = response.json().get('response')
     print(f"Invite link for {employee_type}: {invite_url}")
@@ -30,7 +30,7 @@ def get_invite_link(employee_type='Guest'):
 # Step 2: Check if the user is active
 def check_user_status(user_id):
   url = f'{API_HOST}/api/2.0/portal/users/{user_id}'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     user = response.json().get('response', {})
     print("User Info:")
@@ -46,7 +46,7 @@ def check_user_status(user_id):
 def send_congratulations(user_id, key='welcome_guest'):
   url = f'{API_HOST}/api/2.0/portal/sendcongratulations'
   params = {'Userid': user_id, 'Key': key}
-  response = requests.post(url, headers=HEADERS, params=params)
+  response = requests.post(url, headers=HEADERS, params=params, timeout=30)
   if response.status_code == 200:
     print("Congratulations message sent successfully.")
   else:

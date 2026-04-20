@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Remove members from a group
 
 This example demonstrates how to remove one or more members from a group in ONLYOFFICE DocSpace using the API.
@@ -16,11 +16,17 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Remove members from a group
 async function removeGroupMembers(groupId, members) {
   const url = `${API_HOST}/api/2.0/group/${groupId}/members`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'DELETE',
     headers: HEADERS,
     body: JSON.stringify({ members }),

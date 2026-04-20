@@ -1,7 +1,8 @@
 <!--
 Example: File selector to editor/viewer flow
 
-This example demonstrates how to select a file in the file selector and open the selected file in a viewer or editor frame.
+Select a file in the file selector, then choose viewer or editor mode
+to open it immediately in the same frame area.
 
 Using methods:
 - DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
@@ -14,17 +15,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="File selector to editor/viewer flow" />
-    <meta
-      name="example-description"
-      content="Select a file in the file selector and open it in a viewer or editor frame."
-    />
+    <meta name="example-title" content="Browse and Open Files" />
+    <meta name="example-description" content="Use the file selector to browse DocSpace files, then open any selected file in an embedded editor or read-only viewer." />
     <meta name="example-group" content="advanced" />
-    <title>File selector to editor/viewer flow</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Browse and Open Files</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -33,207 +31,127 @@ Using methods:
   </head>
 
   <body class="ex-manager-to-editor-viewer-flow">
-    <div class="page">
-      <div class="card">
-        <div class="field">
-          <label for="mode">Open mode</label>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <!-- Step 1: file selector -->
+        <div class="frame-wrap" id="selectorWrap">
+          <iframe id="selector-frame"></iframe>
+        </div>
+        <!-- Step 2: viewer/editor shown after file selection -->
+        <div class="frame-wrap" id="viewerWrap" style="display:none">
+          <iframe id="preview-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <button id="backBtn" type="button" class="btn btn--secondary" style="display:none">← Select another file</button>
+          <span class="status" id="hint">Select a file to open</span>
+        </div>
+      </div>
+
+      <div class="result-split__panel card" style="flex:0 0 300px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label>Selected file</label>
+          <input id="selectedTitle" type="text" readonly placeholder="— select a file —" />
+        </div>
+
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label for="mode">Open as</label>
           <select id="mode">
             <option value="viewer">Viewer</option>
             <option value="editor">Editor</option>
           </select>
         </div>
-        <div class="actions">
-          <span class="status" id="selectorStatus">Selector: initializing...</span>
-          <span class="status" id="previewStatus">Preview: waiting for file selection</span>
-        </div>
-      </div>
-
-      <div class="layout">
-        <section class="panel">
-          <div class="panel-header">
-            <span class="panel-title">File selector</span>
-            <span class="panel-hint">Select a file inside DocSpace.</span>
-          </div>
-          <iframe id="selector-frame"></iframe>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Viewer / Editor</span>
-            <span class="panel-hint" id="selectionHint">No file selected</span>
-          </div>
-          <iframe id="preview-frame"></iframe>
-        </section>
       </div>
     </div>
 
     <script>
-      const modeEl = document.getElementById("mode");
-      const selectorStatusEl = document.getElementById("selectorStatus");
-      const previewStatusEl = document.getElementById("previewStatus");
-      const selectionHintEl = document.getElementById("selectionHint");
+      const hint          = document.getElementById("hint");
+      const selectedTitle = document.getElementById("selectedTitle");
+      const modeEl        = document.getElementById("mode");
+      const selectorWrap  = document.getElementById("selectorWrap");
+      const viewerWrap    = document.getElementById("viewerWrap");
+      const backBtn       = document.getElementById("backBtn");
 
-      let selectorInstance = null;
       let previewInstance = null;
-      let selectedFileId = "";
-      let selectedFileTitle = "";
+      let selected = null;
 
-      function setSelectorStatus(value) {
-        selectorStatusEl.textContent = "Selector: " + value;
+      function setHint(text) { hint.textContent = text; }
+
+      function showSelector() {
+        selectorWrap.style.display = "";
+        viewerWrap.style.display   = "none";
+        backBtn.style.display      = "none";
       }
 
-      function setPreviewStatus(value) {
-        previewStatusEl.textContent = "Preview: " + value;
+      function showViewer() {
+        selectorWrap.style.display = "none";
+        viewerWrap.style.display   = "";
+        backBtn.style.display      = "";
       }
 
-      function setSelectionHint(value) {
-        selectionHintEl.textContent = value;
-      }
-
-      function stringify(value) {
-        try {
-          return JSON.stringify(value, null, 2);
-        } catch {
-          return String(value);
+      function destroyPreview() {
+        if (previewInstance && typeof previewInstance.destroyFrame === "function") {
+          try { previewInstance.destroyFrame(); } catch {}
         }
-      }
-
-      function firstObjectWithId(value) {
-        if (!value) return null;
-
-        if (Array.isArray(value)) {
-          for (const item of value) {
-            const found = firstObjectWithId(item);
-            if (found) return found;
-          }
-          return null;
-        }
-
-        if (typeof value !== "object") return null;
-        if (value.id !== undefined && value.id !== null) return value;
-
-        for (const key of Object.keys(value)) {
-          const found = firstObjectWithId(value[key]);
-          if (found) return found;
-        }
-
-        return null;
-      }
-
-      function destroyInstance(instance) {
-        if (!instance || typeof instance.destroyFrame !== "function") return;
-        try {
-          instance.destroyFrame();
-        } catch {}
-      }
-
-      function resetPreview() {
-        destroyInstance(previewInstance);
         previewInstance = null;
-        selectedFileId = "";
-        selectedFileTitle = "";
-        setSelectionHint("No file selected");
-        setPreviewStatus("waiting for file selection");
       }
 
-      function openSelectedFile(fileId, title) {
+      function openFile(file) {
+        if (!file?.id) return;
+        destroyPreview();
+        showViewer();
+
         const mode = modeEl.value;
+        setHint("Loading " + mode + "…");
 
-        destroyInstance(previewInstance);
-        previewInstance = null;
-        selectedFileId = String(fileId);
-        selectedFileTitle = String(title || "");
-
-        setSelectionHint(selectedFileTitle ? selectedFileTitle + " (ID: " + selectedFileId + ")" : "ID: " + selectedFileId);
-        setPreviewStatus("opening " + mode + "...");
-
-        const commonConfig = {
+        const config = {
           frameId: "preview-frame",
-          id: selectedFileId,
-          width: "100%",
-          height: "640px",
+          id: String(file.id),
+          width: "700px",
+          height: "520px",
           theme: "base",
           events: {
-            onAppReady: (event) => {
-              setPreviewStatus(mode + " ready");
-            },
-            onContentReady: (event) => {
-              setPreviewStatus(mode + " content loaded");
-            },
-            onAppError: (event) => {
-              setPreviewStatus(mode + " error");
-            },
-            onNoAccess: (event) => {
-              setPreviewStatus("no access");
-            },
-            onNotFound: (event) => {
-              setPreviewStatus("not found");
-            }
+            onAppReady:     () => setHint(mode === "editor" ? "Editor ready" : "Viewer ready"),
+            onContentReady: () => setHint("Content loaded"),
+            onNoAccess:     () => setHint("No access"),
+            onNotFound:     () => setHint("Not found"),
+            onAppError:     () => setHint("Error")
           }
         };
 
-        previewInstance =
-          mode === "editor"
-            ? DocSpace.SDK.initEditor(commonConfig)
-            : DocSpace.SDK.initViewer({
-                ...commonConfig,
-                showHeader: false,
-                showTitle: true
-              });
+        previewInstance = mode === "editor"
+          ? DocSpace.SDK.initEditor(config)
+          : DocSpace.SDK.initViewer({ ...config, showHeader: false, showTitle: true });
       }
 
-      function handleSelection(event) {
-        const item = firstObjectWithId(event);
-        if (!item) {
-          setPreviewStatus("selection payload has no file id");
-          return;
+      // File selector
+      DocSpace.SDK.initFileSelector({
+        frameId: "selector-frame",
+        width: "700px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            const id = item?.id ?? null;
+            if (!id) return;
+            selected = { id: String(id), title: item?.title || item?.name || `File ${id}` };
+            selectedTitle.value = selected.title;
+            openFile(selected);
+          },
+          onAppError: () => setHint("Selector error")
         }
-
-        const fileId = item.id;
-        const title = item.title || item.name || item.fileTitle || item.fileName || "";
-        openSelectedFile(fileId, title);
-      }
-
-      function initSelector() {
-        destroyInstance(selectorInstance);
-        selectorInstance = null;
-        resetPreview();
-        setSelectorStatus("initializing...");
-
-        selectorInstance = DocSpace.SDK.initFileSelector({
-          frameId: "selector-frame",
-          width: "100%",
-          height: "640px",
-          theme: "base",
-          events: {
-            onAppReady: () => {
-              setSelectorStatus("ready");
-            },
-            onContentReady: () => {
-              setSelectorStatus("content loaded");
-            },
-            onSelectCallback: (event) => {
-              setSelectorStatus("file selected");
-              handleSelection(event);
-            },
-            onCloseCallback: () => {
-              setSelectorStatus("selector closed");
-            },
-            onNoAccess: (event) => {
-              setSelectorStatus("no access");
-            },
-            onAppError: (event) => {
-              setSelectorStatus("error");
-            }
-          }
-        });
-      }
-
-      modeEl.addEventListener("change", () => {
-        if (selectedFileId) openSelectedFile(selectedFileId, selectedFileTitle);
       });
 
-      initSelector();
+      // Re-open in new mode when mode changes (if a file is already selected)
+      modeEl.addEventListener("change", () => {
+        if (selected) openFile(selected);
+      });
+
+      backBtn.onclick = () => {
+        destroyPreview();
+        showSelector();
+        setHint("Select a file to open");
+      };
     </script>
   </body>
 </html>

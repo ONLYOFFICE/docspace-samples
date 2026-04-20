@@ -5,6 +5,12 @@ Flow:
 1) Pick a fillable PDF template.
 2) Paste a JSON array of people (keys = PDF field FormKey).
 3) Click "Create & Fill All" to generate a filled PDF per person in the same folder.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
 -->
 
 <!DOCTYPE html>
@@ -13,19 +19,16 @@ Flow:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
 
-    <meta name="example-title" content="Batch Fill From PDF Template" />
-    <meta
-      name="example-description"
-      content="Pick a PDF template + JSON array of people, then create a filled PDF per person in the same folder."
-    />
+    <meta name="example-title" content="Batch Fill PDFs from Template" />
+    <meta name="example-description" content="Choose a PDF template and provide a list of people as JSON. The SDK creates one filled PDF per person in the same folder." />
     <meta name="example-group" content="advanced" />
 
-    <title>Batch Fill From PDF Template</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Batch Fill PDFs from Template</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
 
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -34,27 +37,6 @@ Flow:
   </head>
 
   <body class="ex-batch-fill-from-template-pdf">
-    <div class="panel" style="margin-bottom: 12px;">
-      <details open>
-        <summary><b>How to use</b></summary>
-        <ol class="muted" style="margin: 10px 0 0 18px; line-height: 1.5;">
-          <li>Select a <b>fillable PDF</b> in the selector.</li>
-          <li>Paste people as a <b>JSON array</b> (keys = PDF field <b>FormKey</b>).</li>
-          <li>Click <b>Create &amp; Fill All</b>.</li>
-        </ol>
-        <div class="muted" style="margin-top: 8px;">
-          Optional: add <code>_fileName</code> per person to override the output file name.
-        </div>
-      </details>
-    </div>
-
-    <div class="wrap">
-      <iframe id="ds-template-selector" class="frame" title="Template selector"></iframe>
-    </div>
-
-    <iframe id="ds-manager-frame" class="hidden-frame" title="Manager frame"></iframe>
-    <iframe id="ds-editor-frame" class="hidden-frame" title="Editor frame"></iframe>
-
     <div class="panel">
       <div class="row">
         <div class="kv">
@@ -98,6 +80,7 @@ Flow:
           <div class="actions-row" style="margin-top: 6px;">
             <button id="run" type="button" class="btn" disabled>Create &amp; Fill All</button>
             <button id="stop" type="button" class="btn-secondary" disabled>Stop</button>
+            <button id="toggleSelector" type="button" class="btn-secondary">Show selector</button>
             <button id="toggleEditor" type="button" class="btn-secondary">Show editor</button>
           </div>
           <span class="status" id="hint" style="margin-top: 10px;">Pick template PDF</span>
@@ -119,6 +102,16 @@ Flow:
       </div>
     </div>
 
+    <div id="selectorWrap" class="wrap" style="display:none;">
+      <iframe id="ds-template-selector" class="frame" title="Template selector"></iframe>
+    </div>
+
+    <!-- Hidden manager frame for executing SDK methods -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-manager-frame"></div>
+    </div>
+    <iframe id="ds-editor-frame" class="hidden-frame" title="Editor frame"></iframe>
+
     <script>
       const templateTitleEl = document.getElementById("templateTitle");
       const templateIdEl = document.getElementById("templateId");
@@ -131,9 +124,11 @@ Flow:
 
       const runBtn = document.getElementById("run");
       const stopBtn = document.getElementById("stop");
+      const toggleSelectorBtn = document.getElementById("toggleSelector");
       const toggleEditorBtn = document.getElementById("toggleEditor");
       const hintEl = document.getElementById("hint");
       const logEl = document.getElementById("log");
+      const selectorWrapEl = document.getElementById("selectorWrap");
 
       const editorFrame = document.getElementById("ds-editor-frame");
 
@@ -150,12 +145,12 @@ Flow:
       let abortRequested = false;
       let editorVisible = false;
 
-      function setHint(v) {
-        hintEl.textContent = String(v ?? "");
+      function setHint(text) {
+        hintEl.textContent = String(text ?? "");
       }
 
-      function logLine(v) {
-        const line = String(v ?? "");
+      function logLine(text) {
+        const line = String(text ?? "");
         logEl.value = (logEl.value ? logEl.value + "\n" : "") + line;
         logEl.scrollTop = logEl.scrollHeight;
       }
@@ -206,8 +201,8 @@ Flow:
           }
           const key = p.slice(i + 1, j).trim();
           const has = values && Object.prototype.hasOwnProperty.call(values, key);
-          const v = has ? values[key] : "";
-          if (v !== null && v !== undefined) out += String(v);
+          const fieldValue = has ? values[key] : "";
+          if (fieldValue !== null && fieldValue !== undefined) out += String(fieldValue);
           i = j;
         }
         return out;
@@ -216,14 +211,50 @@ Flow:
       function parsePeople() {
         const raw = String(peopleEl.value || "").trim();
         if (!raw) return [];
-        const v = JSON.parse(raw);
-        if (!Array.isArray(v)) throw new Error("People must be a JSON array");
-        return v;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("People must be a JSON array");
+        return parsed;
       }
 
       function getCreatedFileId(res) {
-        const id = res?.id ?? res?.fileId ?? res?.entryId ?? res?.documentId ?? "";
+        const id = res?.id ?? "";
         return id ? String(id).trim() : "";
+      }
+
+      function applyTemplate(item) {
+        if (!item?.id) return;
+        const title = String(item.title || "PDF template").trim() || "PDF template";
+        const ext = String(item.ext || "").trim().toLowerCase();
+        const folderId = String(item.folderId || "").trim();
+
+        template = { id: String(item.id), title, ext, folderId };
+        templateTitleEl.textContent = title;
+        templateIdEl.textContent = String(item.id);
+        destFolderIdEl.textContent = folderId || "-";
+
+        setHint(ALLOWED_EXTS.has(ext) ? "Ready" : "Pick a .pdf template");
+        render();
+      }
+
+      function applyDemoTemplate() {
+        const s = window.__demoConfig?.session;
+        if (!s) return false;
+
+        const roomId = String(s?.roomId || "").trim();
+        const files = s?.files || {};
+        const pdfId = String(files.pdfForm || files.pdfTemplate || "").trim();
+
+        if (roomId && !folderIdInputEl.value) folderIdInputEl.value = roomId;
+        if (!pdfId) return false;
+
+        applyTemplate({
+          id: pdfId,
+          title: "Demo PDF template",
+          ext: ".pdf",
+          folderId: roomId
+        });
+        setHint("Ready (demo template selected)");
+        return true;
       }
 
       function toFillMap(person) {
@@ -248,9 +279,9 @@ Flow:
               const connector = editorInstance?.createConnector?.();
               if (!connector?.callCommand) return;
 
-              function toBool(v) {
-                if (typeof v === "boolean") return v;
-                const s = String(v ?? "").trim().toLowerCase();
+              function toBool(value) {
+                if (typeof value === "boolean") return value;
+                const s = String(value ?? "").trim().toLowerCase();
                 return s === "true" || s === "1" || s === "yes" || s === "y" || s === "on";
               }
 
@@ -318,7 +349,7 @@ Flow:
             width: editorVisible ? "900px" : "0",
             height: editorVisible ? "520px" : "0",
             theme: "base",
-            fileId: String(fileId),
+            id: String(fileId),
             events: {
               onAppReady: () => {
                 const frame = DocSpace?.SDK?.frames?.["ds-editor-frame"];
@@ -329,7 +360,7 @@ Flow:
                 }
                 try {
                   frame.executeInEditor(buildPdfFillCommand(map));
-                } catch (e) {
+                } catch (error) {
                   clearTimeout(t);
                   finish(e);
                   return;
@@ -349,14 +380,14 @@ Flow:
       }
 
       async function createFromTemplatePdf(destFolderId, outputFileName) {
-        const res = await manager.createFile(String(destFolderId), String(outputFileName), Number(template.id));
-        const createdId = getCreatedFileId(res);
+        const createdFile = await manager.createFile(String(destFolderId), String(outputFileName), Number(template.id));
+        const createdId = getCreatedFileId(createdFile);
         if (createdId) return createdId;
         throw new Error("Created file id not found in response");
       }
 
-      function setRunning(v) {
-        running = !!v;
+      function setRunning(isRunning) {
+        running = !!isRunning;
         stopBtn.disabled = !running;
         runBtn.disabled = running || !managerReady || !template?.id || template?.ext !== ".pdf";
       }
@@ -374,6 +405,12 @@ Flow:
         }
       }
 
+      function setSelectorVisible(visible) {
+        visible = !!visible;
+        selectorWrapEl.style.display = visible ? "" : "none";
+        toggleSelectorBtn.textContent = visible ? "Hide selector" : "Show selector";
+      }
+
       function render() {
         runBtn.disabled = running || !managerReady || !template?.id || template?.ext !== ".pdf";
       }
@@ -382,27 +419,22 @@ Flow:
         selector = DocSpace.SDK.initFileSelector({
           frameId: "ds-template-selector",
           width: "900px",
-          height: "520px",
+          height: "420px",
           theme: "base",
           events: {
             onSelectCallback: (e) => {
-              const item = Array.isArray(e) ? e[0] : e;
+              const item = e && typeof e === "object" ? e : null;
               if (!item) return;
 
-              const id = item?.id ?? item?.fileId ?? null;
+              const id = item?.id ?? null;
               if (!id) return;
 
-              const title = getTitle(item);
-              const ext = getExt(item);
-              const folderId = String(item?.folderId || item?.parentId || item?.parent_id || item?.folder_id || "").trim();
-
-              template = { id: String(id), title, ext, folderId };
-              templateTitleEl.textContent = title;
-              templateIdEl.textContent = String(id);
-              destFolderIdEl.textContent = folderId || "-";
-
-              setHint(ALLOWED_EXTS.has(ext) ? "Ready" : "Pick a .pdf template");
-              render();
+              applyTemplate({
+                id: String(id),
+                title: getTitle(item),
+                ext: getExt(item),
+                folderId: String(item?.folderId || "").trim()
+              });
             },
             onAppError: () => setHint("Selector error")
           }
@@ -456,9 +488,9 @@ Flow:
         let people = [];
         try {
           people = parsePeople();
-        } catch (e) {
+        } catch (error) {
           setHint("Invalid JSON");
-          logLine("ERROR: " + String(e?.message || e));
+          logLine("ERROR: " + String(error?.message || error));
           return;
         }
         if (!people.length) {
@@ -483,8 +515,8 @@ Flow:
           let createdId = "";
           try {
             createdId = await createFromTemplatePdf(destFolderId, fileName);
-          } catch (e) {
-            logLine("  ERROR create: " + String(e?.message || e));
+          } catch (error) {
+            logLine("  ERROR create: " + String(error?.message || error));
             continue;
           }
 
@@ -493,8 +525,8 @@ Flow:
             await delay(250);
             await fillFile(createdId, map, 6500);
             logLine("  OK");
-          } catch (e) {
-            logLine("  ERROR fill: " + String(e?.message || e));
+          } catch (error) {
+            logLine("  ERROR fill: " + String(error?.message || error));
           }
 
           // Give the SDK a moment to tear down editor frame between files.
@@ -510,6 +542,7 @@ Flow:
         abortRequested = true;
         setHint("Stopping...");
       };
+      toggleSelectorBtn.onclick = () => setSelectorVisible(selectorWrapEl.style.display === "none");
       toggleEditorBtn.onclick = toggleEditorVisibility;
       peopleEl.addEventListener("input", render);
       namePatternEl.addEventListener("input", render);
@@ -526,6 +559,8 @@ Flow:
 
       initManager();
       initTemplateSelector();
+      const hasDemoTemplate = applyDemoTemplate();
+      setSelectorVisible(!hasDemoTemplate);
       render();
     </script>
   </body>

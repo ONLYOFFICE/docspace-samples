@@ -30,7 +30,7 @@ def save_file_as_pdf(file_id, folder_id, title):
         'title': title,
     }
 
-    response = requests.post(url, json=body, headers=HEADERS)
+    response = requests.post(url, json=body, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return response.json().get('response')

@@ -30,7 +30,7 @@ def share_folder(folder_id, share, notify=False, sharing_message=''):
     if sharing_message:
         data['sharingMessage'] = sharing_message
 
-    response = requests.put(url, headers=HEADERS, json=data)
+    response = requests.put(url, headers=HEADERS, json=data, timeout=30)
     if response.status_code == 200:
         return response.json()
 

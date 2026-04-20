@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Add members to a group
 
 This example demonstrates how to add one or more members to an existing group in ONLYOFFICE DocSpace using the API.
@@ -17,6 +17,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Add members to a group (optionally rename and/or change manager)
 async function addMembersToGroup(groupId, members, newName = null, newManager = null) {
@@ -25,7 +31,7 @@ async function addMembersToGroup(groupId, members, newName = null, newManager = 
   if (newName) data.groupName = newName;
   if (newManager) data.groupManager = newManager;
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(data),

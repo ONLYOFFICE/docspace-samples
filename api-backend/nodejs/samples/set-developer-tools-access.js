@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Set developer tools access
 
 This example demonstrates how to configure Developer Tools access settings in ONLYOFFICE DocSpace. You can allow full access or limit it for regular users.
@@ -12,13 +12,19 @@ const API_HOST = 'https://yourportal.onlyoffice.com';
 const AUTH_TOKEN = 'your_access_token';
 
 const HEADERS = { Authorization: AUTH_TOKEN };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Set Developer Tools access
 async function setDevtoolsAccess(limited = true) {
   const url = `${API_HOST}/api/2.0/settings/devtoolsaccess`;
   const payload = { limitedAccessForUsers: limited };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: { ...HEADERS, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

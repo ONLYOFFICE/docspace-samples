@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Delete an API Key
 
 This example demonstrates how to delete an existing API key in ONLYOFFICE DocSpace by its unique identifier (UUID). 
@@ -22,7 +22,7 @@ HEADERS = {
 # Step 1: Delete the API key by ID
 def delete_api_key(key_id):
   url = f'{API_HOST}/api/2.0/keys/{key_id}'
-  response = requests.delete(url, headers=HEADERS)
+  response = requests.delete(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200 and response.json().get('response') is True:
     print('API key deleted successfully.')

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Create a text file
 
 This example demonstrates how to create a `.txt` file in a specified folder in ONLYOFFICE DocSpace using the API. 
@@ -28,7 +28,7 @@ def create_text_file(folder_id, title, content):
     'content': content
   }
 
-  response = requests.post(url, json=data, headers=HEADERS)
+  response = requests.post(url, json=data, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     file_info = response.json()

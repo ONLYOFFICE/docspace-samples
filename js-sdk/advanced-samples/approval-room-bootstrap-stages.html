@@ -1,0 +1,189 @@
+<!--
+Example: Approval room bootstrap with stages
+
+Create room, create folders, and add tags.
+
+Using methods:
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- system.createRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createroom)
+- system.createFolder (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfolder)
+- system.createTag (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createtag)
+- system.addTagsToRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#addtagstoroom)
+- manager.setConfig (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#setconfig)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+    <meta name="example-title" content="Create Room with Folders and Tags" />
+    <meta name="example-description" content="Set up an approval room in one click: create the room, add named stage folders, and apply tags — all via the SDK system frame." />
+    <meta name="example-group" content="advanced" />
+    <meta name="example-order" content="1" />
+    <title>Create Room with Folders and Tags</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+    <script>
+      (function () {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+  <body class="ex-approval-room-bootstrap-stages">
+    <div class="page">
+      <div class="frame-wrap">
+        <iframe id="manager-frame" title="Created room preview"></iframe>
+      </div>
+      <div class="card">
+        <div class="field">
+          <label for="roomTitle">Room title</label>
+          <input id="roomTitle" type="text" value="Q2 Vendor Approval" />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="folders">Folders (one per line)</label>
+            <textarea id="folders">Legal
+Finance
+Director</textarea>
+          </div>
+          <div class="field">
+            <label for="tags">Tags (comma separated)</label>
+            <textarea id="tags">approval, q2, procurement</textarea>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="runBtn" class="btn" type="button" disabled>Create room</button>
+          <span id="status" class="status">Preparing SDK…</span>
+        </div>
+        <div class="field">
+          <label for="out">Result</label>
+          <textarea class="output" id="out" readonly placeholder="Result will appear here…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden system frame for SDK method calls -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="sys-frame"></div>
+    </div>
+
+    <script>
+      const roomTitleEl = document.getElementById("roomTitle");
+      const foldersEl = document.getElementById("folders");
+      const tagsEl = document.getElementById("tags");
+      const runBtn = document.getElementById("runBtn");
+      const statusEl = document.getElementById("status");
+      const outEl = document.getElementById("out");
+      const managerFrameId = "manager-frame";
+
+      let manager = null;
+      let managerReady = false;
+
+      const system = DocSpace.SDK.initSystem({
+        frameId: "sys-frame",
+        width: "0px",
+        height: "0px",
+        events: {
+          onAppReady: () => {
+            runBtn.disabled = false;
+            statusEl.textContent = "Ready.";
+          },
+          onAppError: () => {
+            statusEl.textContent = "SDK error. Check portal URL.";
+          }
+        }
+      });
+
+      function setOut(text) {
+        try { outEl.value = JSON.stringify(text, null, 2); } catch { outEl.value = String(text); }
+      }
+
+      function parseLines(input) {
+        return String(input || "").split(/\r?\n/g).map((x) => x.trim()).filter(Boolean);
+      }
+
+      function parseTags(input) {
+        return String(input || "").split(/[,\n;]/g).map((x) => x.trim()).filter(Boolean);
+      }
+
+      function managerConfigFor(roomId) {
+        return {
+          rootPath: "/rooms/shared/" + roomId,
+          filter: { folder: roomId },
+          showHeader: false
+        };
+      }
+
+      async function showCreatedRoom(roomId) {
+        const nextConfig = managerConfigFor(roomId);
+        if (!manager) {
+          manager = DocSpace.SDK.initManager({
+            frameId: managerFrameId,
+            width: "100%",
+            height: "100%",
+            ...nextConfig,
+            events: {
+              onAppReady: () => {
+                managerReady = true;
+              }
+            }
+          });
+          return;
+        }
+
+        if (!managerReady || typeof manager.setConfig !== "function") return;
+        await manager.setConfig(nextConfig);
+      }
+
+      runBtn.addEventListener("click", async () => {
+        const title = String(roomTitleEl.value || "").trim();
+        if (!title) return;
+
+        runBtn.disabled = true;
+        statusEl.textContent = "Running...";
+        outEl.value = "";
+
+        try {
+          const room = await system.createRoom(title, 1);
+          const roomId = String(room?.id || "").trim();
+          if (!roomId) {
+            throw new Error("Room ID was not found in createRoom response.");
+          }
+
+          const folders = parseLines(foldersEl.value);
+          for (const name of folders) {
+            // eslint-disable-next-line no-await-in-loop
+            await system.createFolder(roomId, name);
+          }
+
+          const tags = parseTags(tagsEl.value);
+          for (const tag of tags) {
+            // eslint-disable-next-line no-await-in-loop
+            await system.createTag(tag).catch(() => null);
+          }
+          if (tags.length) await system.addTagsToRoom(roomId, tags);
+
+          await showCreatedRoom(roomId);
+
+          statusEl.textContent = "Done";
+          setOut({
+            roomId,
+            rootPath: "/rooms/shared/" + roomId,
+            foldersCreated: folders.length,
+            tagsApplied: tags,
+            createRoomResponse: room
+          });
+        } catch (error) {
+          statusEl.textContent = "Failed";
+          setOut(error?.message || String(error));
+        } finally {
+          runBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

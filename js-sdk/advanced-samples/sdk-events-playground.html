@@ -16,17 +16,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="SDK events playground" />
-    <meta
-      name="example-description"
-      content="Initialize different SDK modes and inspect emitted events such as onAppReady, onContentReady, onSelectCallback, onNoAccess, and onAppError."
-    />
+    <meta name="example-title" content="SDK Events Playground" />
+    <meta name="example-description" content="Initialize different SDK modes (Manager, Editor, Selector) and see all emitted events in real time — useful for debugging and integration." />
     <meta name="example-group" content="advanced" />
-    <title>SDK events playground</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>SDK Events Playground</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -35,15 +32,24 @@ Using methods:
   </head>
 
   <body class="ex-sdk-events-playground">
-    <div class="page">
-      <div class="card">
-        <h3 class="title">SDK events playground</h3>
-        <p class="desc">
-          Pick a mode, optionally provide a file ID, and inspect the events emitted by the SDK frame.
-        </p>
+    <div class="result-split">
 
-        <div class="grid">
-          <div>
+      <!-- Left: SDK frame -->
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame" title="SDK events frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <span class="status" id="status">Ready</span>
+        </div>
+      </div>
+
+      <!-- Right: config + event log -->
+      <div class="result-split__panel card" style="flex:0 0 380px;min-height:520px">
+
+        <!-- 2×2 config grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:0 0 auto;min-width:0">
+          <div class="field">
             <label for="mode">Mode</label>
             <select id="mode">
               <option value="manager">Manager</option>
@@ -53,17 +59,17 @@ Using methods:
             </select>
           </div>
 
-          <div>
+          <div class="field">
             <label for="fileId">File ID</label>
-            <input id="fileId" type="text" placeholder="Required for viewer mode" autocomplete="off" />
+            <input id="fileId" type="text" placeholder="For viewer mode" autocomplete="off" />
           </div>
 
-          <div>
+          <div class="field">
             <label for="requestToken">requestToken</label>
             <input id="requestToken" type="text" placeholder="Optional share token" autocomplete="off" />
           </div>
 
-          <div>
+          <div class="field" id="downloadToWrap">
             <label for="downloadToEvent">downloadToEvent</label>
             <select id="downloadToEvent">
               <option value="false">false</option>
@@ -72,61 +78,57 @@ Using methods:
           </div>
         </div>
 
-        <div class="row">
+        <div class="actions" style="flex:0 0 auto;margin-top:12px;flex-wrap:wrap">
           <button id="initBtn" type="button" class="btn">Init frame</button>
-          <button id="destroyBtn" type="button" class="btn secondary">Destroy frame</button>
-          <button id="clearBtn" type="button" class="btn secondary">Clear log</button>
-          <span class="status" id="status">Ready</span>
+          <button id="destroyBtn" type="button" class="btn btn--secondary">Destroy</button>
+          <button id="clearBtn" type="button" class="btn btn--secondary">Clear log</button>
         </div>
 
-        <div class="result">
-          <div class="result-title">Event log</div>
-          <textarea id="log" readonly placeholder="SDK events will appear here..."></textarea>
+        <div class="field" style="flex:1;display:flex;flex-direction:column;margin-top:10px">
+          <label>Event log</label>
+          <textarea id="log" class="output" readonly placeholder="SDK events will appear here…"
+            style="flex:1;resize:none;font-family:ui-monospace,monospace;font-size:12px;line-height:1.45"></textarea>
         </div>
-      </div>
 
-      <div class="frame-wrap">
-        <iframe id="ds-frame" class="frame" title="SDK events frame"></iframe>
       </div>
     </div>
 
     <script>
-      const modeEl = document.getElementById("mode");
-      const fileIdEl = document.getElementById("fileId");
-      const requestTokenEl = document.getElementById("requestToken");
+      const modeEl            = document.getElementById("mode");
+      const fileIdEl          = document.getElementById("fileId");
+      const requestTokenEl    = document.getElementById("requestToken");
       const downloadToEventEl = document.getElementById("downloadToEvent");
-      const initBtn = document.getElementById("initBtn");
-      const destroyBtn = document.getElementById("destroyBtn");
-      const clearBtn = document.getElementById("clearBtn");
-      const statusEl = document.getElementById("status");
-      const logEl = document.getElementById("log");
+      const downloadToWrap    = document.getElementById("downloadToWrap");
+      const initBtn           = document.getElementById("initBtn");
+      const destroyBtn        = document.getElementById("destroyBtn");
+      const clearBtn          = document.getElementById("clearBtn");
+      const statusEl          = document.getElementById("status");
+      const logEl             = document.getElementById("log");
 
       let instance = null;
 
-      function setStatus(value) {
-        statusEl.textContent = value;
-      }
+      // Auto-fill file ID from demo session if available
+      (function () {
+        const demoFiles = window.__demoConfig?.session?.files;
+        if (!demoFiles) return;
+        const id = demoFiles.docx || demoFiles.xlsx || demoFiles.pptx || demoFiles.pdfForm || demoFiles.pdfTemplate;
+        if (id) fileIdEl.value = String(id);
+      })();
+
+      function setStatus(value) { statusEl.textContent = value; }
 
       function appendLog(eventName, payload) {
-        const lines = [];
-        lines.push("[" + new Date().toLocaleTimeString() + "] " + eventName);
-
+        const lines = ["[" + new Date().toLocaleTimeString() + "] " + eventName];
         if (payload !== undefined) {
-          try {
-            lines.push(JSON.stringify(payload, null, 2));
-          } catch {
-            lines.push(String(payload));
-          }
+          try   { lines.push(JSON.stringify(payload, null, 2)); }
+          catch { lines.push(String(payload)); }
         }
-
         logEl.value = lines.join("\n") + "\n\n" + logEl.value;
       }
 
       function destroyFrame() {
         if (instance && typeof instance.destroyFrame === "function") {
-          try {
-            instance.destroyFrame();
-          } catch {}
+          try { instance.destroyFrame(); } catch {}
         }
         instance = null;
         setStatus("Destroyed");
@@ -134,65 +136,26 @@ Using methods:
 
       function buildEvents() {
         return {
-          onAppReady: (e) => {
-            setStatus("App ready");
-            appendLog("onAppReady", e || null);
-          },
-          onContentReady: (e) => {
-            setStatus("Content ready");
-            appendLog("onContentReady", e || null);
-          },
-          onAuthSuccess: (e) => {
-            setStatus("Auth success");
-            appendLog("onAuthSuccess", e || null);
-          },
-          onSelectCallback: (e) => {
-            setStatus("Selected");
-            appendLog("onSelectCallback", e || null);
-          },
-          onCloseCallback: (e) => {
-            setStatus("Selector closed");
-            appendLog("onCloseCallback", e || null);
-          },
-          onNoAccess: (e) => {
-            setStatus("No access");
-            appendLog("onNoAccess", e || null);
-          },
-          onNotFound: (e) => {
-            setStatus("Not found");
-            appendLog("onNotFound", e || null);
-          },
-          onDownload: (e) => {
-            setStatus("Download event");
-            appendLog("onDownload", e || null);
-          },
-          onEditorOpen: (e) => {
-            setStatus("Editor opened");
-            appendLog("onEditorOpen", e || null);
-          },
-          onFileManagerClick: (e) => {
-            setStatus("File clicked");
-            appendLog("onFileManagerClick", e || null);
-          },
-          onEditorCloseCallback: (e) => {
-            setStatus("Editor close requested");
-            appendLog("onEditorCloseCallback", e || null);
-          },
-          onSignOut: (e) => {
-            setStatus("Signed out");
-            appendLog("onSignOut", e || null);
-          },
-          onAppError: (e) => {
-            setStatus("App error");
-            appendLog("onAppError", e || null);
-          }
+          onAppReady:           (e) => { setStatus("App ready");             appendLog("onAppReady",           e || null); },
+          onContentReady:       (e) => { setStatus("Content ready");         appendLog("onContentReady",       e || null); },
+          onAuthSuccess:        (e) => { setStatus("Auth success");          appendLog("onAuthSuccess",        e || null); },
+          onSelectCallback:     (e) => { setStatus("Selected");              appendLog("onSelectCallback",     e || null); },
+          onCloseCallback:      (e) => { setStatus("Selector closed");       appendLog("onCloseCallback",      e || null); },
+          onNoAccess:           (e) => { setStatus("No access");             appendLog("onNoAccess",           e || null); },
+          onNotFound:           (e) => { setStatus("Not found");             appendLog("onNotFound",           e || null); },
+          onDownload:           (e) => { setStatus("Download event");        appendLog("onDownload",           e || null); },
+          onEditorOpen:         (e) => { setStatus("Editor opened");         appendLog("onEditorOpen",         e || null); },
+          onFileManagerClick:   (e) => { setStatus("File clicked");          appendLog("onFileManagerClick",   e || null); },
+          onEditorCloseCallback:(e) => { setStatus("Editor close requested"); appendLog("onEditorCloseCallback", e || null); },
+          onSignOut:            (e) => { setStatus("Signed out");            appendLog("onSignOut",            e || null); },
+          onAppError:           (e) => { setStatus("App error");             appendLog("onAppError",           e || null); }
         };
       }
 
       function initFrame() {
-        const mode = modeEl.value;
-        const fileId = String(fileIdEl.value || "").trim();
-        const requestToken = String(requestTokenEl.value || "").trim() || undefined;
+        const mode           = modeEl.value;
+        const fileId         = String(fileIdEl.value || "").trim();
+        const requestToken   = String(requestTokenEl.value || "").trim() || undefined;
         const downloadToEvent = downloadToEventEl.value === "true";
 
         destroyFrame();
@@ -200,20 +163,15 @@ Using methods:
 
         const commonConfig = {
           frameId: "ds-frame",
-          width: "100%",
-          height: "560px",
+          width: "700px",
+          height: "520px",
           theme: "base",
           requestToken,
           events: buildEvents()
         };
 
         if (mode === "manager") {
-          instance = DocSpace.SDK.initManager({
-            ...commonConfig,
-            showHeader: true,
-            showMenu: true,
-            downloadToEvent
-          });
+          instance = DocSpace.SDK.initManager({ ...commonConfig, showHeader: true, showMenu: true, downloadToEvent });
           appendLog("initManager", { downloadToEvent, requestToken: requestToken || null });
           return;
         }
@@ -224,53 +182,36 @@ Using methods:
             appendLog("validation", { error: "Provide file ID for viewer mode." });
             return;
           }
-
-          instance = DocSpace.SDK.initViewer({
-            ...commonConfig,
-            id: fileId,
-            showHeader: false,
-            showTitle: true
-          });
+          instance = DocSpace.SDK.initViewer({ ...commonConfig, id: fileId, showHeader: false, showTitle: true });
           appendLog("initViewer", { fileId, requestToken: requestToken || null });
           return;
         }
 
         if (mode === "file-selector") {
-          instance = DocSpace.SDK.initFileSelector({
-            ...commonConfig,
-            showSelectorHeader: true,
-            showSelectorCancel: true,
-            withSearch: true,
-            withBreadCrumbs: true
-          });
+          instance = DocSpace.SDK.initFileSelector({ ...commonConfig, showSelectorHeader: true, showSelectorCancel: true, withSearch: true, withBreadCrumbs: true });
           appendLog("initFileSelector", { requestToken: requestToken || null });
           return;
         }
 
-        instance = DocSpace.SDK.initRoomSelector({
-          ...commonConfig,
-          showSelectorHeader: true,
-          showSelectorCancel: true,
-          withSearch: true
-        });
+        instance = DocSpace.SDK.initRoomSelector({ ...commonConfig, showSelectorHeader: true, showSelectorCancel: true, withSearch: true });
         appendLog("initRoomSelector", { requestToken: requestToken || null });
       }
 
       initBtn.addEventListener("click", initFrame);
       destroyBtn.addEventListener("click", destroyFrame);
-      clearBtn.addEventListener("click", () => {
-        logEl.value = "";
-        setStatus("Log cleared");
-      });
+      clearBtn.addEventListener("click", () => { logEl.value = ""; setStatus("Log cleared"); });
 
       function syncModeOptions() {
         const isManager = modeEl.value === "manager";
         downloadToEventEl.disabled = !isManager;
-        downloadToEventEl.closest("div").style.opacity = isManager ? "" : "0.4";
+        downloadToWrap.style.opacity = isManager ? "" : "0.4";
       }
 
       modeEl.addEventListener("change", syncModeOptions);
       syncModeOptions();
+
+      // Auto-init manager on load
+      initFrame();
     </script>
   </body>
 </html>

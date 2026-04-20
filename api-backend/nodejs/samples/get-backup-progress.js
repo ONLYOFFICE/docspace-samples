@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get backup progress
 
 This example demonstrates how to check the progress of a backup process in ONLYOFFICE DocSpace using the API.
@@ -16,6 +16,12 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 function getBackupProgress() {
   // Optional parameter for dump-based backup
@@ -23,14 +29,14 @@ function getBackupProgress() {
   const url = `${API_HOST}/api/2.0/backup/getbackupprogress?${params.toString()}`;
 
   // Send request to retrieve progress
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'GET',
     headers: HEADERS,
   })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Backup progress retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Backup progress retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

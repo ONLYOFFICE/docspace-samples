@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Update group manager
 
 This example demonstrates how to update group manager in ONLYOFFICE DocSpace.
@@ -29,7 +29,7 @@ def create_group(group_name, manager_id, member_ids):
     'groupManager': manager_id,
     'members': member_ids
   }
-  response = requests.post(url, json=data, headers=HEADERS)
+  response = requests.post(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     group_id = response.json()['response']['id']
     print('Group created successfully:', group_id)
@@ -41,7 +41,7 @@ def create_group(group_name, manager_id, member_ids):
 def reassign_group_manager(group_id, new_manager_id):
   url = f'{API_HOST}/api/2.0/group/{group_id}'
   data = {'groupManager': new_manager_id}
-  response = requests.put(url, json=data, headers=HEADERS)
+  response = requests.put(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'Group {group_id} manager reassigned successfully to {new_manager_id}')
   else:

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage room links
 
 This example demonstrates how to set and retrieve room invitation or external links in ONLYOFFICE DocSpace using the API.
@@ -20,6 +20,12 @@ const HEADERS = {
 };
 
 // Step 1: Set a room access link
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function setRoomLink(roomId, accessLevel = 2, expirationDate = null, internal = true, primary = false) {
   const url = `${API_HOST}/api/2.0/files/rooms/${roomId}/links`;
   const body = JSON.stringify({
@@ -29,7 +35,7 @@ async function setRoomLink(roomId, accessLevel = 2, expirationDate = null, inter
     primary,
   });
 
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS, body });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS, body });
   if (!res.ok) {
     const text = await res.text();
     console.log(`Room link set failed. Status code: ${res.status}, Message: ${text}`);
@@ -41,7 +47,7 @@ async function setRoomLink(roomId, accessLevel = 2, expirationDate = null, inter
 // Step 2: Retrieve all links for a room
 async function getRoomLinks(roomId) {
   const url = `${API_HOST}/api/2.0/files/rooms/${roomId}/links`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
     const text = await res.text();
     console.log(`Room link set failed. Status code: ${res.status}, Message: ${text}`);

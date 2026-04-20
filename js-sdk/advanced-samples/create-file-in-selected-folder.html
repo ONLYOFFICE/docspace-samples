@@ -1,12 +1,10 @@
 <!--
-Example: Set list view
+Example: Create file in selected folder
 
-This example demonstrates how to change the file list display mode in DocSpace using the JavaScript SDK.
-
-Using methods:
-- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
-- manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
-- manager.getFolderInfo (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getfolderinfo)
+Flow:
+1) Select a room in the room selector.
+2) Open the room in Manager and navigate to any folder.
+3) Enter a file name and create it in the currently opened folder.
 -->
 
 <!DOCTYPE html>
@@ -15,16 +13,13 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
     <meta name="example-title" content="Create File in Selected Folder" />
-    <meta
-      name="example-description"
-      content="Open a room in Manager, navigate to a folder, enter a file name, and create a file in the currently opened folder."
-    />
+    <meta name="example-description" content="Select a room, browse to any folder in the manager, enter a filename, and create the file at the current location." />
     <meta name="example-group" content="advanced" />
     <title>Create File in Selected Folder</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -32,71 +27,148 @@ Using methods:
     </script>
   </head>
 
-  <body class="ex-create-file-in-selected-folder">
-    <div class="top-bar">
-      <div class="field">
-        <label for="fileName">File name</label>
-        <input id="fileName" type="text" placeholder="new.docx" autocomplete="off" />
+  <body class="ex-create-file">
+    <div id="selectorWrap">
+      <div class="frame-wrap">
+        <iframe id="ds-room-selector"></iframe>
       </div>
-      <button id="createBtn" class="btn" type="button" disabled>Create</button>
-      <span class="status" id="status">Loading…</span>
+      <div class="bottom-bar">
+        <span class="status" id="selectorStatus">Select a room</span>
+      </div>
     </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+    <div id="managerWrap" style="display:none">
+      <div class="frame-wrap">
+        <iframe id="ds-frame"></iframe>
+      </div>
+      <div class="bottom-bar">
+        <input id="fileName" type="text" placeholder="new.docx" autocomplete="off" />
+        <button id="createBtn" class="btn" type="button" disabled>Create</button>
+        <button id="backBtn" class="btn secondary" type="button">Choose another room</button>
+        <span class="status" id="status">Open a folder</span>
+      </div>
     </div>
 
     <script>
-      const roomId = "2186039"; // Replace with your room ID (shared/public)
+      const selectorWrap = document.getElementById("selectorWrap");
+      const managerWrap = document.getElementById("managerWrap");
+      const selectorStatus = document.getElementById("selectorStatus");
       const fileName = document.getElementById("fileName");
       const createBtn = document.getElementById("createBtn");
+      const backBtn = document.getElementById("backBtn");
       const status = document.getElementById("status");
 
-      function updateState(ready) {
-        createBtn.disabled = !ready || !fileName.value.trim();
+      let selectorInstance = null;
+      let managerInstance = null;
+      let managerReady = false;
+      let currentRoomId = null;
+
+      function extractId(data) {
+        const item = Array.isArray(data) ? data[0] : data;
+        return item?.id ? String(item.id).trim() : null;
       }
 
-      const docSpace = DocSpace.SDK.initManager({
-        frameId: "ds-frame",
-        width: "900px",
-        height: "640px",
-        theme: "base",
-        rootPath: "/rooms/shared/" + roomId,
-        filter: { folder: roomId },
-        events: {
-          onAppReady: function () {
-            status.textContent = "Ready";
-            updateState(true);
-          },
-          onAppError: function () {
-            status.textContent = "Error";
-            updateState(false);
-          },
-        },
-      });
+      function destroyInstance(instance) {
+        if (!instance || typeof instance.destroyFrame !== "function") return;
+        try {
+          instance.destroyFrame();
+        } catch {}
+      }
 
-      fileName.addEventListener("input", () => updateState(true));
+      function updateCreateState() {
+        createBtn.disabled = !managerReady || !fileName.value.trim();
+      }
+
+      function showRoomSelector() {
+        destroyInstance(managerInstance);
+        managerInstance = null;
+        managerReady = false;
+        currentRoomId = null;
+        managerWrap.style.display = "none";
+        selectorWrap.style.display = "";
+        status.textContent = "Open a folder";
+        selectorStatus.textContent = "Select a room";
+        updateCreateState();
+
+        destroyInstance(selectorInstance);
+        selectorInstance = DocSpace.SDK.initRoomSelector({
+          frameId: "ds-room-selector",
+          width: "960px",
+          height: "600px",
+          theme: "base",
+          events: {
+            onSelectCallback: (data) => {
+              const roomId = extractId(data);
+              if (!roomId) return;
+              currentRoomId = roomId;
+              openManager(roomId);
+            },
+            onAppError: () => {
+              selectorStatus.textContent = "Selector error";
+            }
+          }
+        });
+      }
+
+      function openManager(roomId) {
+        destroyInstance(selectorInstance);
+        selectorInstance = null;
+
+        selectorWrap.style.display = "none";
+        managerWrap.style.display = "";
+        status.textContent = "Loading...";
+        managerReady = false;
+        updateCreateState();
+
+        destroyInstance(managerInstance);
+        managerInstance = DocSpace.SDK.initManager({
+          frameId: "ds-frame",
+          width: "960px",
+          height: "600px",
+          theme: "base",
+          rootPath: "/rooms/shared/" + roomId,
+          filter: { folder: roomId },
+          events: {
+            onAppReady: () => {
+              managerReady = true;
+              status.textContent = "Open a folder";
+              updateCreateState();
+            },
+            onAppError: () => {
+              managerReady = false;
+              status.textContent = "Error";
+              updateCreateState();
+            }
+          }
+        });
+      }
+
+      fileName.addEventListener("input", updateCreateState);
 
       createBtn.onclick = async () => {
         const name = fileName.value.trim();
-        if (!name) return;
+        if (!name || !managerInstance) return;
 
         createBtn.disabled = true;
-        status.textContent = "Creating…";
+        status.textContent = "Creating...";
 
         try {
-          const folderInfo = await docSpace.getFolderInfo();
-          const folderId = String(folderInfo?.id || folderInfo?.folderId || roomId);
+          const folderInfo = await managerInstance.getFolderInfo();
+          const folderId = String(folderInfo?.id || "").trim();
+          if (!folderId) throw new Error("Folder ID is missing in getFolderInfo response.");
 
-          await docSpace.createFile(folderId, name);
-
+          await managerInstance.createFile(folderId, name);
           status.textContent = "Done";
-        } catch (e) {
-          status.textContent = "Failed";
+        } catch (error) {
+          status.textContent = "Error: " + (error?.message || String(error));
         } finally {
-          updateState(true);
+          updateCreateState();
         }
       };
+
+      backBtn.onclick = showRoomSelector;
+
+      showRoomSelector();
     </script>
   </body>
 </html>

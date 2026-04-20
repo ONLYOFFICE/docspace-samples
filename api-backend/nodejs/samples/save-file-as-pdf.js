@@ -20,6 +20,12 @@ const HEADERS = {
 };
 
 // Step 1: Save an existing file as PDF
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function saveFileAsPdf(fileId, folderId, title) {
   const url = `${API_HOST}/api/2.0/files/file/${fileId}/saveaspdf`;
   const body = {
@@ -27,7 +33,7 @@ async function saveFileAsPdf(fileId, folderId, title) {
     title,
   };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(body),

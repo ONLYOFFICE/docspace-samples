@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Authenticate a user
 
 This example demonstrates how to authenticate a user in ONLYOFFICE DocSpace using the API and check the authentication with a token received.
@@ -17,10 +17,16 @@ const USER_CREDENTIALS = {
   password: 'your-password',
 };
 
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 // Step 1: Authenticate with your login and password
 async function authenticate() {
   try {
-    const res = await fetch(`${BASE_URL}/api/2.0/authentication`, {
+    const res = await fetchWithTimeout(`${BASE_URL}/api/2.0/authentication`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(USER_CREDENTIALS),
@@ -43,13 +49,13 @@ async function authenticate() {
 // Step 2: Check authentication with a token you received
 async function checkAuthentication(token) {
   try {
-    const res = await fetch(`${BASE_URL}/api/2.0/authentication`, {
+    const res = await fetchWithTimeout(`${BASE_URL}/api/2.0/authentication`, {
       method: 'GET',
       headers: { Authorization: token },
     });
 
     if (res.status === 200) {
-      console.log(`User is authenticated with token ${token}.`);
+      console.log('User is authenticated.');
     } else {
       const text = await res.text();
       console.log(`Authentication check failed. Status code: ${res.status}, Message: ${text}`);

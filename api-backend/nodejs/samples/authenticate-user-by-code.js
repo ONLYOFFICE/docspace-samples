@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Authenticate a user by code (2FA)
 
 This example shows how to authenticate in ONLYOFFICE DocSpace using a one-time code from an authenticator app (TOTP) via POST `/api/2.0/authentication/:code`.
@@ -23,10 +23,16 @@ const TOTP_CODE = '123456'; // replace with actual code from authenticator app
 const HEADERS = {
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 //Step 1: start authentication with login/password
 function primaryAuth() {
-  return fetch(`${API_HOST}/api/2.0/authentication`, {
+  return fetchWithTimeout(`${API_HOST}/api/2.0/authentication`, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(CREDENTIALS),
@@ -59,7 +65,7 @@ function confirmWithCode(meta) {
     session: true,
   };
 
-  return fetch(`${API_HOST}/api/2.0/authentication/${TOTP_CODE}`, {
+  return fetchWithTimeout(`${API_HOST}/api/2.0/authentication/${TOTP_CODE}`, {
     method: 'POST',
     headers,
     body: JSON.stringify(body),

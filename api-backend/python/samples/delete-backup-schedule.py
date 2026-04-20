@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Delete backup schedule
 
 This example demonstrates how to delete the current portal’s backup schedule in ONLYOFFICE DocSpace using the API.
@@ -26,7 +26,8 @@ def delete_backup_schedule(dump: bool | None = None):
   response = requests.delete(
     f'{API_HOST}/api/2.0/backup/deletebackupschedule',
     headers=HEADERS,
-    params=params
+    params=params,
+    timeout=30,
   )
 
   if response.status_code == 200:

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage a guest user
 
 This example demonstrates how to manage a guest user in ONLYOFFICE DocSpace using the API.
@@ -29,7 +29,7 @@ HEADERS = {
 # Step 1: Approve a guest invited via share
 def approve_guest(email: str) -> str:
   url = f'{API_HOST}/api/2.0/people/guests/share/approve'
-  resp = requests.post(url, headers=HEADERS, json={'email': email})
+  resp = requests.post(url, headers=HEADERS, json={'email': email}, timeout=30)
 
   print('Status Code:', resp.status_code)
   print('Raw Response:', resp.text)
@@ -46,7 +46,7 @@ def approve_guest(email: str) -> str:
 def delete_guest(user_id: str) -> None:
   url = f'{API_HOST}/api/2.0/people/guests'
   payload = {'userIds': [user_id], 'resendAll': False}
-  resp = requests.delete(url, headers=HEADERS, json=payload)
+  resp = requests.delete(url, headers=HEADERS, json=payload, timeout=30)
 
   print('Status Code (delete):', resp.status_code)
   print('Raw Response (delete):', resp.text)

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Create and open a new file
 
 This example demonstrates how to create a new file inside a specific folder in ONLYOFFICE DocSpace using the API. 
@@ -21,6 +21,12 @@ const HEADERS = {
 };
 
 // Helper: open URL in default browser (no external deps)
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function openInBrowser(url) {
   const platform = process.platform;
   const cmd =
@@ -37,15 +43,15 @@ function createFile(folderId, fileTitle) {
   const url = `${API_HOST}/api/2.0/files/${folderId}/file`;
   const data = { title: fileTitle, type: "text" };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: "POST",
     headers: HEADERS,
     body: JSON.stringify(data),
   })
   .then((res) => {
     if (res.status === 200) return res.json();
-    return res.text().then((t) => {
-      console.log(`File creation failed. Status code: ${res.status}, Message: ${t}`);
+    return res.text().then((text) => {
+      console.log(`File creation failed. Status code: ${res.status}, Message: ${text}`);
       return null;
     });
   })

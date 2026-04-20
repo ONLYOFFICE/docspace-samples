@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get the restoring progress
 
 This example demonstrates how to retrieve the progress of an ongoing portal restoration process in ONLYOFFICE DocSpace using the API.
@@ -25,7 +25,8 @@ def get_restore_progress(dump=False):
   response = requests.get(
     f'{API_HOST}/api/2.0/backup/getrestoreprogress',
     headers=HEADERS,
-    params=params
+    params=params,
+    timeout=30,
   )
 
   if response.status_code == 200:

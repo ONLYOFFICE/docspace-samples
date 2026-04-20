@@ -13,17 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Download to custom handler" />
-    <meta
-      name="example-description"
-      content="Intercept file downloads from the manager UI with downloadToEvent and handle the onDownload payload in your own application."
-    />
+    <meta name="example-title" content="Intercept File Downloads" />
+    <meta name="example-description" content="Intercept file download requests from the DocSpace manager and handle them in your own code — for example, to route files to a custom download service." />
     <meta name="example-group" content="advanced" />
-    <title>Download to custom handler</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Intercept File Downloads</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -34,21 +31,28 @@ Using methods:
   <body class="ex-download-to-custom-handler">
     <div class="page">
       <div class="card">
-        <div class="actions">
-          <button class="btn" id="initBtn" type="button">Init manager</button>
-          <button class="btn secondary" id="copyBtn" type="button">Copy URL</button>
-          <button class="btn secondary" id="openBtn" type="button">Open link</button>
-          <span class="status" id="status">Ready</span>
-        </div>
-        <div class="field">
-          <label for="downloadUrl">Download URL</label>
-          <textarea class="output" id="downloadUrl" readonly placeholder="Download link from onDownload will appear here..."></textarea>
+        <div class="ex-download-to-custom-handler__layout">
+          <section class="ex-download-to-custom-handler__main">
+            <iframe id="ds-frame" title="DocSpace manager"></iframe>
+            <div class="bottom-bar">
+              <button class="btn" id="initBtn" type="button">Init manager</button>
+              <button class="btn secondary" id="copyBtn" type="button">Copy URL</button>
+              <button class="btn secondary" id="openBtn" type="button">Open link</button>
+              <span class="status" id="status">Ready</span>
+            </div>
+          </section>
+
+          <aside class="ex-download-to-custom-handler__aside">
+            <p class="ex-download-to-custom-handler__hint">
+              Click <strong>Download</strong> inside the manager. The intercepted link will appear here instead of being downloaded immediately.
+            </p>
+            <div class="field">
+              <label for="downloadUrl">Download URL</label>
+              <textarea class="output" id="downloadUrl" readonly placeholder="Download link from onDownload will appear here..."></textarea>
+            </div>
+          </aside>
         </div>
       </div>
-    </div>
-
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
     </div>
 
     <script>

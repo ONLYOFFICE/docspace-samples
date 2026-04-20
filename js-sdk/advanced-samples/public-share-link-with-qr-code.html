@@ -1,8 +1,12 @@
 <!--
 Example: File selector to QR code
 
-This example demonstrates how to select a file in the DocSpace file selector,
-create a public share link in the background, and show a QR code for that link.
+Select a file in the file selector, create a public share link via the backend,
+and display a QR code for that link.
+
+Prerequisites:
+- Start local backend from `js-sdk` so `/api/create-public-share-link` is available.
+- Set `PORTAL_SRC` and `ADMIN_API_KEY` in `js-sdk/.env`.
 
 Using methods:
 - DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
@@ -13,18 +17,15 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="File selector to QR code" />
-    <meta
-      name="example-description"
-      content="Select a file in the file selector and generate a QR code for its public share link."
-    />
+    <meta name="example-title" content="Share File via QR Code" />
+    <meta name="example-description" content="Select a file, generate a public share link via the backend, and display it as a scannable QR code." />
     <meta name="example-group" content="advanced" />
-    <title>File selector to QR code</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Share File via QR Code</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -33,237 +34,103 @@ Using methods:
   </head>
 
   <body class="ex-public-share-link-with-qr-code">
-    <div class="page">
-      <div class="card">
-        <div class="actions">
-          <span class="status" id="status">Select a file in the left panel</span>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="selector-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <span class="status" id="hint">Select a file to generate a QR code</span>
         </div>
       </div>
 
-      <div class="layout">
-        <section class="panel">
-          <div class="panel-header">
-            <span class="panel-title">File selector</span>
-            <span class="panel-hint">Select a file in DocSpace.</span>
-          </div>
-          <iframe id="selector-frame"></iframe>
-        </section>
+      <div class="result-split__panel card" style="flex:0 0 300px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label>Selected file</label>
+          <input id="selectedTitle" type="text" readonly placeholder="— select a file —" />
+        </div>
 
-        <section class="panel">
-          <div class="panel-header">
-            <span class="panel-title">QR code</span>
-            <span class="panel-hint" id="qrHint">No file selected</span>
-          </div>
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
+          <label>Share link</label>
+          <input id="shareLink" type="text" readonly placeholder="— will appear after selection —"
+            style="font-family:ui-monospace,monospace;font-size:12px" />
+        </div>
 
-          <div id="selectionCard" class="selection-card is-empty">
-            <div id="selectionEmpty" class="empty-copy">Select a file to generate a QR code.</div>
-            <div id="selectionMeta" class="selection-meta" hidden>
-              <div class="selection-row"><strong>Title:</strong> <span id="selectedFileTitle"></span></div>
-              <div class="selection-row"><strong>Share link:</strong> <a id="selectedShareLink" href="#" target="_blank" rel="noopener noreferrer"></a></div>
-            </div>
-          </div>
-
-          <div class="qr-shell">
-            <div id="qrCode" class="qr-box"></div>
-          </div>
-        </section>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;margin-top:16px">
+          <div id="qrCode" style="
+            width:240px;min-height:240px;
+            display:flex;align-items:center;justify-content:center;
+            background:#fff;border-radius:16px;
+            box-shadow:inset 0 0 0 1px #e5e7eb;
+          "></div>
+        </div>
       </div>
     </div>
 
     <script>
-      const statusEl = document.getElementById("status");
-      const qrHintEl = document.getElementById("qrHint");
-      const selectionCardEl = document.getElementById("selectionCard");
-      const selectionEmptyEl = document.getElementById("selectionEmpty");
-      const selectionMetaEl = document.getElementById("selectionMeta");
-      const selectedFileTitleEl = document.getElementById("selectedFileTitle");
-      const selectedShareLinkEl = document.getElementById("selectedShareLink");
-      const qrCodeEl = document.getElementById("qrCode");
+      const hint           = document.getElementById("hint");
+      const selectedTitleEl = document.getElementById("selectedTitle");
+      const shareLinkEl    = document.getElementById("shareLink");
+      const qrCodeEl       = document.getElementById("qrCode");
 
-      let selectorInstance = null;
-      let selectedItem = null;
-      let lastShareLink = "";
       let qrInstance = null;
 
-      function setStatus(value) {
-        statusEl.textContent = value;
-      }
+      function setHint(text) { hint.textContent = text; }
 
       function clearQr() {
         qrCodeEl.innerHTML = "";
         qrInstance = null;
       }
 
-      function updateSelectionCard() {
-        const title =
-          selectedItem && (selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName)
-            ? String(selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName)
-            : "";
-
-        const hasSelection = Boolean(selectedItem && selectedItem.id);
-
-        selectionCardEl.classList.toggle("is-empty", !hasSelection);
-        selectionEmptyEl.hidden = hasSelection;
-        selectionMetaEl.hidden = !hasSelection;
-
-        selectedFileTitleEl.textContent = hasSelection ? title : "";
-        selectedShareLinkEl.textContent = hasSelection && lastShareLink ? lastShareLink : "";
-        selectedShareLinkEl.href = hasSelection && lastShareLink ? lastShareLink : "#";
-        qrHintEl.textContent = hasSelection ? title || "Selected file" : "No file selected";
-      }
-
-      function firstObjectWithId(value) {
-        if (!value) return null;
-
-        if (Array.isArray(value)) {
-          for (const item of value) {
-            const found = firstObjectWithId(item);
-            if (found) return found;
-          }
-          return null;
-        }
-
-        if (typeof value !== "object") return null;
-        if (value.id !== undefined && value.id !== null) return value;
-
-        for (const key of Object.keys(value)) {
-          const found = firstObjectWithId(value[key]);
-          if (found) return found;
-        }
-
-        return null;
-      }
-
-      function firstValueByKeys(source, keys) {
-        if (!source || typeof source !== "object") return "";
-
-        for (const key of keys) {
-          const value = source[key];
-          if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
-        }
-
-        for (const key of ["data", "result", "response", "payload", "item"]) {
-          if (source[key] && typeof source[key] === "object") {
-            const nested = firstValueByKeys(source[key], keys);
-            if (nested) return nested;
-          }
-        }
-
-        return "";
-      }
-
-      function destroySelector() {
-        if (selectorInstance && typeof selectorInstance.destroyFrame === "function") {
-          try {
-            selectorInstance.destroyFrame();
-          } catch {}
-        }
-
-        selectorInstance = null;
-      }
-
-      function initSelector() {
-        destroySelector();
-        selectedItem = null;
-        lastShareLink = "";
-        clearQr();
-        updateSelectionCard();
-        setStatus("Initializing selector...");
-
-        selectorInstance = DocSpace.SDK.initFileSelector({
-          frameId: "selector-frame",
-          width: "100%",
-          height: "640px",
-          theme: "base",
-          events: {
-            onAppReady: () => {
-              setStatus("Selector ready");
-            },
-            onContentReady: () => {
-              setStatus("Selector loaded. Select a file.");
-            },
-            onSelectCallback: async (event) => {
-              selectedItem = firstObjectWithId(event);
-              lastShareLink = "";
-              clearQr();
-              updateSelectionCard();
-              if (!(selectedItem && selectedItem.id)) {
-                setStatus("Selection updated");
-                return;
-              }
-
-              setStatus("Creating public link...");
-              try {
-                const payload = buildLinkPayload();
-                const response = await createPublicLink(payload);
-
-                lastShareLink = firstValueByKeys(response, ["shareLink", "url", "link"]);
-                updateSelectionCard();
-                renderQr(lastShareLink);
-                setStatus(lastShareLink ? "QR code generated" : "No share link returned");
-              } catch (error) {
-                setStatus("Failed to generate QR code");
-                qrHintEl.textContent = error.message || String(error);
-              }
-            },
-            onCloseCallback: () => {
-              setStatus("Selector closed");
-            },
-            onAppError: () => {
-              setStatus("Selector error");
-            }
-          }
-        });
-      }
-
       function renderQr(link) {
         clearQr();
-
-        if (!link) {
-          setStatus("No share link available");
-          return;
-        }
-
-        qrInstance = new QRCode(qrCodeEl, {
-          text: link,
-          width: 220,
-          height: 220
-        });
+        qrInstance = new QRCode(qrCodeEl, { text: link, width: 220, height: 220 });
       }
 
-      function buildLinkPayload() {
-        if (!selectedItem || !selectedItem.id) {
-          throw new Error("Select a file in the left panel first.");
-        }
-
-        return {
-          fileId: String(selectedItem.id),
-          title: selectedItem.title || selectedItem.name || selectedItem.fileTitle || selectedItem.fileName || null,
-          createPrimaryLink: true
-        };
-      }
-
-      async function createPublicLink(payload) {
+      async function createPublicLink(fileId) {
         const response = await fetch(window.location.origin + "/api/create-public-share-link", {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json"
-          },
-          body: JSON.stringify(payload)
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ fileId: String(fileId) })
         });
-
         const json = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          throw new Error(json?.details || json?.error || "HTTP " + response.status);
-        }
-
+        if (!response.ok) throw new Error(json?.details || json?.error || "HTTP " + response.status);
         return json;
       }
 
-      initSelector();
+      DocSpace.SDK.initFileSelector({
+        frameId: "selector-frame",
+        width: "700px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onAppReady: () => setHint("Select a file to generate a QR code"),
+          onSelectCallback: async (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            const id = item?.id ?? null;
+            if (!id) return;
+
+            const title = item?.title || item?.name || `File ${id}`;
+            selectedTitleEl.value = title;
+            shareLinkEl.value = "";
+            clearQr();
+            setHint("Creating public link…");
+
+            try {
+              const result = await createPublicLink(id);
+              const link = String(result?.shareLink || "").trim();
+              if (!link) throw new Error("shareLink missing in response");
+              shareLinkEl.value = link;
+              renderQr(link);
+              setHint("QR code ready");
+            } catch (error) {
+              setHint("Error: " + (error?.message || String(error)));
+            }
+          },
+          onAppError: () => setHint("Selector error")
+        }
+      });
     </script>
   </body>
 </html>

@@ -1,0 +1,248 @@
+<!--
+Example: Authenticated editor with fallback viewer
+
+Log in via a hidden initSystem frame before opening a file in the editor.
+If authentication fails or times out, the file is opened read-only in the viewer.
+
+Using methods:
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- system.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
+- system.createHash (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createhash)
+- system.login (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#login)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
+- DocSpace.SDK.initViewer (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initviewer)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+    <meta name="example-title" content="Editor with Auth Fallback" />
+    <meta name="example-description" content="Enter credentials and a file ID to open the file in edit mode. If authentication fails or times out, the file opens in a read-only viewer instead." />
+    <meta name="example-group" content="advanced" />
+    <title>Editor with Auth Fallback</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+    <script>
+      (function () {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-authenticated-editor">
+    <div class="page">
+      <div id="editorWrap" class="frame-wrap" style="display:none; margin-bottom:16px;">
+        <iframe id="editor-frame"></iframe>
+      </div>
+
+      <div class="card" id="authCard">
+        <div class="ex-authenticated-editor__form">
+          <div class="field">
+            <label for="loginInput">Email</label>
+            <input id="loginInput" type="email" placeholder="user@example.com" />
+          </div>
+          <div class="field">
+            <label for="passwordInput">Password</label>
+            <input id="passwordInput" type="password" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label for="fileId">File ID</label>
+            <input id="fileId" type="text" placeholder="12345" />
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="openBtn" type="button" disabled>Open editor</button>
+          <span class="status" id="status">Enter credentials and a file ID</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden frame reused for pre-authentication. Reusing the same element
+         preserves the asc_auth_key cookie set by DocSpace. -->
+    <!-- Hidden auth frame for SDK method calls -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="auth-frame"></div>
+    </div>
+
+    <script>
+      const emailEl = document.getElementById("loginInput");
+      const passwordEl = document.getElementById("passwordInput");
+      const fileIdEl = document.getElementById("fileId");
+      const openBtn = document.getElementById("openBtn");
+      const statusEl = document.getElementById("status");
+      const editorWrap = document.getElementById("editorWrap");
+      const authCard = document.getElementById("authCard");
+
+      const AUTH_TIMEOUT_MS = 15_000;
+
+      function setStatus(text, cls) {
+        statusEl.textContent = text;
+        statusEl.className = "status" + (cls ? " " + cls : "");
+      }
+
+      function safeDestroy(instance) {
+        try {
+          if (typeof instance?.destroyFrame === "function") instance.destroyFrame();
+        } catch {}
+      }
+
+      function getFrameHeightPx() {
+        const viewport = window.innerHeight || document.documentElement.clientHeight || 900;
+        const cardHeight = authCard?.getBoundingClientRect?.().height || 180;
+        const verticalReserved = 72; // page paddings + gap + safe margin
+        const h = Math.floor(viewport - cardHeight - verticalReserved);
+        return Math.max(320, Math.min(700, h));
+      }
+
+      function updateButtonState() {
+        const ok = emailEl.value.trim() && passwordEl.value && fileIdEl.value.trim();
+        openBtn.disabled = !ok;
+        if (!ok) setStatus("Enter credentials and a file ID");
+        else setStatus("Ready");
+      }
+
+      function applySession(session) {
+        if (!session) return;
+        if (session?.user?.email && !emailEl.value) emailEl.value = String(session.user.email);
+        if (session?.user?.password && !passwordEl.value) passwordEl.value = String(session.user.password);
+
+        const sessionFiles = session?.files;
+        if (sessionFiles && !fileIdEl.value) {
+          const id = sessionFiles.docx || sessionFiles.xlsx || sessionFiles.pptx || sessionFiles.pdfForm || sessionFiles.pdfTemplate;
+          if (id) fileIdEl.value = String(id);
+        }
+      }
+
+      async function loadSessionFallback() {
+        if (emailEl.value && passwordEl.value && fileIdEl.value) return;
+        try {
+          const r = await fetch("/api/demo/status", { credentials: "same-origin" });
+          const data = r.ok ? await r.json() : null;
+          if (data?.active && data?.ready) {
+            applySession(data?.session || null);
+            updateButtonState();
+            return;
+          }
+          const started = await fetch("/api/demo/start", { method: "POST", credentials: "same-origin" });
+          if (!started.ok) return;
+          const startData = await started.json();
+          applySession(startData?.session || null);
+          updateButtonState();
+        } catch {}
+      }
+
+      // Auto-fill from demo session if available
+      (async function () {
+        applySession(window.__demoConfig?.session || null);
+        updateButtonState();
+        await loadSessionFallback();
+      })();
+
+      emailEl.addEventListener("input", updateButtonState);
+      passwordEl.addEventListener("input", updateButtonState);
+      fileIdEl.addEventListener("input", updateButtonState);
+
+      /**
+       * Authenticate using a hidden initSystem frame.
+       * The frame is destroyed after auth succeeds or fails.
+       * Returns true on success, false on error or timeout.
+       */
+      function authenticate(email, password) {
+        return new Promise((resolve) => {
+          let authInstance = null;
+
+          const timer = setTimeout(() => {
+            safeDestroy(authInstance);
+            resolve(false);
+          }, AUTH_TIMEOUT_MS);
+
+          const done = (ok) => {
+            clearTimeout(timer);
+            safeDestroy(authInstance);
+            resolve(ok);
+          };
+
+          authInstance = DocSpace.SDK.initSystem({
+            frameId: "auth-frame",
+            width: "0px",
+            height: "0px",
+            events: {
+              onAppReady: async () => {
+                try {
+                  const hashSettings = await authInstance.getHashSettings();
+                  const hash = await authInstance.createHash(password, hashSettings);
+                  await authInstance.login(email, hash);
+                } catch {
+                  done(false);
+                }
+              },
+              onAuthSuccess: () => done(true),
+              onSignIn: () => done(true),
+              onAppError: () => done(false)
+            }
+          });
+        });
+      }
+
+      function openEditor(fileId) {
+        editorWrap.style.display = "";
+        const frameHeight = getFrameHeightPx();
+        DocSpace.SDK.initEditor({
+          frameId: "editor-frame",
+          id: String(fileId),
+          width: "100%",
+          height: frameHeight + "px",
+          events: {
+            onAppReady: () => setStatus("Editor ready", "ok"),
+            onAppError: () => setStatus("Editor failed to load", "err")
+          }
+        });
+      }
+
+      function openViewer(fileId) {
+        editorWrap.style.display = "";
+        const frameHeight = getFrameHeightPx();
+        DocSpace.SDK.initViewer({
+          frameId: "editor-frame",
+          id: String(fileId),
+          width: "100%",
+          height: frameHeight + "px",
+          events: {
+            onAppReady: () => setStatus("Viewer ready (read-only fallback)", "ok"),
+            onAppError: () => setStatus("Viewer failed to load", "err")
+          }
+        });
+      }
+
+      openBtn.addEventListener("click", async () => {
+        const email = emailEl.value.trim();
+        const password = passwordEl.value;
+        const fileId = fileIdEl.value.trim();
+
+        if (!email || !password || !fileId) {
+          setStatus("Fill in all fields", "err");
+          return;
+        }
+
+        openBtn.disabled = true;
+        setStatus("Authenticating…");
+
+        const authOk = await authenticate(email, password);
+
+        if (authOk) {
+          setStatus("Authenticated. Opening editor…");
+          openEditor(fileId);
+        } else {
+          setStatus("Auth failed — opening read-only viewer", "err");
+          openViewer(fileId);
+        }
+
+        updateButtonState();
+      });
+    </script>
+  </body>
+</html>

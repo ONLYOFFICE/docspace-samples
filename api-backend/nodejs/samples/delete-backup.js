@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Delete a backup
 
 This example demonstrates how to delete a specific backup in ONLYOFFICE DocSpace using the API by providing its unique backup ID.
@@ -15,12 +15,18 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 async function deleteBackup(backupId) {
   const url = `${API_HOST}/api/2.0/backup/deletebackup/${backupId}`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       method: 'DELETE',
       headers: HEADERS,
     });

@@ -1,10 +1,14 @@
 <!--
-Example: Build a PPTX deck from scratch
+Example: Build PPTX presentation
 
-Flow:
-1) Pick a destination folder.
-2) Enter a file name (must end with .pptx).
-3) Click "Create deck" to generate slides via executeInEditor.
+Select a room, create a new PPTX file in that room, generate slides via executeInEditor,
+and then open the result in the editor.
+
+Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
 -->
 
 <!DOCTYPE html>
@@ -12,20 +16,14 @@ Flow:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-
-    <meta name="example-title" content="Build PPTX Presentation" />
-    <meta
-      name="example-description"
-      content="Create a new PPTX file and programmatically build a 3-slide deck using executeInEditor."
-    />
+    <meta name="example-title" content="Build a PPTX Presentation" />
+    <meta name="example-description" content="Choose a room, create a new .pptx file, and auto-generate a 3-slide presentation via the editor API. The result opens in the embedded editor." />
     <meta name="example-group" content="advanced" />
-
-    <title>Build PPTX Presentation</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
-
+    <title>Build a PPTX Presentation</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -33,126 +31,84 @@ Flow:
     </script>
   </head>
 
-  <body class="ex-batch-fill-from-template-pdf">
-    <div class="panel" style="margin-bottom: 12px;">
-      <details open>
-        <summary><b>How to use</b></summary>
-        <ol class="muted" style="margin: 10px 0 0 18px; line-height: 1.5;">
-          <li>Select a destination folder in the picker.</li>
-          <li>Click <b>Use selected folder</b>.</li>
-          <li>Set a file name ending with <code>.pptx</code>.</li>
-          <li>Click <b>Create deck</b>.</li>
-        </ol>
-      </details>
-    </div>
-
-    <div class="wrap">
-      <iframe id="ds-destination-picker" class="frame" title="Destination picker"></iframe>
-    </div>
-
-    <iframe id="ds-manager-frame" class="hidden-frame" title="Manager frame"></iframe>
-    <iframe id="ds-editor-frame" class="hidden-frame" title="Editor frame"></iframe>
-
-    <div class="panel">
-      <div class="row">
-        <div class="kv">
-          <div class="k">Destination folderId</div>
-          <div class="v" id="destFolderId">None</div>
-        </div>
-        <div class="kv">
-          <div class="k">Manager</div>
-          <div class="v" id="managerState">Loading...</div>
-        </div>
+  <body class="ex-create-file">
+    <div id="selectorWrap">
+      <div class="frame-wrap">
+        <iframe id="ds-room-frame"></iframe>
       </div>
-
-      <div class="grid">
-        <div>
-          <div class="field">
-            <label for="fileName">Deck file name</label>
-            <input id="fileName" type="text" value="New_Deck.pptx" autocomplete="off" />
-          </div>
-          <div class="muted">Must end with <code>.pptx</code>.</div>
-        </div>
-        <div>
-          <label>Actions</label>
-          <div class="actions-row" style="margin-top: 6px;">
-            <button id="useDest" type="button" class="btn-secondary">Use selected folder</button>
-            <button id="create" type="button" class="btn" disabled>Create deck</button>
-            <button id="toggleEditor" type="button" class="btn-secondary">Show editor</button>
-          </div>
-          <span class="status" id="hint" style="margin-top: 10px;">Select a folder</span>
-        </div>
-      </div>
-
-      <div class="cols" style="margin-top: 14px;">
-        <div class="box">
-          <h3>Log</h3>
-          <div class="field">
-            <textarea id="log" class="output" readonly placeholder="Progress log..."></textarea>
-          </div>
-        </div>
+      <div class="bottom-bar">
+        <input id="fileName" type="text" placeholder="Quarterly_Deck.pptx" value="Quarterly_Deck.pptx" autocomplete="off" />
+        <button class="btn" id="createBtn" type="button" disabled>Create and Generate PPTX</button>
+        <span class="status" id="status">Select a room</span>
       </div>
     </div>
+
+    <div id="editorWrap" style="display:none">
+      <div class="frame-wrap">
+        <iframe id="editor-frame"></iframe>
+      </div>
+      <div class="bottom-bar">
+        <button class="btn secondary" id="backBtn" type="button">Create another</button>
+        <span class="status" id="editorStatus">Opening editor...</span>
+      </div>
+    </div>
+
+    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
+    <iframe id="ds-hidden-editor" class="hidden-frame" title="Hidden editor frame"></iframe>
 
     <script>
-      const destFolderIdEl = document.getElementById("destFolderId");
-      const managerStateEl = document.getElementById("managerState");
+      const createBtn = document.getElementById("createBtn");
       const fileNameEl = document.getElementById("fileName");
-      const useDestBtn = document.getElementById("useDest");
-      const createBtn = document.getElementById("create");
-      const toggleEditorBtn = document.getElementById("toggleEditor");
-      const hintEl = document.getElementById("hint");
-      const logEl = document.getElementById("log");
-      const editorFrame = document.getElementById("ds-editor-frame");
+      const statusEl = document.getElementById("status");
+      const backBtn = document.getElementById("backBtn");
+      const editorStatusEl = document.getElementById("editorStatus");
+      const selectorWrap = document.getElementById("selectorWrap");
+      const editorWrap = document.getElementById("editorWrap");
 
-      let manager = null;
-      let picker = null;
-      let editorInstance = null;
+      let selectedRoomId = null;
       let managerReady = false;
-      let destFolderId = "";
-      let editorVisible = false;
+      let roomSelectorInstance = null;
+      let hiddenEditorInstance = null;
+      let visibleEditorInstance = null;
+      const portalSrc = String(document.querySelector("base")?.href || "").replace(/\/+$/, "");
 
-      function setHint(v) {
-        hintEl.textContent = String(v ?? "");
-      }
-
-      function logLine(v) {
-        const line = String(v ?? "");
-        logEl.value = (logEl.value ? logEl.value + "\n" : "") + line;
-        logEl.scrollTop = logEl.scrollHeight;
-      }
-
-      function destroyEditor() {
-        if (editorInstance && typeof editorInstance.destroyFrame === "function") {
-          try {
-            editorInstance.destroyFrame();
-          } catch {}
+      function extractId(data) {
+        if (!data || typeof data !== "object") return null;
+        if (Array.isArray(data)) {
+          const first = data[0];
+          return first?.id != null && String(first.id).trim() ? String(first.id).trim() : null;
         }
-        editorInstance = null;
+        if (data.id != null && String(data.id).trim()) return String(data.id).trim();
+        if (Array.isArray(data.items) && data.items[0]?.id != null) return String(data.items[0].id).trim();
+        if (data.item?.id != null) return String(data.item.id).trim();
+        if (data.selected?.id != null) return String(data.selected.id).trim();
+        return null;
       }
 
-      function toggleEditorVisibility() {
-        editorVisible = !editorVisible;
-        if (editorVisible) {
-          editorFrame.classList.remove("hidden-frame");
-          editorFrame.classList.add("visible-hidden-frame");
-          toggleEditorBtn.textContent = "Hide editor";
-        } else {
-          editorFrame.classList.remove("visible-hidden-frame");
-          editorFrame.classList.add("hidden-frame");
-          toggleEditorBtn.textContent = "Show editor";
-        }
+      function isValidPptxName(name) {
+        const value = String(name || "").trim();
+        return Boolean(value) && value.toLowerCase().endsWith(".pptx");
       }
 
-      function updateUi() {
-        destFolderIdEl.textContent = destFolderId || "None";
-        const nameOk = String(fileNameEl.value || "").trim().toLowerCase().endsWith(".pptx");
-        createBtn.disabled = !managerReady || !destFolderId || !nameOk;
+      function updateCreateButtonState() {
+        createBtn.disabled = !managerReady || !selectedRoomId || !isValidPptxName(fileNameEl.value);
       }
 
-      function getCreatedFileId(res) {
-        const id = res?.id ?? res?.fileId ?? res?.entryId ?? res?.documentId ?? "";
-        return id ? String(id).trim() : "";
+      function destroyInstance(instance) {
+        if (!instance || typeof instance.destroyFrame !== "function") return;
+        try {
+          instance.destroyFrame();
+        } catch {}
+      }
+
+      function showSelector() {
+        destroyInstance(visibleEditorInstance);
+        visibleEditorInstance = null;
+        editorWrap.style.display = "none";
+        selectorWrap.style.display = "";
+        statusEl.textContent = selectedRoomId ? "Room selected" : "Select a room";
+        editorStatusEl.textContent = "Opening editor...";
+        updateCreateButtonState();
       }
 
       function buildDeckCommand() {
@@ -222,149 +178,179 @@ Flow:
         );
       }
 
-      async function buildDeck(fileId) {
-        destroyEditor();
+      function getCreatedFileId(res) {
+        const id = res?.id ?? res?.fileId ?? res?.entryId ?? res?.documentId ?? "";
+        return id ? String(id).trim() : "";
+      }
+
+      function runHiddenBuildAndSave(fileId) {
+        destroyInstance(hiddenEditorInstance);
+        hiddenEditorInstance = null;
         return new Promise((resolve, reject) => {
           let done = false;
           const finish = (err) => {
             if (done) return;
             done = true;
-            try {
-              destroyEditor();
-            } catch {}
+            destroyInstance(hiddenEditorInstance);
+            hiddenEditorInstance = null;
             if (err) reject(err);
             else resolve();
           };
 
-          const t = setTimeout(() => finish(new Error("Editor timeout")), 30000);
+          const timeout = setTimeout(() => {
+            finish(new Error("Hidden editor timeout"));
+          }, 30000);
 
-          editorInstance = DocSpace.SDK.initEditor({
-            frameId: "ds-editor-frame",
+          hiddenEditorInstance = DocSpace.SDK.initEditor({
+            frameId: "ds-hidden-editor",
             id: String(fileId),
-            width: editorVisible ? "900px" : "1px",
-            height: editorVisible ? "520px" : "1px",
+            width: "1px",
+            height: "1px",
             theme: "base",
             events: {
               onAppReady: () => {
-                logLine("Editor ready");
-                const frame = DocSpace?.SDK?.frames?.["ds-editor-frame"];
+                const frame = DocSpace?.SDK?.frames?.["ds-hidden-editor"];
                 if (!frame || typeof frame.executeInEditor !== "function") {
-                  clearTimeout(t);
-                  finish(new Error("executeInEditor not available"));
+                  clearTimeout(timeout);
+                  finish(new Error("executeInEditor is not available"));
                   return;
                 }
+
                 try {
                   frame.executeInEditor(buildDeckCommand());
-                } catch (e) {
-                  clearTimeout(t);
+                } catch (error) {
+                  clearTimeout(timeout);
                   finish(e);
                   return;
                 }
+
                 setTimeout(() => {
-                  clearTimeout(t);
+                  clearTimeout(timeout);
                   finish();
-                }, 6500);
+                }, 8000);
               },
               onAppError: (e) => {
-                clearTimeout(t);
-                finish(e || new Error("Editor error"));
+                clearTimeout(timeout);
+                finish(e || new Error("Hidden editor failed to load"));
               }
             }
           });
         });
       }
 
-      function initHiddenManager() {
-        managerReady = false;
-        managerStateEl.textContent = "Loading...";
+      function openResultEditor(fileId) {
+        destroyInstance(visibleEditorInstance);
+        visibleEditorInstance = null;
 
-        manager = DocSpace.SDK.initManager({
-          frameId: "ds-manager-frame",
-          width: "0",
-          height: "0",
+        selectorWrap.style.display = "none";
+        editorWrap.style.display = "";
+        editorStatusEl.textContent = "Opening editor...";
+
+        visibleEditorInstance = DocSpace.SDK.initEditor({
+          frameId: "editor-frame",
+          id: String(fileId),
+          width: "960px",
+          height: "600px",
           theme: "base",
           events: {
             onAppReady: () => {
-              managerReady = true;
-              managerStateEl.textContent = "Ready";
-              updateUi();
+              editorStatusEl.textContent = "Presentation generated and opened";
             },
             onAppError: () => {
-              managerReady = false;
-              managerStateEl.textContent = "Error";
-              setHint("Manager error");
-              updateUi();
+              editorStatusEl.textContent = "Editor failed to load";
             }
           }
         });
       }
 
-      function initDestinationPicker() {
-        picker = DocSpace.SDK.initManager({
-          frameId: "ds-destination-picker",
-          width: "900px",
-          height: "520px",
-          theme: "base",
-          selectorType: "folder"
-        });
-      }
-
-      useDestBtn.onclick = async () => {
-        if (!picker || typeof picker.getSelection !== "function") return;
-        try {
-          const sel = await picker.getSelection();
-          const item = Array.isArray(sel) ? sel[0] : sel;
-          const id = item?.folderId ?? item?.id ?? null;
-          if (!id) throw new Error("No folder selected");
-          destFolderId = String(id);
-          setHint("Destination selected");
-          updateUi();
-        } catch {
-          setHint("Select a folder in the picker");
+      roomSelectorInstance = DocSpace.SDK.initRoomSelector({
+        frameId: "ds-room-frame",
+        src: portalSrc,
+        width: "960px",
+        height: "600px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            selectedRoomId = extractId(data);
+            statusEl.textContent = selectedRoomId ? "Room selected" : "Select a room";
+            updateCreateButtonState();
+          },
+          onAppError: () => {
+            statusEl.textContent = "Selector error";
+          }
         }
-      };
+      });
 
-      fileNameEl.addEventListener("input", updateUi);
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-manager-frame",
+        src: portalSrc,
+        width: "0px",
+        height: "0px",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            managerReady = true;
+            updateCreateButtonState();
+          },
+          onContentReady: () => {
+            managerReady = true;
+            updateCreateButtonState();
+          },
+          onAppError: () => {
+            managerReady = false;
+            statusEl.textContent = "Manager is not ready";
+            updateCreateButtonState();
+          }
+        }
+      });
 
-      createBtn.onclick = async () => {
-        logLine("---");
-        logLine("Run: " + new Date().toISOString());
+      fileNameEl.addEventListener("input", () => {
+        if (fileNameEl.value && !isValidPptxName(fileNameEl.value)) {
+          statusEl.textContent = "File name must end with .pptx";
+        } else if (selectedRoomId) {
+          statusEl.textContent = "Room selected";
+        } else {
+          statusEl.textContent = "Select a room";
+        }
+        updateCreateButtonState();
+      });
 
+      createBtn.addEventListener("click", async () => {
         const fileName = String(fileNameEl.value || "").trim();
-        if (!fileName.toLowerCase().endsWith(".pptx")) {
-          setHint("File name must end with .pptx");
+        if (!isValidPptxName(fileName)) return;
+        if (!managerReady) {
+          statusEl.textContent = "Manager is not ready";
           return;
         }
-        if (!destFolderId) {
-          setHint("Select destination folder");
+        if (!selectedRoomId) {
+          statusEl.textContent = "Select a room";
           return;
         }
 
-        setHint("Creating .pptx...");
         createBtn.disabled = true;
+        statusEl.textContent = "Creating file...";
+
         try {
-          const res = await manager.createFile(String(destFolderId), fileName);
-          const createdId = getCreatedFileId(res);
-          if (!createdId) throw new Error("Created file id not found in response");
-          logLine("Created: " + fileName + " (" + createdId + ")");
+          const created = await manager.createFile(String(selectedRoomId), fileName);
+          const fileId = getCreatedFileId(created);
+          if (!fileId) throw new Error("File ID is missing in createFile response");
+          if (typeof window.__demoTrack === "function") {
+            window.__demoTrack("file", fileId); // demo only — replace with your own file ID handling
+          }
 
-          setHint("Building slides...");
-          await buildDeck(createdId);
-          logLine("OK");
-          setHint("Done");
-        } catch (e) {
-          logLine("ERROR: " + String(e?.message || e));
-          setHint("Error");
-        } finally {
-          updateUi();
+          statusEl.textContent = "Generating slides...";
+          await runHiddenBuildAndSave(fileId);
+          openResultEditor(fileId);
+          statusEl.textContent = "Done";
+        } catch (error) {
+          selectorWrap.style.display = "";
+          editorWrap.style.display = "none";
+          statusEl.textContent = "Error: " + (error?.message || String(error));
+          updateCreateButtonState();
         }
-      };
+      });
 
-      toggleEditorBtn.onclick = toggleEditorVisibility;
-
-      initHiddenManager();
-      initDestinationPicker();
-      updateUi();
+      backBtn.addEventListener("click", showSelector);
     </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage a guest user
 
 This example demonstrates how to manage a guest user in ONLYOFFICE DocSpace using the API.
@@ -23,11 +23,17 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Approve a guest invited via share
 async function approveGuest(email) {
   const url = `${API_HOST}/api/2.0/people/guests/share/approve`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify({ email }),
@@ -53,7 +59,7 @@ async function deleteGuest(userId) {
   const url = `${API_HOST}/api/2.0/people/guests`;
   const payload = { userIds: [userId], resendAll: false };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'DELETE',
     headers: HEADERS,
     body: JSON.stringify(payload),

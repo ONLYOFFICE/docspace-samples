@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage IP restrictions
 
 This example demonstrates how to retrieve and update IP restriction settings in ONLYOFFICE DocSpace using API requests.
@@ -30,7 +30,7 @@ def save_restrictions(ip_restrictions, enable=True):
     'ipRestrictions': ip_restrictions
   }
   
-  response = requests.put(url, json=data, headers=HEADERS)
+  response = requests.put(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     settings = response.json()
     print('IP restrictions updated successfully.')
@@ -42,7 +42,7 @@ def save_restrictions(ip_restrictions, enable=True):
 # Step 2: Retrieve current IP restrictions settings
 def get_restrictions():
   url = f'{API_HOST}/api/2.0/settings/iprestrictions'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     settings = response.json()
     print(f'IP restrictions settings retrieved: {settings}')

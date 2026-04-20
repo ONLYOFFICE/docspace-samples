@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Copy or move a file to a folder
 
 This example demonstrates how to copy or move a file in ONLYOFFICE DocSpace.
@@ -19,6 +19,12 @@ const HEADERS = {
 };
 
 // Step 1: Copy a file to another folder
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function copyFileToFolder(fileId, destFolderId) {
   const url = `${BASE_URL}/api/2.0/files/fileops/copy`;
   const payload = {
@@ -29,7 +35,7 @@ function copyFileToFolder(fileId, destFolderId) {
     toFillOut: false,
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: "PUT",
     headers: HEADERS,
     body: JSON.stringify(payload),
@@ -38,8 +44,8 @@ function copyFileToFolder(fileId, destFolderId) {
       if (res.status === 200) {
         console.log(`File ${fileId} copied to folder ${destFolderId}`);
       } else {
-        return res.text().then((t) => {
-          console.log(`Copy failed. Status code: ${res.status}, Message: ${t}`);
+        return res.text().then((text) => {
+          console.log(`Copy failed. Status code: ${res.status}, Message: ${text}`);
         });
       }
     })
@@ -60,7 +66,7 @@ function moveFileToFolder(fileId, destFolderId) {
     toFillOut: false,
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: "PUT",
     headers: HEADERS,
     body: JSON.stringify(payload),
@@ -69,8 +75,8 @@ function moveFileToFolder(fileId, destFolderId) {
       if (res.status === 200) {
         console.log(`File ${fileId} moved to folder ${destFolderId}`);
       } else {
-        return res.text().then((t) => {
-          console.log(`Move failed. Status code: ${res.status}, Message: ${t}`);
+        return res.text().then((text) => {
+          console.log(`Move failed. Status code: ${res.status}, Message: ${text}`);
         });
       }
     })

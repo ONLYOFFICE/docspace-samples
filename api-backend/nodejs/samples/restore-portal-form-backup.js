@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Restore portal from a backup
 
 This example demonstrates how to restore an ONLYOFFICE DocSpace portal from a specific backup using the API.
@@ -17,6 +17,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 async function restorePortal() {
   // Restore payload: specify backup ID, storage type, and options
@@ -28,7 +34,7 @@ async function restorePortal() {
   };
 
   // Send request to start restoration
-  const res = await fetch(`${API_HOST}/api/2.0/backup/startrestore`, {
+  const res = await fetchWithTimeout(`${API_HOST}/api/2.0/backup/startrestore`, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(payload),

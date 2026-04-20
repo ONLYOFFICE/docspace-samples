@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: List groups managed by a user
 
 This example demonstrates how to retrieve the list of groups in ONLYOFFICE DocSpace that are managed by a specific user.
@@ -26,7 +26,7 @@ def get_managed_groups(manager_id: str):
     'manager': True,      # return groups where the given user is a manager
     'userId': manager_id  # manager's UUID
   }
-  response = requests.get(url, headers=HEADERS, params=params)
+  response = requests.get(url, headers=HEADERS, params=params, timeout=30)
 
   if response.status_code == 200:
     groups = response.json().get('response', [])

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Change file or folder ownership
 
 This example demonstrates how to transfer ownership of files and/or folders in ONLYOFFICE DocSpace to another user using the API. 
@@ -16,6 +16,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Define file and/or folder IDs to transfer
 const fileIds = [12345]; // Replace with your file IDs
@@ -33,7 +39,7 @@ async function changeOwnership(payload) {
   const url = `${BASE_URL}/api/2.0/files/owner`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       method: 'POST',
       headers: HEADERS,
       body: JSON.stringify(payload),

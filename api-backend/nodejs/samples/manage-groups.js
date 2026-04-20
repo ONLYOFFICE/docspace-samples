@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage groups
 
 This example demonstrates how to manage groups in ONLYOFFICE DocSpace using the API.
@@ -24,14 +24,20 @@ const HEADERS = {
 };
 
 // Step 1: Create a new group
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function createGroup(groupName, managerId, memberIds) {
   const url = `${API_HOST}/api/2.0/group`;
   const data = { groupName, groupManager: managerId, members: memberIds };
 
-  const res = await fetch(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) });
+  const res = await fetchWithTimeout(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Group creation failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Group creation failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
   const json = await res.json();
@@ -43,10 +49,10 @@ async function createGroup(groupName, managerId, memberIds) {
 // Step 2: Retrieve group by ID
 async function getGroupById(groupId) {
   const url = `${API_HOST}/api/2.0/group/${groupId}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Group retrieval failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Group retrieval failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
   const json = await res.json();
@@ -59,10 +65,10 @@ async function updateGroup(groupId, newGroupName) {
   const url = `${API_HOST}/api/2.0/group/${groupId}`;
   const data = { groupName: newGroupName };
 
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS, body: JSON.stringify(data) });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS, body: JSON.stringify(data) });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Group update failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Group update failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
   const json = await res.json();
@@ -74,10 +80,10 @@ async function updateGroup(groupId, newGroupName) {
 // Step 4: Delete a group
 async function deleteGroup(groupId) {
   const url = `${API_HOST}/api/2.0/group/${groupId}`;
-  const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'DELETE', headers: HEADERS });
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`Group deletion failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`Group deletion failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
   console.log(res.status);
@@ -87,11 +93,11 @@ async function deleteGroup(groupId) {
 // Run sequence
 (async () => {
   try {
-    const group_name = 'New Group'; // Replace with actual group name
-    const manager_id = '10001';     // Replace with actual manager ID
-    const member_ids = ['10001', '10002']; // Replace with actual member IDs
+    const groupName = 'New Group'; // Replace with actual group name
+    const managerId = '10001';     // Replace with actual manager ID
+    const memberIds = ['10001', '10002']; // Replace with actual member IDs
 
-    const groupId = await createGroup(group_name, manager_id, member_ids);
+    const groupId = await createGroup(groupName, managerId, memberIds);
     await getGroupById(groupId);
     await updateGroup(groupId, 'Updated Group Name');
     await deleteGroup(groupId);

@@ -14,13 +14,13 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
     <meta name="example-title" content="File Manager with Task Attachments" />
-    <meta name="example-description" content="Attach DocSpace files to tasks using a modal file selector." />
+    <meta name="example-description" content="Create tasks and attach DocSpace files to them via a modal file picker. Attached files are listed on each task card." />
     <meta name="example-group" content="advanced" />
-    <title>Task Attachments</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>File Manager with Task Attachments</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);

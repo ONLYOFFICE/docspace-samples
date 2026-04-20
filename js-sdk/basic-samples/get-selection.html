@@ -13,14 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Get selection" />
-    <meta name="example-description" content="Retrieve the current selection in DocSpace using the JavaScript SDK." />
+    <meta name="example-title" content="Get Selection" />
+    <meta name="example-description" content="Select one or more items in the embedded manager and retrieve the selection data as JSON." />
     <meta name="example-group" content="basic" />
     <title>Get Selection</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -29,20 +29,20 @@ Using methods:
   </head>
 
   <body class="ex-get-selection">
-    <div class="top-bar">
-      <button class="btn" id="btn" type="button" disabled>Get Selection</button>
-      <span class="status" id="hint">Loading…</span>
-    </div>
-
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
-    </div>
-
-    <div class="page">
-      <div class="card">
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <button class="btn" id="btn" type="button" disabled>Get Selection</button>
+          <span class="status" id="hint">Loading…</span>
+        </div>
+      </div>
+      <div class="result-split__panel card">
         <div class="field">
           <label>Result</label>
-          <textarea class="output" id="out" readonly placeholder="Result will appear here…"></textarea>
+          <textarea class="output" id="out" readonly placeholder="Select items in the frame, then click Get Selection…"></textarea>
         </div>
       </div>
     </div>
@@ -54,13 +54,14 @@ const out = document.getElementById("out");
 
 const manager = DocSpace.SDK.initManager({
   frameId: "ds-frame",
-  width: "900px",
+  width: "700px",
   height: "520px",
   theme: "base",
-  events: { onAppReady: () => { btn.disabled = false; hint.textContent = "Ready"; } },
+  events: {
+    onAppReady: () => { btn.disabled = false; hint.textContent = "Ready"; },
+    onAppError: () => { hint.textContent = "SDK error — check portal URL"; }
+  },
 });
-
-btn.disabled = true;
 
 btn.onclick = async () => {
   btn.disabled = true;
@@ -71,12 +72,11 @@ btn.onclick = async () => {
     const result = await manager.getSelection();
     out.value = JSON.stringify(result, null, 2);
     hint.textContent = "Done";
-  } catch (e) {
+  } catch (error) {
     hint.textContent = "Error";
-    out.value = String(e && (e.message || e) ? (e.message || e) : e);
+    out.value = error?.message || String(error);
   } finally {
     btn.disabled = false;
-    hint.textContent = "Ready";
   }
 };
 

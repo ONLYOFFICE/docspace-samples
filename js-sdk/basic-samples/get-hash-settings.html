@@ -1,10 +1,11 @@
 <!--
 Example: Get hash settings
 
-This example demonstrates how to retrieve hash-based settings from the embedded DocSpace frame using the JavaScript SDK.
+This example demonstrates how to retrieve hash-based settings from DocSpace using the JavaScript SDK.
+No visible frame is needed — the SDK is initialized in the background.
 
 Using methods:
-- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
 - manager.getHashSettings (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#gethashsettings)
 -->
 
@@ -13,14 +14,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Get hash settings" />
-    <meta name="example-description" content="Retrieve hash settings using the JavaScript SDK." />
+    <meta name="example-title" content="Get Hash Settings" />
+    <meta name="example-description" content="Retrieve the hash settings (algorithm and options) used to generate secure password hashes in DocSpace." />
     <meta name="example-group" content="basic" />
     <title>Get Hash Settings</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -29,18 +30,19 @@ Using methods:
   </head>
 
   <body class="ex-get-hash-settings">
-    <div class="top-bar">
-      <button class="btn" id="btn" type="button">Get Hash Settings</button>
-      <span class="status" id="hint">Ready</span>
-    </div>
-
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+    <!-- Hidden frame for SDK method calls -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-frame"></div>
     </div>
 
     <div class="page">
       <div class="card">
-        <div class="field">
+        <div class="actions">
+          <button class="btn" id="btn" type="button" disabled>Get Hash Settings</button>
+          <span class="status" id="hint">Preparing SDK…</span>
+        </div>
+
+        <div class="field" id="resultWrap" style="display:none;margin-top:16px">
           <label>Result</label>
           <textarea class="output" id="out" readonly placeholder="Result will appear here…"></textarea>
         </div>
@@ -48,38 +50,45 @@ Using methods:
     </div>
 
     <script>
-const btn = document.getElementById("btn");
-const hint = document.getElementById("hint");
-const out = document.getElementById("out");
+      const btn  = document.getElementById("btn");
+      const hint = document.getElementById("hint");
+      const out  = document.getElementById("out");
+      const resultWrap = document.getElementById("resultWrap");
 
-const manager = DocSpace.SDK.initManager({
-  frameId: "ds-frame",
-  width: "900px",
-  height: "520px",
-  theme: "base",
+      const manager = DocSpace.SDK.initManager({
+        frameId: "ds-frame",
+        width: "0",
+        height: "0",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            btn.disabled = false;
+            hint.textContent = "SDK ready.";
+          },
+          onAppError: () => {
+            hint.textContent = "SDK error — check portal URL";
+          }
+        }
+      });
 
-});
+      btn.onclick = async () => {
+        btn.disabled = true;
+        hint.textContent = "Loading…";
+        out.value = "";
 
-btn.disabled = false;
-
-btn.onclick = async () => {
-  btn.disabled = true;
-  hint.textContent = "Loading…";
-  out.value = "";
-
-  try {
-    const result = await manager.getHashSettings();
-    out.value = JSON.stringify(result, null, 2);
-    hint.textContent = "Done";
-  } catch (e) {
-    hint.textContent = "Error";
-    out.value = String(e && (e.message || e) ? (e.message || e) : e);
-  } finally {
-    btn.disabled = false;
-    hint.textContent = "Ready";
-  }
-};
-
+        try {
+          const result = await manager.getHashSettings();
+          out.value = JSON.stringify(result, null, 2);
+          resultWrap.style.display = "";
+          hint.textContent = "Done";
+        } catch (error) {
+          hint.textContent = "Error";
+          out.value = String(error?.message || error);
+          resultWrap.style.display = "";
+        } finally {
+          btn.disabled = false;
+        }
+      };
     </script>
   </body>
 </html>

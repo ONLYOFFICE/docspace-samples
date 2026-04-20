@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Search users
 
 This example demonstrates how to search for users in ONLYOFFICE DocSpace by a text query,
@@ -26,7 +26,8 @@ def search_users(query, filter_by=None, filter_value=None):
   response = requests.get(
     f'{API_HOST}/api/2.0/people/@search/{query}',
     headers=HEADERS,
-    params=params
+    params=params,
+    timeout=30,
   )
 
   if response.status_code == 200:

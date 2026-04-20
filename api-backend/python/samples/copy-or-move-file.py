@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Copy or move a file to a folder
 
 This example demonstrates how to copy or move a file in ONLYOFFICE DocSpace.
@@ -31,7 +31,7 @@ def copy_file_to_folder(file_id: int, dest_folder_id: int):
     "toFillOut": False
   }
 
-  response = requests.put(url, json=payload, headers=HEADERS)
+  response = requests.put(url, json=payload, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f"File {file_id} copied to folder {dest_folder_id}")
   else:
@@ -49,7 +49,7 @@ def move_file_to_folder(file_id: int, dest_folder_id: int):
     "toFillOut": False
   }
 
-  response = requests.put(url, json=payload, headers=HEADERS)
+  response = requests.put(url, json=payload, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f"File {file_id} moved to folder {dest_folder_id}")
   else:

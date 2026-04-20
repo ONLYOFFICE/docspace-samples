@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Search users by status
 
 This example demonstrates how to search for users in ONLYOFFICE DocSpace based on their status (e.g., active, pending, disabled) using the API.
@@ -13,6 +13,12 @@ const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 
 const HEADERS = { Authorization: API_KEY };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Search users by status with optional filters
 async function searchUsersByStatus({ status = 'active', query = null, filterBy = null, filterValue = null } = {}) {
@@ -23,7 +29,7 @@ async function searchUsersByStatus({ status = 'active', query = null, filterBy =
 
   const url = `${API_HOST}/api/2.0/people/status/${encodeURIComponent(status)}/search${params.toString() ? `?${params.toString()}` : ''}`;
 
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
     const text = await res.text();
     console.log(`User search by status failed. Status code: ${res.status}, Message: ${text}`);

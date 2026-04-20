@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get backup history
 
 This example demonstrates how to retrieve the list of existing backups in ONLYOFFICE DocSpace using the API.
@@ -26,7 +26,8 @@ def get_backup_history():
   response = requests.get(
     f'{API_HOST}/api/2.0/backup/getbackuphistory',
     headers=HEADERS,
-    params=params
+    params=params,
+    timeout=30,
   )
 
   # Handle and display response

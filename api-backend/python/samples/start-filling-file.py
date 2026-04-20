@@ -23,7 +23,7 @@ HEADERS = {
 
 def start_filling(file_id):
     url = f'{API_HOST}/api/2.0/files/file/{file_id}/startfilling'
-    response = requests.put(url, headers=HEADERS)
+    response = requests.put(url, headers=HEADERS, timeout=30)
     if response.status_code == 200:
         return response.json()
 

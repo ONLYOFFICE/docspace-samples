@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get the restoring progress
 
 This example demonstrates how to retrieve the progress of an ongoing portal restoration process in ONLYOFFICE DocSpace using the API.
@@ -15,6 +15,12 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 function getRestoreProgress(dump) {
   // Optional query parameter: whether the restore includes a DB dump
@@ -22,11 +28,11 @@ function getRestoreProgress(dump) {
   const url = `${API_HOST}/api/2.0/backup/getrestoreprogress?${params.toString()}`;
 
   // Send GET request to check restore progress
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Restore progress retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Restore progress retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

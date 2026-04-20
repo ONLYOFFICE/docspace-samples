@@ -15,14 +15,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Authorization" />
-    <meta name="example-description" content="Log in to DocSpace using email + password (hashed via SDK)." />
+    <meta name="example-title" content="Log In to DocSpace" />
+    <meta name="example-description" content="Enter your DocSpace email and password to authenticate. The SDK handles password hashing — no manual hash computation needed." />
     <meta name="example-group" content="advanced" />
-    <title>Authorization</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Log In to DocSpace</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -42,7 +42,7 @@ Using methods:
           <input id="passwordInput" type="password" placeholder="••••••••" />
         </div>
         <div class="actions">
-          <button class="btn" id="btn" type="button">Login</button>
+          <button class="btn" id="btn" type="button" disabled>Login</button>
           <span class="status" id="status">Waiting…</span>
         </div>
         <div class="field">
@@ -56,14 +56,56 @@ Using methods:
 
     <script>
       const btn = document.getElementById("btn");
+      const loginInput = document.getElementById("loginInput");
+      const passwordInput = document.getElementById("passwordInput");
       const status = document.getElementById("status");
       const out = document.getElementById("out");
 
-      function setOut(v) {
+      function updateButtonState() {
+        const ok = loginInput.value.trim() && passwordInput.value;
+        btn.disabled = !ok;
+        if (ok) status.textContent = "Ready";
+      }
+
+      function applySession(session) {
+        if (!session) return;
+        if (session?.user?.email && !loginInput.value) loginInput.value = String(session.user.email);
+        if (session?.user?.password && !passwordInput.value) passwordInput.value = String(session.user.password);
+      }
+
+      async function loadSessionFallback() {
+        if (loginInput.value && passwordInput.value) return;
         try {
-          out.value = typeof v === "string" ? v : JSON.stringify(v, null, 2);
+          const r = await fetch("/api/demo/status", { credentials: "same-origin" });
+          const data = r.ok ? await r.json() : null;
+          if (data?.active && data?.ready) {
+            applySession(data?.session || null);
+            updateButtonState();
+            return;
+          }
+          const started = await fetch("/api/demo/start", { method: "POST", credentials: "same-origin" });
+          if (!started.ok) return;
+          const startData = await started.json();
+          applySession(startData?.session || null);
+          updateButtonState();
+        } catch {}
+      }
+
+      // Auto-fill from demo session if available
+      (async function () {
+        applySession(window.__demoConfig?.session || null);
+        updateButtonState();
+        await loadSessionFallback();
+      })();
+
+      loginInput.addEventListener("input", updateButtonState);
+      passwordInput.addEventListener("input", updateButtonState);
+
+      function setOut(text) {
+        try {
+          out.value = typeof text === "string" ? text : JSON.stringify(text, null, 2);
         } catch {
-          out.value = String(v);
+          out.value = String(text);
         }
       }
 
@@ -72,19 +114,19 @@ Using methods:
         theme: "base",
         events: {
           onAppReady: () => {
-            status.textContent = "Ready";
+            updateButtonState();
           },
           onAppError: (e) => {
             status.className = "status err";
             status.textContent = "SDK error";
-            setOut(e?.message || String(e));
+            setOut(error?.message || String(error));
           },
         },
       });
 
       btn.onclick = async () => {
-        const login = document.getElementById("loginInput").value.trim();
-        const password = document.getElementById("passwordInput").value;
+        const login = loginInput.value.trim();
+        const password = passwordInput.value;
 
         if (!login || !password) return;
 
@@ -94,18 +136,18 @@ Using methods:
         setOut("");
 
         try {
-          const hs = await system.getHashSettings();
-          const ph = await system.createHash(password, hs);
-          const res = await system.login(login, ph);
+          const hashSettings = await system.getHashSettings();
+          const passwordHash = await system.createHash(password, hashSettings);
+          const loginToken = await system.login(login, passwordHash);
           status.className = "status ok";
           status.textContent = "Done";
-          setOut(res || { ok: true });
-        } catch (e) {
+          setOut(loginToken || { ok: true });
+        } catch (error) {
           status.className = "status err";
           status.textContent = "Error";
-          setOut(e?.message || String(e));
+          setOut(error?.message || String(error));
         } finally {
-          btn.disabled = false;
+          updateButtonState();
         }
       };
     </script>

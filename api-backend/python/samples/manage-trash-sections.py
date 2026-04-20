@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage the Trash section
 
 This example demonstrates how to retrieve, restore, and empty the contents of the Trash section in ONLYOFFICE DocSpace using the API.
@@ -25,7 +25,7 @@ HEADERS = {
 # Step 1: Get contents of the Trash section
 def get_trash_section():
   url = f'{API_HOST}/api/2.0/files/@trash'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     return response.json()
@@ -36,7 +36,7 @@ def get_trash_section():
 # Step 2: Empty the Trash section
 def empty_trash():
   url = f'{API_HOST}/api/2.0/files/fileops/emptytrash'
-  response = requests.put(url, headers=HEADERS)
+  response = requests.put(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     return True
@@ -54,7 +54,7 @@ def restore_file(file_id, dest_folder_id):
     'content': True
   }
 
-  response = requests.put(url, headers=HEADERS, data=json.dumps(data))
+  response = requests.put(url, headers=HEADERS, data=json.dumps(data), timeout=30)
 
   if response.status_code == 200:
     print(f'File {file_id} restored to folder {dest_folder_id}.')

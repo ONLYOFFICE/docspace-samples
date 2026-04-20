@@ -1,0 +1,310 @@
+<!--
+Example: Room with member management
+
+Create a collaboration room and manage its members entirely from JavaScript:
+add members by email with a chosen access level, list the current roster,
+and remove members by ID.
+
+Member API calls go directly to the DocSpace portal (CORS + cookie auth).
+The page must be loaded while the user is already signed in to DocSpace.
+
+Using methods:
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.createRoom (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createroom)
+- PUT /api/2.0/files/rooms/{roomId}/share (https://api.onlyoffice.com/docspace/api-backend/usage-api/share-room/)
+- GET /api/2.0/files/rooms/{roomId}/share (https://api.onlyoffice.com/docspace/api-backend/usage-api/get-room-security-info/)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+    <meta name="example-title" content="Room Member Management" />
+    <meta name="example-description" content="Create a room, invite members by email with a chosen access level, see the current member list, and remove members — all from the same page." />
+    <meta name="example-group" content="advanced" />
+    <title>Room Member Management</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+    <script>
+      (function () {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+
+  <body class="ex-room-member-mgmt">
+    <div class="result-split">
+
+      <!-- Left: manager frame -->
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="manager-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <span class="status" id="managerStatus">Initializing…</span>
+        </div>
+      </div>
+
+      <!-- Right: control panel -->
+      <div class="result-split__panel card" style="flex:0 0 340px;min-height:520px">
+
+        <!-- Create room -->
+        <div class="field" style="flex:0 0 auto">
+          <label for="roomTitle">Room title</label>
+          <input id="roomTitle" type="text" placeholder="New collaboration room" />
+        </div>
+        <div class="actions" style="flex:0 0 auto;margin-top:12px">
+          <button id="createRoomBtn" class="btn" type="button" disabled>Create room</button>
+          <span id="createStatus" class="status">Preparing SDK…</span>
+        </div>
+
+        <!-- Invite section (revealed after room is created) -->
+        <div id="inviteSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb">
+          <div class="field" style="flex:0 0 auto">
+            <label for="memberEmail">Member email</label>
+            <input id="memberEmail" type="email" placeholder="user@example.com" />
+          </div>
+          <div class="field" style="flex:0 0 auto;margin-top:8px">
+            <label for="accessLevel">Access level</label>
+            <select id="accessLevel">
+              <option value="Read">Viewer</option>
+              <option value="Comment">Commenter</option>
+              <option value="Review">Reviewer</option>
+              <option value="FillForms" selected>Form filler</option>
+              <option value="ReadWrite">Editor</option>
+              <option value="RoomManager">Room manager</option>
+            </select>
+          </div>
+          <div class="actions" style="margin-top:12px">
+            <button id="inviteBtn" class="btn" type="button">Invite</button>
+            <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
+            <span id="inviteStatus" class="status"></span>
+          </div>
+        </div>
+
+        <!-- Members list (revealed after room is created) -->
+        <div id="membersSection" style="display:none;flex:1;flex-direction:column;margin-top:12px;min-height:0">
+          <label style="flex:0 0 auto;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Members</label>
+          <div id="membersList" class="ex-room-member-mgmt__members"
+            style="flex:1;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px;min-height:0">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const PORTAL = String(document.querySelector("base")?.href || "").replace(/\/+$/, "");
+
+      const createRoomBtn  = document.getElementById("createRoomBtn");
+      const createStatus   = document.getElementById("createStatus");
+      const inviteSection  = document.getElementById("inviteSection");
+      const inviteBtn      = document.getElementById("inviteBtn");
+      const refreshBtn     = document.getElementById("refreshBtn");
+      const inviteStatus   = document.getElementById("inviteStatus");
+      const membersSection = document.getElementById("membersSection");
+      const membersList    = document.getElementById("membersList");
+      const memberEmailEl  = document.getElementById("memberEmail");
+      const accessLevelEl  = document.getElementById("accessLevel");
+      const managerStatus  = document.getElementById("managerStatus");
+
+      let currentRoomId = null;
+
+      // ── Manager init ──────────────────────────────────────────────
+
+      const manager = DocSpace.SDK.initManager({
+        frameId: "manager-frame",
+        width: "700px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            createRoomBtn.disabled = false;
+            createStatus.textContent = "Ready";
+            managerStatus.textContent = "Manager ready";
+          },
+          onAppError: () => {
+            managerStatus.textContent = "Manager error";
+            createStatus.textContent = "SDK error";
+          }
+        }
+      });
+
+      // ── Portal API helpers ────────────────────────────────────────
+
+      async function portalRequest(path, { method = "GET", body } = {}) {
+        const res = await fetch(`${PORTAL}${path}`, {
+          method,
+          credentials: "include",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: body !== undefined ? JSON.stringify(body) : undefined
+        });
+        const json = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(json?.error?.message || json?.message || `HTTP ${res.status}`);
+        return json?.response ?? json;
+      }
+
+      async function inviteMember(roomId, email, access) {
+        return portalRequest(`/api/2.0/files/rooms/${encodeURIComponent(roomId)}/share`, {
+          method: "PUT",
+          body: { invitations: [{ email, access }], notify: true }
+        });
+      }
+
+      async function fetchMembers(roomId) {
+        return portalRequest(`/api/2.0/files/rooms/${encodeURIComponent(roomId)}/share`);
+      }
+
+      async function removeMember(roomId, userId) {
+        return portalRequest(`/api/2.0/files/rooms/${encodeURIComponent(roomId)}/share`, {
+          method: "PUT",
+          body: { invitations: [{ id: userId, access: "None" }], notify: false }
+        });
+      }
+
+      // ── Member list rendering ─────────────────────────────────────
+
+      const ACCESS_LABELS = {
+        None: "No access", Deny: "Denied", Read: "Viewer", Comment: "Commenter",
+        Review: "Reviewer", FillForms: "Form filler", ReadWrite: "Editor",
+        ContentCreator: "Content creator", RoomManager: "Room manager", Owner: "Owner"
+      };
+
+      function escHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function renderMembersMessage(text, color) {
+        membersList.textContent = "";
+        const msg = document.createElement("span");
+        msg.style.color = color || "#6b7280";
+        msg.style.fontSize = "13px";
+        msg.textContent = text;
+        membersList.appendChild(msg);
+      }
+
+      function renderMembers(data) {
+        const items = Array.isArray(data) ? data
+          : Array.isArray(data?.members) ? data.members
+          : Array.isArray(data?.items)   ? data.items
+          : [];
+
+        if (!items.length) {
+          renderMembersMessage("No members found.");
+          return;
+        }
+
+        membersList.innerHTML = items.map((entry) => {
+          const user        = entry?.user || entry?.sharedTo || entry || {};
+          const userId      = String(user?.id || "");
+          const name        = String(user?.displayName || user?.name || user?.email || userId || "Unknown");
+          const email       = String(user?.email || "");
+          const accessCode  = String(entry?.access ?? entry?.accessType ?? "");
+          const accessLabel = ACCESS_LABELS[accessCode] || accessCode || "—";
+          const isOwner     = accessCode === "Owner" || entry?.isOwner;
+
+          return `
+            <div class="ex-room-member-mgmt__member">
+              <div class="ex-room-member-mgmt__member-info">
+                <span class="ex-room-member-mgmt__member-name">${escHtml(name)}</span>
+                ${email ? `<span class="ex-room-member-mgmt__member-email">${escHtml(email)}</span>` : ""}
+              </div>
+              <div class="ex-room-member-mgmt__member-meta">
+                <span class="ex-room-member-mgmt__badge">${escHtml(accessLabel)}</span>
+                ${!isOwner && userId
+                  ? `<button class="ex-room-member-mgmt__remove" data-user-id="${escHtml(userId)}" title="Remove member">✕</button>`
+                  : ""}
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      membersList.addEventListener("click", async (e) => {
+        const btn = e.target.closest("[data-user-id]");
+        if (!btn || !currentRoomId) return;
+        const userId = btn.dataset.userId;
+        btn.disabled = true;
+        try {
+          await removeMember(currentRoomId, userId);
+          await loadMembers();
+        } catch (err) {
+          inviteStatus.textContent = "Remove failed: " + (err.message || String(err));
+          btn.disabled = false;
+        }
+      });
+
+      async function loadMembers() {
+        if (!currentRoomId) return;
+        try {
+          const data = await fetchMembers(currentRoomId);
+          renderMembers(data);
+        } catch (err) {
+          renderMembersMessage("Failed: " + (err.message || String(err)), "#dc2626");
+        }
+      }
+
+      // ── Create room ───────────────────────────────────────────────
+
+      createRoomBtn.addEventListener("click", async () => {
+        const title = document.getElementById("roomTitle").value.trim();
+        if (!title) return;
+
+        createRoomBtn.disabled = true;
+        createStatus.textContent = "Creating…";
+
+        try {
+          const room = await manager.createRoom(title, 2);
+          currentRoomId = String(room?.id || "").trim();
+          if (!currentRoomId) throw new Error("Room ID not returned");
+
+          manager.setConfig({
+            rootPath: "/rooms/shared/" + currentRoomId,
+            filter: { folder: currentRoomId },
+            showHeader: false
+          });
+
+          managerStatus.textContent = `Room created (ID: ${currentRoomId})`;
+          createStatus.textContent = "Done";
+
+          inviteSection.style.display = "";
+          membersSection.style.cssText = "display:flex;flex:1;flex-direction:column;margin-top:12px;min-height:0";
+
+          await loadMembers();
+        } catch (err) {
+          createStatus.textContent = "Error: " + (err.message || String(err));
+        } finally {
+          createRoomBtn.disabled = false;
+        }
+      });
+
+      // ── Invite member ─────────────────────────────────────────────
+
+      inviteBtn.addEventListener("click", async () => {
+        const email  = memberEmailEl.value.trim();
+        const access = accessLevelEl.value;
+        if (!email || !currentRoomId) return;
+
+        inviteBtn.disabled = true;
+        inviteStatus.textContent = "Inviting…";
+
+        try {
+          await inviteMember(currentRoomId, email, access);
+          memberEmailEl.value = "";
+          inviteStatus.textContent = "Invited.";
+          await loadMembers();
+        } catch (err) {
+          inviteStatus.textContent = "Error: " + (err.message || String(err));
+        } finally {
+          inviteBtn.disabled = false;
+        }
+      });
+
+      refreshBtn.addEventListener("click", () => loadMembers());
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Invite users
 
 This example automates the process of creating new users and sending them invitations in ONLYOFFICE DocSpace.
@@ -21,6 +21,12 @@ const HEADERS = {
 };
 
 // Step 1: Create users with emails and return user data
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function createUsers(users) {
   const url = `${API_HOST}/api/2.0/people`;
 
@@ -31,11 +37,11 @@ function createUsers(users) {
       email: user.email,
     };
 
-    return fetch(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) })
+    return fetchWithTimeout(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) })
       .then((res) => {
         if (res.status === 200) return res.json();
-        return res.text().then((t) => {
-          console.log(`User creation failed for ${user.email}. Status code: ${res.status}, Message: ${t}`);
+        return res.text().then((text) => {
+          console.log(`User creation failed for ${user.email}. Status code: ${res.status}, Message: ${text}`);
           return null;
         });
       })
@@ -61,13 +67,13 @@ function sendInvitations(users) {
     invitations: users.map((user) => ({ email: user.email, type: 'All' })),
   };
 
-  return fetch(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) })
+  return fetchWithTimeout(url, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) })
     .then((res) => {
       if (res.status === 200) {
         console.log('Invitations sent successfully to users.');
       } else {
-        return res.text().then((t) => {
-          console.log(`Invitations send failed. Status code: ${res.status}, Message: ${t}`);
+        return res.text().then((text) => {
+          console.log(`Invitations send failed. Status code: ${res.status}, Message: ${text}`);
         });
       }
     })

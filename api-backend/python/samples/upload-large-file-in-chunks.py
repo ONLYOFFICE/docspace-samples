@@ -42,7 +42,7 @@ def create_upload_session(folder_id, file_name, file_size):
         'folderId': folder_id,
     }
 
-    response = requests.post(url, json=body, headers=JSON_HEADERS)
+    response = requests.post(url, json=body, headers=JSON_HEADERS, timeout=30)
 
     if response.status_code == 200:
         return response.json()
@@ -66,7 +66,8 @@ def upload_chunks(location, file_path, file_name):
             response = requests.post(
                 location,
                 files=files,
-                headers=AUTH_HEADERS
+                headers=AUTH_HEADERS,
+                timeout=30,
             )
 
             if response.status_code not in (200, 201):

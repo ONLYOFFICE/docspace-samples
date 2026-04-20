@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get a group with members
 
 This example demonstrates how to retrieve a group by ID in ONLYOFFICE DocSpace and include its members in the response.
@@ -18,15 +18,21 @@ const headers = {
 };
 
 // Step 1: Get group by ID with members included
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function getGroupWithMembers(groupId) {
   const params = new URLSearchParams({ includeMembers: 'True' });
   const url = `${API_HOST}/api/2.0/group/${groupId}?${params.toString()}`;
 
-  return fetch(url, { method: 'GET', headers })
+  return fetchWithTimeout(url, { method: 'GET', headers })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Group retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Group retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

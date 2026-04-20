@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Delete the backup history
 
 This example demonstrates how to delete the entire backup history in ONLYOFFICE DocSpace using the API.
@@ -15,13 +15,19 @@ const API_KEY = 'your_api_key';
 const HEADERS = {
   Authorization: API_KEY,
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 async function deleteBackupHistory(dump) {
   const params = new URLSearchParams({ Dump: String(dump).toLowerCase() });
   const url = `${API_HOST}/api/2.0/backup/deletebackuphistory?${params.toString()}`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       method: 'DELETE',
       headers: HEADERS,
     });

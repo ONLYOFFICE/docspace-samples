@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Search users by extended filter
 
 This example demonstrates how to retrieve a list of users in ONLYOFFICE DocSpace with optional extended filter parameters such as group ID,
@@ -29,7 +29,7 @@ def filter_users(group_id=None, employee_type=None, is_admin=True, count=10):
   if is_admin is not None:
     params['isAdministrator'] = str(is_admin).lower()
 
-  response = requests.get(f'{API_HOST}/api/2.0/people/filter', headers=HEADERS, params=params)
+  response = requests.get(f'{API_HOST}/api/2.0/people/filter', headers=HEADERS, params=params, timeout=30)
 
   if response.status_code == 200:
     users = response.json().get('response', [])

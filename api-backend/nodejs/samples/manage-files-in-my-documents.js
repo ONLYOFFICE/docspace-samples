@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Manage files in "My Documents"
 
 This example demonstrates how to interact with a user's personal space ("My Documents") in ONLYOFFICE DocSpace using the API.
@@ -21,9 +21,15 @@ const HEADERS = {
 };
 
 // Step 1: Get "My Documents" contents
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function getMyDocuments() {
   const url = `${API_HOST}/api/2.0/files/@my`;
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then(async (res) => {
       if (res.status === 200) return res.json();
       const text = await res.text();
@@ -48,13 +54,13 @@ function uploadFileToMy(filePath) {
     const buffer = fs.readFileSync(filePath);
     const blob = new Blob([buffer]);
     form.append('file', blob, path.basename(filePath));
-  } catch (e) {
+  } catch (error) {
     console.error('Failed to read file:', e.message);
     return Promise.resolve(null);
   }
 
   // Do NOT set Content-Type manually; fetch will set the multipart boundary
-  return fetch(url, { method: 'POST', headers: { Authorization: HEADERS.Authorization }, body: form })
+  return fetchWithTimeout(url, { method: 'POST', headers: { Authorization: HEADERS.Authorization }, body: form })
     .then(async (res) => {
       if (res.status === 200) return res.json();
       const text = await res.text();
@@ -72,7 +78,7 @@ function createFileInMy(fileTitle) {
   const url = `${API_HOST}/api/2.0/files/@my/file`;
   const data = { title: fileTitle };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: { ...HEADERS, 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -94,7 +100,7 @@ function deleteFile(fileId, immediately = true, deleteAfter = false) {
   const url = `${API_HOST}/api/2.0/files/file/${fileId}`;
   const data = { immediately, deleteAfter };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'DELETE',
     headers: { ...HEADERS, 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -114,11 +120,11 @@ function deleteFile(fileId, immediately = true, deleteAfter = false) {
 // Run (mirrors the Python example)
 getMyDocuments();
 
-const file_path = 'example.pdf'; // Replace with actual path to the file
-uploadFileToMy(file_path);
+const filePath = 'example.pdf'; // Replace with actual path to the file
+uploadFileToMy(filePath);
 
-const file_title = 'NewDocument.docx';
-createFileInMy(file_title);
+const fileTitle = 'NewDocument.docx';
+createFileInMy(fileTitle);
 
-const file_id = '123456'; // Replace with an actual file ID
-deleteFile(file_id);
+const fileId = '123456'; // Replace with an actual file ID
+deleteFile(fileId);

@@ -13,14 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Customize Editors" />
-    <meta name="example-description" content="Customize the editor UI (toolbar, theme, features) via editorCustomization." />
+    <meta name="example-title" content="Customize Editor UI" />
+    <meta name="example-description" content="Configure which toolbar buttons are shown, choose a color theme, and toggle editor features like comments, chat, and feedback." />
     <meta name="example-group" content="advanced" />
-    <title>Customize Editors</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Customize Editor UI</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -29,23 +29,74 @@ Using methods:
   </head>
 
   <body class="ex-customize-editors">
-    <div class="top-bar">
-      <div class="field">
-        <label for="fileId">File ID</label>
-        <input id="fileId" type="text" placeholder="File ID (e.g. 361797)" />
+    <div class="page ex-customize-editors__layout">
+      <div class="ex-customize-editors__main">
+        <div class="editor-host">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <input id="fileId" type="text" placeholder="File ID (e.g. 361797)" />
+          <button id="openBtn" class="btn" type="button" disabled>Open</button>
+          <span class="status" id="hint">Enter a file ID</span>
+        </div>
       </div>
-      <button id="openBtn" class="btn" type="button" disabled>Open</button>
-      <span class="status" id="hint">Enter a file ID</span>
-    </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+      <div class="card ex-customize-editors__side">
+        <div class="field">
+          <label for="configPreview">editorCustomization config</label>
+          <textarea id="configPreview" class="output" readonly></textarea>
+        </div>
+      </div>
     </div>
 
     <script>
       const input = document.getElementById("fileId");
       const btn = document.getElementById("openBtn");
       const hint = document.getElementById("hint");
+      const configPreview = document.getElementById("configPreview");
+
+      const customizationConfig = {
+        autosave: true,
+        comments: true,
+        compactHeader: true,
+        compactToolbar: false,
+        compatibleFeatures: false,
+        forcesave: false,
+        help: true,
+        hideRightMenu: true,
+        hideRulers: false,
+        integrationMode: "embed",
+        macros: true,
+        macrosMode: "Warn",
+        mentionShare: true,
+        mobileForceView: true,
+        plugins: true,
+        toolbarHideFileName: false,
+        toolbarNoTabs: false,
+        uiTheme: "dark",
+        unit: "cm",
+        zoom: 100
+      };
+
+      configPreview.value = JSON.stringify(customizationConfig, null, 2);
+
+      function tryPrefillFileId() {
+        if (input.value.trim()) {
+          update();
+          return true;
+        }
+
+        const demoFiles = window.__demoConfig?.session?.files;
+        if (!demoFiles) return false;
+
+        const id = demoFiles.docx || demoFiles.xlsx || demoFiles.pptx || demoFiles.pdfForm || demoFiles.pdfTemplate;
+        if (!id) return false;
+
+        input.value = String(id);
+        try { input.dispatchEvent(new Event("input", { bubbles: true })); } catch {}
+        update();
+        return true;
+      }
 
       function update() {
         const value = input.value.trim();
@@ -64,48 +115,25 @@ Using methods:
         DocSpace.SDK.initEditor({
           frameId: "ds-frame",
           id: id,
-          width: "900px",
+          width: "100%",
           height: "520px",
           theme: "base",
-          editorCustomization: {
-            autosave: true,
-            comments: true,
-            compactHeader: true,
-            compactToolbar: false,
-            compatibleFeatures: false,
-            forcesave: false,
-            help: true,
-            hideRightMenu: true,
-            hideRulers: false,
-            integrationMode: "embed",
-            macros: true,
-            macrosMode: "Warn",
-            mentionShare: true,
-            mobileForceView: true,
-            plugins: true,
-            toolbarHideFileName: false,
-            toolbarNoTabs: false,
-            uiTheme: "dark",
-            unit: "cm",
-            zoom: 100
-          },
+          editorCustomization: customizationConfig,
           events: {
             onAppReady: () => {
               hint.textContent = "Ready";
             },
             onAppError: (e) => {
-              hint.textContent = "Error";
-              alert(
-                e && (e.message || e)
-                  ? String(e.message || e)
-                  : "Failed to open file."
-              );
+              hint.textContent = "Error: " + (error?.message || "Failed to open file.");
             }
           }
         });
       };
 
       update();
+      tryPrefillFileId();
+      setTimeout(tryPrefillFileId, 0);
+      setTimeout(tryPrefillFileId, 250);
     </script>
   </body>
 </html>

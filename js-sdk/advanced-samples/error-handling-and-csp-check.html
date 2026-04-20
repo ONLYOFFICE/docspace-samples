@@ -13,17 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Error handling and CSP check" />
-    <meta
-      name="example-description"
-      content="Enable checkCSP before frame initialization and inspect onAppError, onNoAccess, and onNotFound events."
-    />
+    <meta name="example-title" content="Error Handling and CSP Check" />
+    <meta name="example-description" content="Detect Content Security Policy issues before the frame loads, and handle access denied, file not found, and general errors via SDK events." />
     <meta name="example-group" content="advanced" />
-    <title>Error handling and CSP check</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Error Handling and CSP Check</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -32,263 +29,175 @@ Using methods:
   </head>
 
   <body class="ex-error-handling-and-csp-check">
-    <div class="page">
-      <div class="card">
-        <h3 class="title">Error handling and CSP check</h3>
-        <p class="desc">
-          Toggle <code>checkCSP</code>, choose a frame mode, and inspect how the SDK reports configuration and access
-          problems before or during initialization.
-        </p>
-
-        <div class="grid">
-          <div>
-            <label for="mode">Mode</label>
-            <select id="mode">
-              <option value="manager">Manager</option>
-              <option value="viewer">Viewer</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="fileId">File ID</label>
-            <input id="fileId" type="text" placeholder="Required for viewer mode" autocomplete="off" />
-          </div>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
         </div>
-
-        <div class="options">
-          <label class="checkbox">
-            <input id="checkCsp" type="checkbox" checked />
-            <span>Enable checkCSP</span>
-          </label>
-
-          <label class="checkbox">
-            <input id="showHeader" type="checkbox" checked />
-            <span>Show manager header</span>
-          </label>
-        </div>
-
-        <div class="row">
-          <button id="initBtn" type="button" class="btn">Init frame</button>
-          <button id="destroyBtn" type="button" class="btn secondary">Destroy frame</button>
-          <button id="clearBtn" type="button" class="btn secondary">Clear log</button>
+        <div class="bottom-bar">
           <span class="status" id="status">Ready</span>
-        </div>
-
-        <div class="notice">
-          Tip: if CSP is not configured for the current domain, the SDK should report it before the frame fully loads.
-          Viewer mode is also useful for testing <code>onNotFound</code> and <code>onNoAccess</code> with invalid or
-          restricted file IDs.
-        </div>
-
-        <div class="result-grid">
-          <div class="result">
-            <div class="result-title">Initialization config</div>
-            <textarea id="configLog" readonly placeholder="The frame config used for init will appear here..."></textarea>
-          </div>
-
-          <div class="result">
-            <div class="result-title">Event log</div>
-            <textarea id="eventLog" readonly placeholder="SDK errors and lifecycle events will appear here..."></textarea>
-          </div>
         </div>
       </div>
 
-      <div class="frame-wrap">
-        <iframe id="ds-frame" class="frame" title="Error handling and CSP check frame"></iframe>
+      <div class="result-split__panel card" style="flex:0 0 460px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label for="mode">Mode</label>
+          <select id="mode">
+            <option value="manager">Manager</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+
+        <div class="field" id="fileIdField" style="flex:0 0 auto;margin-top:10px">
+          <label for="fileId">File ID</label>
+          <input id="fileId" type="text" placeholder="Required for viewer mode" autocomplete="off" />
+        </div>
+
+        <div class="actions" style="flex:0 0 auto;margin-top:12px;flex-wrap:wrap;gap:8px">
+          <label class="ex-error-csp-checkbox">
+            <input id="checkCsp" type="checkbox" checked />
+            <span>checkCSP</span>
+          </label>
+          <label class="ex-error-csp-checkbox" id="showHeaderLabel">
+            <input id="showHeader" type="checkbox" checked />
+            <span>Show header</span>
+          </label>
+        </div>
+
+        <div class="actions" style="flex:0 0 auto;margin-top:12px">
+          <button id="initBtn" type="button" class="btn">Init frame</button>
+          <button id="destroyBtn" type="button" class="btn btn--secondary">Destroy</button>
+          <button id="clearBtn" type="button" class="btn btn--secondary">Clear log</button>
+        </div>
+
+        <div class="field" style="flex:0 0 auto;margin-top:12px">
+          <label>Init config</label>
+          <textarea class="output" id="configLog" readonly style="height:100px;resize:none" placeholder="Config will appear here…"></textarea>
+        </div>
+
+        <div class="field" style="flex:1;display:flex;flex-direction:column;margin-top:10px">
+          <label>Event log</label>
+          <textarea class="output" id="eventLog" readonly style="flex:1;resize:none" placeholder="SDK events will appear here…"></textarea>
+        </div>
       </div>
     </div>
 
     <script>
-      const modeEl = document.getElementById("mode");
-      const fileIdEl = document.getElementById("fileId");
-      const checkCspEl = document.getElementById("checkCsp");
-      const showHeaderEl = document.getElementById("showHeader");
-      const initBtn = document.getElementById("initBtn");
-      const destroyBtn = document.getElementById("destroyBtn");
-      const clearBtn = document.getElementById("clearBtn");
-      const statusEl = document.getElementById("status");
-      const configLogEl = document.getElementById("configLog");
-      const eventLogEl = document.getElementById("eventLog");
+      const modeEl        = document.getElementById("mode");
+      const fileIdEl      = document.getElementById("fileId");
+      const fileIdField   = document.getElementById("fileIdField");
+      const checkCspEl    = document.getElementById("checkCsp");
+      const showHeaderEl  = document.getElementById("showHeader");
+      const showHeaderLbl = document.getElementById("showHeaderLabel");
+      const initBtn       = document.getElementById("initBtn");
+      const destroyBtn    = document.getElementById("destroyBtn");
+      const clearBtn      = document.getElementById("clearBtn");
+      const statusEl      = document.getElementById("status");
+      const configLogEl   = document.getElementById("configLog");
+      const eventLogEl    = document.getElementById("eventLog");
 
       let frameInstance = null;
-      let loadWatchdog = null;
+      let loadWatchdog  = null;
 
-      function setStatus(value) {
-        statusEl.textContent = value;
+      // Auto-fill file ID from demo session
+      (function () {
+        const demoFiles = window.__demoConfig?.session?.files;
+        if (!demoFiles) return;
+        const id = demoFiles.docx || demoFiles.xlsx || demoFiles.pptx || demoFiles.pdfForm || demoFiles.pdfTemplate;
+        if (id) fileIdEl.value = String(id);
+      })();
+
+      function syncModeUI() {
+        const isViewer = modeEl.value === "viewer";
+        fileIdField.style.display = isViewer ? "" : "none";
+        showHeaderEl.disabled = isViewer;
+        showHeaderLbl.style.opacity = isViewer ? "0.4" : "";
       }
 
-      function setConfigLog(value) {
-        try {
-          configLogEl.value = JSON.stringify(value, null, 2);
-        } catch {
-          configLogEl.value = String(value);
-        }
-      }
+      modeEl.addEventListener("change", syncModeUI);
+      syncModeUI();
+
+      function setStatus(text) { statusEl.textContent = text; }
 
       function appendEvent(name, payload) {
-        const lines = ["[" + new Date().toLocaleTimeString() + "] " + name];
-
+        const time = new Date().toLocaleTimeString();
+        let line = `[${time}] ${name}`;
         if (payload !== undefined) {
-          try {
-            lines.push(JSON.stringify(payload, null, 2));
-          } catch {
-            lines.push(String(payload));
-          }
+          try { line += "\n" + JSON.stringify(payload, null, 2); } catch { line += "\n" + String(payload); }
         }
-
-        eventLogEl.value = lines.join("\n") + "\n\n" + eventLogEl.value;
+        eventLogEl.value = line + "\n\n" + eventLogEl.value;
       }
 
-      function destroyFrame() {
-        if (frameInstance && typeof frameInstance.destroyFrame === "function") {
-          try {
-            frameInstance.destroyFrame();
-          } catch {}
-        }
-
-        frameInstance = null;
-        if (loadWatchdog) {
-          clearTimeout(loadWatchdog);
-          loadWatchdog = null;
-        }
-        setStatus("Destroyed");
-      }
-
-      function startLoadWatchdog() {
-        if (loadWatchdog) clearTimeout(loadWatchdog);
-
-        loadWatchdog = setTimeout(() => {
-          appendEvent("frameLoadTimeout", {
-            message:
-              "The frame did not finish loading. Check the browser console for CSP or frame-ancestors errors."
-          });
-          setStatus("Frame may be blocked by CSP");
-          loadWatchdog = null;
-        }, 3000);
-      }
-
-      function stopLoadWatchdog() {
+      function stopWatchdog() {
         if (!loadWatchdog) return;
         clearTimeout(loadWatchdog);
         loadWatchdog = null;
       }
 
-      function buildCommonConfig() {
-        return {
-          frameId: "ds-frame",
-          width: "100%",
-          height: "600px",
-          theme: "base",
-          checkCSP: checkCspEl.checked,
-          events: {
-            onAppReady: (event) => {
-              stopLoadWatchdog();
-              setStatus("App ready");
-              appendEvent("onAppReady", event || null);
-            },
-            onContentReady: (event) => {
-              stopLoadWatchdog();
-              setStatus("Content loaded");
-              appendEvent("onContentReady", event || null);
-            },
-            onNoAccess: (event) => {
-              stopLoadWatchdog();
-              setStatus("No access");
-              appendEvent("onNoAccess", event || null);
-            },
-            onNotFound: (event) => {
-              stopLoadWatchdog();
-              setStatus("Not found");
-              appendEvent("onNotFound", event || null);
-            },
-            onAppError: (event) => {
-              stopLoadWatchdog();
-              setStatus("App error");
-              appendEvent("onAppError", event || null);
-            }
-          }
-        };
+      function destroyFrame() {
+        stopWatchdog();
+        if (frameInstance && typeof frameInstance.destroyFrame === "function") {
+          try { frameInstance.destroyFrame(); } catch {}
+        }
+        frameInstance = null;
+        setStatus("Destroyed");
       }
 
       function initFrame() {
-        const mode = modeEl.value;
-        const fileId = String(fileIdEl.value || "").trim();
-        const commonConfig = buildCommonConfig();
+        const mode   = modeEl.value;
+        const fileId = fileIdEl.value.trim();
 
         destroyFrame();
-        setStatus("Initializing...");
+        setStatus("Initializing…");
 
-        const safeConfigLog = {
-          ...commonConfig,
-          events: [
-            "onAppReady",
-            "onContentReady",
-            "onNoAccess",
-            "onNotFound",
-            "onAppError"
-          ]
+        const events = {
+          onAppReady:     (e) => { stopWatchdog(); setStatus("App ready");      appendEvent("onAppReady",     e ?? null); },
+          onContentReady: (e) => { stopWatchdog(); setStatus("Content loaded"); appendEvent("onContentReady", e ?? null); },
+          onNoAccess:     (e) => { stopWatchdog(); setStatus("No access");      appendEvent("onNoAccess",     e ?? null); },
+          onNotFound:     (e) => { stopWatchdog(); setStatus("Not found");      appendEvent("onNotFound",     e ?? null); },
+          onAppError:     (e) => { stopWatchdog(); setStatus("App error");      appendEvent("onAppError",     e ?? null); },
         };
+
+        const base = { frameId: "ds-frame", width: "700px", height: "520px", theme: "base", checkCSP: checkCspEl.checked, events };
 
         if (mode === "viewer") {
           if (!fileId) {
             setStatus("File ID required");
-            appendEvent("validation", { error: "Provide file ID for viewer mode." });
+            appendEvent("validation", { error: "Provide a file ID for viewer mode." });
             return;
           }
-
-          const viewerConfig = {
-            ...commonConfig,
-            id: fileId,
-            showHeader: false,
-            showTitle: true
-          };
-
-          setConfigLog({
-            ...safeConfigLog,
-            id: fileId,
-            showHeader: false,
-            showTitle: true
-          });
-
-          startLoadWatchdog();
-          frameInstance = DocSpace.SDK.initViewer(viewerConfig);
-          appendEvent("initViewer", { id: fileId, checkCSP: commonConfig.checkCSP });
-          return;
+          const config = { ...base, id: fileId, showHeader: false, showTitle: true };
+          configLogEl.value = JSON.stringify({ ...config, events: Object.keys(events) }, null, 2);
+          loadWatchdog = setTimeout(() => {
+            appendEvent("frameLoadTimeout", { message: "Frame did not load — possible CSP block. Check browser console." });
+            setStatus("Possibly blocked by CSP");
+            loadWatchdog = null;
+          }, 3000);
+          frameInstance = DocSpace.SDK.initViewer(config);
+          appendEvent("initViewer", { id: fileId, checkCSP: base.checkCSP });
+        } else {
+          const config = { ...base, showHeader: showHeaderEl.checked, showMenu: true };
+          configLogEl.value = JSON.stringify({ ...config, events: Object.keys(events) }, null, 2);
+          loadWatchdog = setTimeout(() => {
+            appendEvent("frameLoadTimeout", { message: "Frame did not load — possible CSP block. Check browser console." });
+            setStatus("Possibly blocked by CSP");
+            loadWatchdog = null;
+          }, 3000);
+          frameInstance = DocSpace.SDK.initManager(config);
+          appendEvent("initManager", { checkCSP: base.checkCSP, showHeader: config.showHeader });
         }
-
-        const managerConfig = {
-          ...commonConfig,
-          showHeader: showHeaderEl.checked,
-          showMenu: true
-        };
-
-        setConfigLog({
-          ...safeConfigLog,
-          showHeader: showHeaderEl.checked,
-          showMenu: true
-        });
-
-        startLoadWatchdog();
-        frameInstance = DocSpace.SDK.initManager(managerConfig);
-        appendEvent("initManager", { checkCSP: commonConfig.checkCSP, showHeader: showHeaderEl.checked });
       }
 
       initBtn.addEventListener("click", initFrame);
       destroyBtn.addEventListener("click", destroyFrame);
       clearBtn.addEventListener("click", () => {
         configLogEl.value = "";
-        eventLogEl.value = "";
+        eventLogEl.value  = "";
         setStatus("Ready");
       });
 
-      function syncModeOptions() {
-        const isViewer = modeEl.value === "viewer";
-        showHeaderEl.disabled = isViewer;
-        showHeaderEl.closest("label").style.opacity = isViewer ? "0.4" : "";
-      }
-
-      modeEl.addEventListener("change", syncModeOptions);
-      syncModeOptions();
+      // Auto-init on load
+      initFrame();
     </script>
   </body>
 </html>

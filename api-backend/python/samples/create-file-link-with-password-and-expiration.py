@@ -58,7 +58,7 @@ def set_external_link(file_id, password, expires_at):
         },
     }
 
-    response = requests.put(url, json=body, headers=HEADERS)
+    response = requests.put(url, json=body, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return unwrap_response(response.json())
@@ -77,10 +77,12 @@ if __name__ == "__main__":
 
         if result:
             link_data = pick_share_link(result)
+            token = link_data['requestToken'] or ''
+            masked_token = f"{token[:6]}..." if token else "(none)"
             print('External link created or updated successfully.')
             print(f"Share link: {link_data['shareLink']}")
-            print(f"Request token: {link_data['requestToken']}")
+            print(f"Request token: {masked_token}")
             print(f"Expiration date: {link_data['expirationDate']}")
-            print(f"Password: {link_data['password']}")
+            # Password is not logged to avoid leaking it into CI logs or shell history.
     except Exception as err:
         print(err)

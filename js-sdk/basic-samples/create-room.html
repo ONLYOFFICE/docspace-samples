@@ -1,7 +1,7 @@
 <!--
 Example: Create room
 
-This example demonstrates how to create a new shared room.
+Create a room by specifying its title, type, and optional tags.
 
 Using methods:
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
@@ -13,17 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Create room" />
-    <meta
-      name="example-description"
-      content="Create a room with parameters using the DocSpace JavaScript SDK, then show the created room details."
-    />
+    <meta name="example-title" content="Create Room" />
+    <meta name="example-description" content="Enter a title, choose a room type, add optional tags, and create a new DocSpace room." />
     <meta name="example-group" content="basic" />
     <title>Create Room</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -32,9 +29,13 @@ Using methods:
   </head>
 
   <body class="ex-create-room">
-    <iframe id="ds-manager-frame" class="hidden-frame"></iframe>
+    <!-- Hidden manager frame for executing SDK methods -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-manager-frame"></div>
+    </div>
 
-    <div class="page">
+    <!-- Step 1: form -->
+    <div id="formWrap" class="page">
       <div class="card">
         <div class="field">
           <label for="title">Room title</label>
@@ -54,73 +55,31 @@ Using methods:
         </div>
 
         <div class="field">
-          <label for="color">Color (hex, optional)</label>
-          <input id="color" type="text" placeholder="#5CC3F7" />
-        </div>
-
-        <div class="field">
-          <label for="cover">Cover (optional)</label>
-          <input id="cover" type="text" placeholder="Cover ID" />
-        </div>
-
-        <div class="field">
-          <label for="quota">Quota (optional)</label>
-          <input id="quota" type="text" placeholder="e.g. 1073741824" />
-        </div>
-
-        <div class="field">
-          <label for="tags">Tags (comma-separated, optional)</label>
+          <label for="tags">Tags <span style="font-weight:400;color:#9ca3af">(comma-separated, optional)</span></label>
           <input id="tags" type="text" placeholder="marketing, q1-2026" />
-        </div>
-
-        <div class="field">
-          <label for="indexing">Indexing (VDR only, optional)</label>
-          <select id="indexing">
-            <option value="">Default</option>
-            <option value="true">Enabled</option>
-            <option value="false">Disabled</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="denyDownload">Deny download (VDR only, optional)</label>
-          <select id="denyDownload">
-            <option value="">Default</option>
-            <option value="true">Enabled</option>
-            <option value="false">Disabled</option>
-          </select>
         </div>
 
         <div class="actions">
           <button class="btn" id="createBtn" type="button" disabled>Create Room</button>
-          <button class="btn secondary" id="clearBtn" type="button">Clear output</button>
           <span class="status" id="status">Preparing SDK…</span>
         </div>
+      </div>
+    </div>
 
-        <div id="result" style="display:none;">
-          <div class="field">
-            <label>Created room</label>
-            <div id="kv"></div>
-          </div>
-        </div>
+    <!-- Step 2: manager showing the new room -->
+    <div id="managerWrap" style="display:none">
+      <div class="frame-wrap">
+        <iframe id="room-frame"></iframe>
+      </div>
+      <div class="bottom-bar">
+        <button class="btn secondary" onclick="showForm()">← Create another</button>
+        <span class="status" id="managerStatus">Opening room…</span>
       </div>
     </div>
 
     <script>
       const createBtn = document.getElementById("createBtn");
-      const clearBtn = document.getElementById("clearBtn");
-      const status = document.getElementById("status");
-      const result = document.getElementById("result");
-      const kv = document.getElementById("kv");
-
-      const titleEl = document.getElementById("title");
-      const typeEl = document.getElementById("type");
-      const quotaEl = document.getElementById("quota");
-      const tagsEl = document.getElementById("tags");
-      const colorEl = document.getElementById("color");
-      const coverEl = document.getElementById("cover");
-      const indexingEl = document.getElementById("indexing");
-      const denyEl = document.getElementById("denyDownload");
+      const status    = document.getElementById("status");
 
       let sdkReady = false;
 
@@ -136,123 +95,62 @@ Using methods:
             status.textContent = "SDK ready.";
           },
           onAppError: () => {
-            status.textContent = "SDK error. Please check portal URL / access.";
+            status.textContent = "SDK error — check portal URL";
           }
         }
       });
 
-      function parseOptionalNumber(v) {
-        const s = (v || "").trim();
-        if (!s) return undefined;
-        const n = Number(s);
-        return Number.isFinite(n) ? n : undefined;
+      function parseTags(input) {
+        return (input || "").trim().split(",").map(x => x.trim()).filter(Boolean);
       }
 
-      function parseOptionalBool(v) {
-        if (v === "true") return true;
-        if (v === "false") return false;
-        return undefined;
-      }
-
-      function parseTags(v) {
-        const s = (v || "").trim();
-        if (!s) return undefined;
-        const list = s
-          .split(",")
-          .map(x => x.trim())
-          .filter(Boolean);
-        return list.length ? list : undefined;
-      }
-
-      function renderCreatedRoom(room) {
-        kv.innerHTML = "";
-
-        const id = room?.id ?? room?.roomId ?? "";
-        const title = room?.title ?? room?.name ?? "";
-        const type = room?.roomType ?? "";
-        const url = room?.url ?? room?.link ?? "";
-
-        const rows = [
-          ["ID", String(id || "")],
-          ["Title", String(title || "")],
-          ["Type", String(type || "")],
-        ];
-
-        for (const [k, v] of rows) {
-          const kEl = document.createElement("div");
-          kEl.className = "muted";
-          kEl.textContent = k;
-
-          const vEl = document.createElement("div");
-          vEl.textContent = v;
-
-          kv.appendChild(kEl);
-          kv.appendChild(vEl);
-        }
-
-        if (url) {
-          const kEl = document.createElement("div");
-          kEl.className = "muted";
-          kEl.textContent = "URL";
-
-          const vEl = document.createElement("div");
-          const a = document.createElement("a");
-          a.href = url;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          a.textContent = "Open room";
-          vEl.appendChild(a);
-
-          kv.appendChild(kEl);
-          kv.appendChild(vEl);
-        }
-
-        result.style.display = "block";
+      function showForm() {
+        document.getElementById("managerWrap").style.display = "none";
+        document.getElementById("formWrap").style.display   = "";
+        document.getElementById("title").value = "New Room";
+        createBtn.disabled = !sdkReady;
+        status.textContent = sdkReady ? "SDK ready." : "Preparing SDK…";
       }
 
       createBtn.onclick = async () => {
-        if (!sdkReady) return;
-
-        const title = (titleEl.value || "").trim();
-        const roomType = Number(typeEl.value);
-
-        if (!title) return;
-
-        const quota = parseOptionalNumber(quotaEl.value);
-        const tags = parseTags(tagsEl.value);
-        const color = (colorEl.value || "").trim() || undefined;
-        const cover = (coverEl.value || "").trim() || undefined;
-        const indexing = parseOptionalBool(indexingEl.value);
-        const denyDownload = parseOptionalBool(denyEl.value);
+        const title    = (document.getElementById("title").value || "").trim();
+        const roomType = Number(document.getElementById("type").value);
+        const tags     = parseTags(document.getElementById("tags").value);
+        if (!title || !sdkReady) return;
 
         createBtn.disabled = true;
         status.textContent = "Creating room…";
 
         try {
-          const created = await manager.createRoom(
-            title,
-            roomType,
-            quota,
-            tags,
-            color,
-            cover,
-            indexing,
-            denyDownload
-          );
+          const created = await manager.createRoom(title, roomType, undefined, tags.length ? tags : undefined);
+          const roomId  = String(created?.id || "").trim();
+          if (!roomId) throw new Error("Room ID is missing in createRoom response.");
+          if (typeof window.__demoTrack === "function") {
+            window.__demoTrack('room', roomId); // demo only — replace with your own room ID handling
+          }
 
-          renderCreatedRoom(created);
-          status.textContent = "Done.";
-        } catch (e) {
-          status.textContent = "Failed to create room.";
-        } finally {
+          document.getElementById("formWrap").style.display   = "none";
+          document.getElementById("managerWrap").style.display = "";
+
+          DocSpace.SDK.initManager({
+            frameId: "room-frame",
+            id:      roomId,
+            width:   "960px",
+            height:  "600px",
+            events: {
+              onAppReady: () => {
+                document.getElementById("managerStatus").textContent =
+                  `Room "${title}" created — opened below`;
+              },
+              onAppError: () => {
+                document.getElementById("managerStatus").textContent = "Manager failed to load";
+              }
+            }
+          });
+        } catch (error) {
+          status.textContent = "Failed: " + (error?.message || String(error));
           createBtn.disabled = false;
         }
-      };
-
-      clearBtn.onclick = () => {
-        result.style.display = "none";
-        kv.innerHTML = "";
-        status.textContent = sdkReady ? "SDK ready." : "Preparing SDK…";
       };
     </script>
   </body>

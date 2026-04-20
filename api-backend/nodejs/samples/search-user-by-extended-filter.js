@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Search users by extended filter
 
 This example demonstrates how to retrieve a list of users in ONLYOFFICE DocSpace with optional extended filter parameters such as group ID,
@@ -17,6 +17,12 @@ const HEADERS = {
   Accept: 'application/json',
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Search users with extended filters
 async function filterUsers({ groupId = null, employeeType = null, isAdmin = true, count = 10 } = {}) {
@@ -27,7 +33,7 @@ async function filterUsers({ groupId = null, employeeType = null, isAdmin = true
   if (typeof isAdmin === 'boolean') params.set('isAdministrator', String(isAdmin).toLowerCase());
 
   const url = `${API_HOST}/api/2.0/people/filter?${params.toString()}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (!res.ok) {
     const text = await res.text();

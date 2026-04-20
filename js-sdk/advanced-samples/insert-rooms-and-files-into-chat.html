@@ -16,14 +16,14 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <meta name="example-title" content="Chat with DocSpace Selectors" />
-    <meta name="example-description" content="Use /docspace room or /docspace file commands to insert links into a chat." />
+    <meta name="example-title" content="Insert DocSpace Links into Chat" />
+    <meta name="example-description" content="Simulated chat where you can attach DocSpace rooms or files as links. Click the buttons or type slash commands to open the selector and insert a link." />
     <meta name="example-group" content="advanced" />
-    <title>Chat with DocSpace Selectors</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Insert DocSpace Links into Chat</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -62,6 +62,10 @@ Using methods:
 
       let sdk = null;
 
+      function looksLikeLink(text) {
+        return /^https?:\/\//i.test(String(text || "").trim());
+      }
+
       function addMessage(text, isLink) {
         const el = document.createElement("div");
         el.className = "message";
@@ -95,7 +99,7 @@ Using methods:
           showSelectorCancel: true,
           events: {
             onSelectCallback: (e) => {
-              const item = Array.isArray(e) ? e[0] : e;
+              const item = e && typeof e === "object" ? e : null;
               if (!item || !item.id) return;
               const link = `${portalSrc}rooms/shared/${item.id}/filter?folder=${item.id}`;
               modal.close(JSON.stringify({ link }));
@@ -127,12 +131,11 @@ Using methods:
         const text = input.value.trim();
         if (!text) return;
 
-        input.value = "";
-
         if (text.startsWith("/docspace room")) return openRoomSelector();
         if (text.startsWith("/docspace file")) return openFileSelector();
 
-        addMessage(text, false);
+        input.value = "";
+        addMessage(text, looksLikeLink(text));
       }
 
       sendBtn.onclick = sendMessage;
@@ -148,7 +151,10 @@ Using methods:
         if (!raw) return;
         try {
           const data = JSON.parse(raw);
-          if (data.link) addMessage(data.link, true);
+          if (data.link) {
+            input.value = data.link;
+            input.focus();
+          }
         } catch {}
       });
     </script>

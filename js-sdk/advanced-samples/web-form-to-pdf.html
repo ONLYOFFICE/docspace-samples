@@ -10,6 +10,13 @@ How it works:
 2) Fill the web form (HTML input `name` must match the PDF field FormKey).
 3) Create a new file from template via `manager.createFile`.
 4) Fill PDF fields via `executeInEditor` and `Api.Save()`.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+- DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- manager.getSelection (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getselection)
+- manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
 -->
 
 <!DOCTYPE html>
@@ -18,19 +25,16 @@ How it works:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
 
-    <meta name="example-title" content="Web form to PDF" />
-    <meta
-      name="example-description"
-      content="Fill a website questionnaire and generate a filled PDF from a DocSpace PDF template."
-    />
+    <meta name="example-title" content="Web Form to PDF" />
+    <meta name="example-description" content="Fill a web form (name, date, notes) and generate a PDF from a DocSpace template with the form values filled in automatically." />
     <meta name="example-group" content="advanced" />
 
-    <title>Web form to PDF</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Web Form to PDF</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
 
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -39,21 +43,13 @@ How it works:
   </head>
 
   <body class="ex-web-form-to-pdf">
-    <div class="wf-page">
-      <div class="wf-header">
-        <div>
-          <div class="wf-title">Web form to PDF</div>
-          <div class="wf-subtitle">
-            Fill the questionnaire -> generate a filled PDF from a DocSpace template.
-          </div>
-        </div>
-        <div class="wf-header-actions">
-          <button id="reset" type="button" class="btn-secondary">Reset</button>
-        </div>
+    <div class="page">
+      <div class="wf-top-bar">
+        <button id="reset" type="button" class="btn secondary">Reset</button>
       </div>
 
       <div class="wf-grid">
-        <div class="wf-card">
+        <div class="card">
           <div class="wf-card-title">1) Questionnaire</div>
           <div class="wf-muted">Each input <code>name</code> must match the PDF field <b>FormKey</b>.</div>
 
@@ -99,7 +95,7 @@ How it works:
           </details>
         </div>
 
-        <div class="wf-card">
+        <div class="card">
           <div class="wf-card-title">2) Template &amp; destination</div>
           <div class="wf-muted">DocSpace connection: <b id="managerState">Not started</b></div>
 
@@ -107,7 +103,7 @@ How it works:
             <div class="wf-step-label">Template</div>
             <div class="wf-step-value" id="templateTitle">Not selected</div>
             <div class="wf-actions">
-              <button id="chooseTemplate" type="button" class="btn-secondary">Choose template PDF</button>
+              <button id="chooseTemplate" type="button" class="btn secondary">Choose template PDF</button>
             </div>
           </div>
 
@@ -115,8 +111,8 @@ How it works:
             <div class="wf-step-label">Destination</div>
             <div class="wf-step-value" id="destFolderLabel">Same folder as template</div>
             <div class="wf-actions">
-              <button id="chooseDest" type="button" class="btn-secondary">Choose folder</button>
-              <button id="clearDest" type="button" class="btn-secondary" disabled>Use template folder</button>
+              <button id="chooseDest" type="button" class="btn secondary">Choose folder</button>
+              <button id="clearDest" type="button" class="btn secondary" disabled>Use template folder</button>
             </div>
           </div>
 
@@ -141,7 +137,7 @@ How it works:
 
           <div class="wf-run">
             <button id="generate" type="button" class="btn" disabled>Generate PDF</button>
-            <button id="toggleEditor" type="button" class="btn-secondary">Show editor</button>
+            <button id="toggleEditor" type="button" class="btn secondary">Show editor</button>
             <span class="status" id="hint">Choose a template PDF</span>
           </div>
 
@@ -164,7 +160,7 @@ How it works:
       <div class="wf-modal-body" role="dialog" aria-modal="true">
         <div class="wf-modal-head">
           <div class="wf-modal-title">Choose template PDF</div>
-          <button id="closeTemplateModal" type="button" class="btn-secondary">Close</button>
+          <button id="closeTemplateModal" type="button" class="btn secondary">Close</button>
         </div>
         <iframe id="ds-template-selector" class="wf-modal-frame" title="Template selector"></iframe>
       </div>
@@ -178,7 +174,7 @@ How it works:
           <div class="wf-modal-title">Choose destination folder</div>
           <div class="wf-modal-actions">
             <button id="useDest" type="button" class="btn">Use selected</button>
-            <button id="closeDestModal" type="button" class="btn-secondary">Close</button>
+            <button id="closeDestModal" type="button" class="btn secondary">Close</button>
           </div>
         </div>
         <iframe id="ds-destination-picker" class="wf-modal-frame" title="Destination picker"></iframe>
@@ -232,12 +228,12 @@ How it works:
       let destOverride = { folderId: "", title: "" }; // picked destination (optional)
       let templateSelectorInitialized = false;
 
-      function setHint(v) {
-        hintEl.textContent = String(v ?? "");
+      function setHint(text) {
+        hintEl.textContent = String(text ?? "");
       }
 
-      function logLine(v) {
-        const line = String(v ?? "");
+      function logLine(text) {
+        const line = String(text ?? "");
         logEl.value = (logEl.value ? logEl.value + "\n" : "") + line;
         logEl.scrollTop = logEl.scrollHeight;
       }
@@ -335,8 +331,8 @@ How it works:
 
           const key = p.slice(i + 1, j).trim();
           const has = values && Object.prototype.hasOwnProperty.call(values, key);
-          const v = has ? values[key] : "";
-          if (v !== null && v !== undefined) out += String(v);
+          const fieldValue = has ? values[key] : "";
+          if (fieldValue !== null && fieldValue !== undefined) out += String(fieldValue);
 
           i = j;
         }
@@ -344,7 +340,7 @@ How it works:
       }
 
       function getCreatedFileId(res) {
-        const id = res?.id ?? res?.fileId ?? res?.entryId ?? res?.documentId ?? "";
+        const id = res?.id ?? "";
         return id ? String(id).trim() : "";
       }
 
@@ -372,9 +368,9 @@ How it works:
 
               Asc.scope.map = map;
 
-              function toBool(v) {
-                if (typeof v === "boolean") return v;
-                const s = String(v ?? "").trim().toLowerCase();
+              function toBool(value) {
+                if (typeof value === "boolean") return value;
+                const s = String(value ?? "").trim().toLowerCase();
                 return s === "true" || s === "1" || s === "yes" || s === "y" || s === "on";
               }
 
@@ -433,8 +429,8 @@ How it works:
                   console.error("PDF fill failed", err);
                 }
               });
-            } catch (e) {
-              console.error("Failed to build PDF fill command", e);
+            } catch (error) {
+              console.error("Failed to build PDF fill command", error);
             }
           `
         );
@@ -461,8 +457,8 @@ How it works:
 
                 try {
                   frame.executeInEditor(buildPdfFillCommand(map));
-                } catch (e) {
-                  reject(e);
+                } catch (error) {
+                  reject(error);
                   destroyEditor();
                   return;
                 }
@@ -523,15 +519,15 @@ How it works:
           theme: "base",
           events: {
             onSelectCallback: (e) => {
-              const item = Array.isArray(e) ? e[0] : e;
+              const item = e && typeof e === "object" ? e : null;
               if (!item) return;
 
-              const id = item?.id ?? item?.fileId ?? null;
+              const id = item?.id ?? null;
               if (!id) return;
 
               const title = getTitle(item);
               const ext = getExt(item);
-              const folderId = String(item?.folderId || item?.parentId || item?.parent_id || item?.folder_id || "").trim();
+              const folderId = String(item?.folderId || "").trim();
               template = { id: String(id), title, ext, folderId, raw: item };
 
               templateTitleEl.textContent = title;
@@ -542,8 +538,7 @@ How it works:
               closeModal(templateModal);
               render();
             },
-            onAppError: (err) => {
-              console.error("Selector error", err);
+            onAppError: () => {
               setHint("Selector error");
             }
           }
@@ -572,8 +567,7 @@ How it works:
               if (managerStateEl) managerStateEl.textContent = "Ready";
               render();
             },
-            onAppError: (e) => {
-              console.error("Manager error", e);
+            onAppError: () => {
               managerReady = false;
               if (managerStateEl) managerStateEl.textContent = "Error";
               setHint("Manager error");
@@ -602,9 +596,9 @@ How it works:
       async function applySelectedDestination() {
         if (!destinationPicker || typeof destinationPicker.getSelection !== "function") return;
         try {
-          const sel = await destinationPicker.getSelection();
-          const item = Array.isArray(sel) ? sel[0] : sel;
-          const folderId = item?.folderId ?? item?.id ?? null;
+          const selection = await destinationPicker.getSelection();
+          const item = Array.isArray(selection?.items) ? selection.items[0] : null;
+          const folderId = item?.id ? String(item.id).trim() : "";
           if (!folderId) throw new Error("No folder selected");
           const title = String(item?.title || item?.name || "Folder").trim();
 
@@ -642,18 +636,18 @@ How it works:
         if (url) parts.push(url);
         if (body) parts.push("body=" + body);
         if (data) parts.push("data=" + data);
-        return parts.length ? parts.join(" | ") : String(e?.message || "Request failed");
+        return parts.length ? parts.join(" | ") : String(error?.message || "Request failed");
       }
 
       async function createFromTemplatePdf(destFolderId, outputFileName) {
         const titleWithExt = String(outputFileName || "").trim();
-        const res = await manager.createFile(String(destFolderId), titleWithExt, Number(template.id));
+        const createdFile = await manager.createFile(String(destFolderId), titleWithExt, Number(template.id));
 
-        if (isAxiosLikeErrorObject(res)) {
-          throw new Error(formatAxiosLikeError(res));
+        if (isAxiosLikeErrorObject(createdFile)) {
+          throw new Error(formatAxiosLikeError(createdFile));
         }
 
-        const createdId = getCreatedFileId(res);
+        const createdId = getCreatedFileId(createdFile);
         if (createdId) return createdId;
 
         try {
@@ -700,8 +694,8 @@ How it works:
         let createdId = "";
         try {
           createdId = await createFromTemplatePdf(destFolderId, fileName);
-        } catch (e) {
-          logLine("ERROR create: " + formatAxiosLikeError(e));
+        } catch (error) {
+          logLine("ERROR create: " + formatAxiosLikeError(error));
           setHint("Create error");
           return;
         }
@@ -714,8 +708,8 @@ How it works:
           await fillFile(createdId, map, 6500);
           logLine("OK");
           setHint("Done");
-        } catch (e) {
-          logLine("ERROR fill: " + String(e?.message || e));
+        } catch (error) {
+          logLine("ERROR fill: " + String(error?.message || error));
           setHint("Fill error");
         }
       }

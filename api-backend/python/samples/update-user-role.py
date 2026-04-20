@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Update user role
 
 This example demonstrates how to automate user onboarding in ONLYOFFICE DocSpace using the API.
@@ -31,7 +31,7 @@ def create_user(first_name, last_name, email):
     'lastName': last_name,
     'email': email
   }
-  response = requests.post(url, json=data, headers=HEADERS)
+  response = requests.post(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     user_id = response.json()['response']['id']
     print(f'User created successfully: {user_id}')
@@ -43,7 +43,7 @@ def create_user(first_name, last_name, email):
 # Step 2: Retrieve a user by ID
 def get_user(user_id):
   url = f'{API_HOST}/api/2.0/people/{user_id}'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     user_data = response.json()
     print(f'User retrieved: {user_data}')
@@ -56,7 +56,7 @@ def get_user(user_id):
 def update_user_role(user_id, role):
   url = f'{API_HOST}/api/2.0/people/{user_id}'
   data = {'role': role}
-  response = requests.put(url, json=data, headers=HEADERS)
+  response = requests.put(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f'User {user_id} role updated to {role}')
   else:

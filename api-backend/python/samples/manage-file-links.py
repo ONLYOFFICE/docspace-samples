@@ -58,7 +58,7 @@ def set_file_link(file_id, access='ReadWrite', title=None):
     if title:
         data['title'] = title
 
-    response = requests.put(url, headers=HEADERS, json=data)
+    response = requests.put(url, headers=HEADERS, json=data, timeout=30)
     if response.status_code == 200:
         return unwrap_response(response.json())
 
@@ -68,7 +68,7 @@ def set_file_link(file_id, access='ReadWrite', title=None):
 
 def get_file_links(file_id):
     url = f'{API_HOST}/api/2.0/files/file/{file_id}/links'
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, timeout=30)
     if response.status_code == 200:
         return unwrap_response(response.json())
 

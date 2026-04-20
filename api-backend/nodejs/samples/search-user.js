@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Search users
 
 This example demonstrates how to search for users in ONLYOFFICE DocSpace by a text query,
@@ -13,6 +13,12 @@ const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'your_api_key';
 
 const HEADERS = { Authorization: API_KEY };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Search users by query and optional filters
 async function searchUsers(query, filterBy = null, filterValue = null) {
@@ -25,7 +31,7 @@ async function searchUsers(query, filterBy = null, filterValue = null) {
   const qs = params.toString();
   const url = `${API_HOST}/api/2.0/people/@search/${encodeURIComponent(query)}${qs ? `?${qs}` : ''}`;
 
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (!res.ok) {
     const text = await res.text();
     console.log(`User search failed. Status code: ${res.status}, Message: ${text}`);

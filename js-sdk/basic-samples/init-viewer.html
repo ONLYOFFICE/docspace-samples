@@ -12,14 +12,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Init viewer" />
-    <meta name="example-description" content="Initialize a read-only document viewer." />
+    <meta name="example-title" content="Init Viewer" />
+    <meta name="example-description" content="Enter a file ID to open the file in a read-only embedded viewer — no editing allowed." />
     <meta name="example-group" content="basic" />
-    <title>Init viewer</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Init Viewer</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -28,31 +28,97 @@ Using methods:
   </head>
 
   <body class="ex-init-viewer">
-    <div class="top-bar">
-      <button class="btn" id="btn" type="button">Init viewer</button>
-      <span class="status" id="status">Ready</span>
+
+    <!-- Step 1: input form (shown before opening) -->
+    <div id="inputWrap" class="page">
+      <div class="card">
+        <div class="field">
+          <label for="fileId">File ID</label>
+          <input id="fileId" type="text" placeholder="e.g. 123456" autocomplete="off" />
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn" id="openBtn" type="button" disabled>Open in Viewer</button>
+          <span class="status" id="status">Enter a file ID</span>
+        </div>
+      </div>
     </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+    <!-- Step 2: viewer frame + config (shown after clicking Open) -->
+    <div id="viewerWrap" style="display:none">
+      <div class="result-split">
+        <div class="result-split__frame">
+          <div class="frame-wrap">
+            <iframe id="ds-frame"></iframe>
+          </div>
+          <div class="bottom-bar">
+            <button class="btn secondary" onclick="showInput()">← Open another</button>
+            <span class="status" id="viewerStatus">Opening…</span>
+          </div>
+        </div>
+        <div class="result-split__panel card" style="flex:0 0 360px;min-height:520px">
+          <div class="field">
+            <label>SDK Config</label>
+            <textarea class="output" id="configOut" readonly></textarea>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-      const btn = document.getElementById("btn");
+      const input     = document.getElementById("fileId");
+      const btn       = document.getElementById("openBtn");
+      const status    = document.getElementById("status");
+      const inputWrap = document.getElementById("inputWrap");
+      const viewerWrap = document.getElementById("viewerWrap");
 
-      const manager = DocSpace.SDK.initManager({
-        frameId: "ds-frame",
-        width: "900px",
-        height: "520px",
-        theme: "base"
+      // Auto-fill from demo session if available
+      (function () {
+        const demoFiles = window.__demoConfig?.session?.files;
+        if (demoFiles) {
+          const id = demoFiles.docx || demoFiles.xlsx || demoFiles.pptx || demoFiles.pdfForm || demoFiles.pdfTemplate;
+          if (id) { input.value = id; btn.disabled = false; status.textContent = "Ready"; }
+        }
+      })();
+
+      function showInput() {
+        viewerWrap.style.display = "none";
+        inputWrap.style.display  = "";
+      }
+
+      input.addEventListener("input", () => {
+        const fileId = input.value.trim();
+        btn.disabled = !fileId;
+        status.textContent = fileId ? "Ready" : "Enter a file ID";
       });
 
-      btn.onclick = async () => {
-        try {
-          await DocSpace.SDK.initViewer({ frameId: 'ds-frame', id: '123456', width: '900px', height: '520px', theme: 'base' });
-        } catch (e) {
-          alert(e?.message || e);
-        }
+      btn.onclick = () => {
+        const id = input.value.trim();
+        if (!id) return;
+
+        inputWrap.style.display  = "none";
+        viewerWrap.style.display = "";
+
+        const config = {
+          frameId: "ds-frame",
+          id: id,
+          width: "700px",
+          height: "520px",
+          theme: "base",
+          events: {
+            onAppReady: () => {
+              document.getElementById("viewerStatus").textContent = "Ready";
+            },
+            onAppError: (e) => {
+              document.getElementById("viewerStatus").textContent = error?.message || "Failed to open file";
+            }
+          }
+        };
+
+        document.getElementById("configOut").value = JSON.stringify(
+          config, (k, v) => typeof v === "function" ? "[Function]" : v, 2
+        );
+
+        DocSpace.SDK.initViewer(config);
       };
     </script>
   </body>

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get current token permissions
 
 This example demonstrates how to retrieve the list of permissions (scopes) associated with the currently authenticated token in ONLYOFFICE DocSpace.
@@ -22,7 +22,7 @@ HEADERS = {
 # Step 1: Retrieve the current token's permissions
 def get_token_permissions():
   url = f'{API_HOST}/api/2.0/keys/permissions'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
 
   if response.status_code == 200:
     permissions = response.json().get('response', [])

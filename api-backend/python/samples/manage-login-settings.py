@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage login settings
 
 This example demonstrates how to configure login security settings, including failed login attempt limits, account blocking duration,
@@ -31,7 +31,7 @@ def update_login_settings(attemptCount, blockTime, checkPeriod):
     'blockTime': blockTime,
     'checkPeriod': checkPeriod
   }
-  response = requests.put(url, json=data, headers=HEADERS)
+  response = requests.put(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print('Login settings updated successfully.')
   else:
@@ -40,7 +40,7 @@ def update_login_settings(attemptCount, blockTime, checkPeriod):
 # Step 2: Retrieve current login settings
 def get_login_settings():
   url = f'{API_HOST}/api/2.0/settings/security/loginsettings'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     settings = response.json()
     print(f'Login settings retrieved: {settings}')
@@ -52,7 +52,7 @@ def get_login_settings():
 # Step 3: Reset login settings to default
 def reset_login_settings():
   url = f'{API_HOST}/api/2.0/settings/security/loginsettings'
-  response = requests.delete(url, headers=HEADERS)
+  response = requests.delete(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print('Login settings reset to default successfully.')
   else:

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Get login history
 
 This example automates the retrieval of the last login events in ONLYOFFICE DocSpace.
@@ -19,14 +19,20 @@ const HEADERS = {
   'Content-Type': 'application/json',
 };
 
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function getLastLoginUsers() {
   const url = `${API_HOST}/api/2.0/security/audit/login/last`;
 
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Last login users retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Last login users retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

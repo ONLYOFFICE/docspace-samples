@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Create a backup schedule
 
 This example demonstrates how to create a daily backup schedule in ONLYOFFICE DocSpace using the API (e.g., run every day at 03:00, keep the last 7 backups, optionally include a full portal dump).
@@ -35,7 +35,8 @@ def create_backup_schedule():
   response = requests.post(
     f'{API_HOST}/api/2.0/backup/createbackupschedule',
     headers=HEADERS,
-    json=payload
+    json=payload,
+    timeout=30,
   )
 
   # Check response status

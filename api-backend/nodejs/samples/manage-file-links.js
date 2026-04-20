@@ -20,6 +20,12 @@ const HEADERS = {
   Accept: 'application/json',
 };
 
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function unwrapResponse(json) {
   return json && typeof json === 'object' && 'response' in json ? json.response : json;
 }
@@ -49,7 +55,7 @@ async function setFileLink(fileId, access = 'ReadWrite', title = null) {
   };
   if (title) body.title = title;
 
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS, body: JSON.stringify(body) });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS, body: JSON.stringify(body) });
   if (res.status !== 200) {
     const text = await res.text();
     console.error(`File link set failed. Status code: ${res.status}, Message: ${text}`);
@@ -61,7 +67,7 @@ async function setFileLink(fileId, access = 'ReadWrite', title = null) {
 // Step 2: Retrieve file links
 async function getFileLinks(fileId) {
   const url = `${API_HOST}/api/2.0/files/file/${fileId}/links`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
   if (res.status !== 200) {
     const text = await res.text();
     console.error(`File links retrieval failed. Status code: ${res.status}, Message: ${text}`);

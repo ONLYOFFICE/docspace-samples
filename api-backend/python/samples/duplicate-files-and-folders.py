@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Duplicate files and folders
 
 This example demonstrates how to duplicate one or more files and folders in ONLYOFFICE DocSpace using the API. 
@@ -32,7 +32,7 @@ def duplicate_files_and_folders(file_ids, folder_ids):
     'folderIds': folder_ids
   }
 
-  response = requests.put(url, headers=HEADERS, json=data)
+  response = requests.put(url, headers=HEADERS, json=data, timeout=30)
 
   if response.status_code == 200:
     return response.json()

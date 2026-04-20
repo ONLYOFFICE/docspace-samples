@@ -24,6 +24,12 @@ const HEADERS = {
   Accept: 'application/json',
 };
 
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function unwrapResponse(json) {
   return json && typeof json === 'object' && 'response' in json ? json.response : json;
 }
@@ -39,7 +45,7 @@ async function createWebhook(name, uri) {
     triggers: 'FileUploaded',
   };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(body),
@@ -56,7 +62,7 @@ async function createWebhook(name, uri) {
 
 async function listWebhooks() {
   const url = `${API_HOST}/api/2.0/settings/webhook`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (res.status !== 200) {
     const text = await res.text();
@@ -79,7 +85,7 @@ async function updateWebhook(id, name, uri) {
     triggers: 'RoomCreated',
   };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(body),
@@ -101,7 +107,7 @@ async function getWebhookLogs(configId) {
     startIndex: '0',
   });
   const url = `${API_HOST}/api/2.0/settings/webhooks/log?${params}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (res.status !== 200) {
     const text = await res.text();
@@ -119,7 +125,7 @@ function pickFailedLog(logs) {
 
 async function retryWebhook(logId) {
   const url = `${API_HOST}/api/2.0/settings/webhook/${logId}/retry`;
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS });
 
   if (res.status !== 200) {
     const text = await res.text();
@@ -132,7 +138,7 @@ async function retryWebhook(logId) {
 
 async function deleteWebhook(id) {
   const url = `${API_HOST}/api/2.0/settings/webhook/${id}`;
-  const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'DELETE', headers: HEADERS });
 
   if (res.status !== 200) {
     const text = await res.text();

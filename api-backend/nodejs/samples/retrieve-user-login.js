@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Retrieve user login audit events
 
 This example demonstrates how to retrieve user login audit activities in ONLYOFFICE DocSpace.
@@ -20,9 +20,15 @@ const HEADERS = {
 };
 
 // Step 1: Retrieve the most recent login audit events
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function getLastLoginEvents() {
   const url = `${API_HOST}/api/2.0/security/audit/login/last`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (!res.ok) {
     const text = await res.text();
@@ -44,7 +50,7 @@ async function getLoginEventsByFilter({ userId = null, action = null, startDate 
   if (endDate) params.set('to', endDate);
 
   const url = `${API_HOST}/api/2.0/security/audit/login/filter${params.toString() ? `?${params.toString()}` : ''}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (!res.ok) {
     const text = await res.text();

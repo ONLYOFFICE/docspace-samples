@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Search users by status
 
 This example demonstrates how to search for users in ONLYOFFICE DocSpace based on their status (e.g., active, pending, disabled) using the API.
@@ -31,7 +31,8 @@ def search_users_by_status(status='active', query=None, filter_by=None, filter_v
   response = requests.get(
     f'{API_HOST}/api/2.0/people/status/{status}/search',
     headers=HEADERS,
-    params=params
+    params=params,
+    timeout=30,
   )
 
   if response.status_code == 200:

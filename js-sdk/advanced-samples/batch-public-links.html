@@ -1,0 +1,199 @@
+<!--
+Example: Batch public links
+
+Select files in the selector and generate public links for all of them at once.
+
+Prerequisites:
+- Start local backend from `js-sdk` so `/api/create-public-share-link` is available.
+- Set `PORTAL_SRC` and `ADMIN_API_KEY` in `js-sdk/.env`.
+
+Using methods:
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+- selector.getSelection (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getselection)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="{PORTAL_SRC}/" />
+    <meta charset="UTF-8" />
+    <meta name="example-title" content="Generate Public Links in Batch" />
+    <meta name="example-description" content="Select one or more files in the embedded file selector and generate a public share link for each in one click." />
+    <meta name="example-group" content="advanced" />
+    <title>Generate Public Links in Batch</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
+    <script>
+      (function () {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = new URL("../assets/css/style.css", window.location.href).toString();
+        document.head.appendChild(link);
+      })();
+    </script>
+  </head>
+  <body class="ex-batch-public-links">
+    <div class="page">
+      <div class="card">
+        <div class="ex-batch-public-links__layout">
+          <aside class="ex-batch-public-links__aside">
+            <p class="ex-batch-public-links__hint">Select one or more files in the selector, then click <strong>Generate links</strong>.</p>
+            <div class="field">
+              <label for="out">Result</label>
+              <textarea class="output" id="out" readonly placeholder="Generated links will appear here..."></textarea>
+            </div>
+            <div class="actions">
+              <button id="runBtn" class="btn" type="button">Generate links</button>
+              <span id="status" class="status">Select files in selector.</span>
+            </div>
+          </aside>
+          <main class="ex-batch-public-links__main">
+            <iframe id="manager-frame"></iframe>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const runBtn = document.getElementById("runBtn");
+      const statusEl = document.getElementById("status");
+      const outEl = document.getElementById("out");
+      const portalSrc = String(document.querySelector("base")?.href || "").replace(/\/+$/, "");
+      let selectedFromEvent = [];
+      runBtn.disabled = true;
+      function setStatus(text) {
+        statusEl.textContent = String(text || "");
+      }
+
+      function stringify(value) {
+        try {
+          return JSON.stringify(value, null, 2);
+        } catch {
+          return String(value);
+        }
+      }
+
+      const selectorConfig = {
+        frameId: "manager-frame",
+        src: portalSrc,
+        width: "100%",
+        height: "640px",
+        theme: "base",
+        events: {
+          onAppReady: () => {
+            runBtn.disabled = false;
+            setStatus("Selector ready. Select files.");
+          },
+          onContentReady: () => {
+            runBtn.disabled = false;
+            setStatus("Selector loaded. Select files.");
+          },
+          onSelectCallback: (event) => {
+            const files = normalizeFiles(event);
+            if (files.length) {
+              selectedFromEvent = files;
+            } else if (event && typeof event === "object" && event.id) {
+              selectedFromEvent = [event];
+            } else {
+              selectedFromEvent = [];
+            }
+            setStatus(selectedFromEvent.length ? ("Selected: " + selectedFromEvent.length) : "Selection updated");
+          },
+          onAppError: (e) => {
+            runBtn.disabled = true;
+            setStatus("Selector error");
+            outEl.value = stringify(e || "Selector error");
+          },
+          onNoAccess: (e) => {
+            runBtn.disabled = true;
+            setStatus("No access to current location");
+            outEl.value = stringify(e || "No access");
+          }
+        }
+      };
+      const selector = DocSpace.SDK.initFileSelector(selectorConfig);
+
+      function isFileLike(item) {
+        if (!item || typeof item !== "object") return false;
+        const type = String(item.type || item.fileEntryType || item.entryType || "").toLowerCase();
+        if (type === "file" || type === "2") return true;
+        if (item.isFile === true) return true;
+        if (String(item.fileExst || "").trim()) return true;
+        return false;
+      }
+
+      function normalizeFiles(selection) {
+        const candidates = [];
+
+        if (Array.isArray(selection?.items)) candidates.push(...selection.items);
+        if (Array.isArray(selection)) candidates.push(...selection);
+        if (selection?.item && typeof selection.item === "object") candidates.push(selection.item);
+        if (selection?.selected && typeof selection.selected === "object") candidates.push(selection.selected);
+        if (selection && typeof selection === "object" && selection.id) candidates.push(selection);
+
+        const uniq = new Map();
+        for (const item of candidates) {
+          const id = item?.id != null ? String(item.id).trim() : "";
+          if (!id) continue;
+          if (!isFileLike(item)) continue;
+          if (!uniq.has(id)) uniq.set(id, item);
+        }
+        return Array.from(uniq.values());
+      }
+
+      async function createPublicLink(fileId, title) {
+        const response = await fetch(window.location.origin + "/api/create-public-share-link", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ fileId: String(fileId), title: title || null, createPrimaryLink: true })
+        });
+
+        const json = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(json?.details || json?.error || ("HTTP " + response.status));
+
+        const shareLink = String(json?.shareLink || "").trim();
+        if (!shareLink) throw new Error("shareLink is missing in backend response.");
+        return shareLink;
+      }
+
+      runBtn.addEventListener("click", async () => {
+        runBtn.disabled = true;
+        outEl.value = "";
+        setStatus("Reading selection...");
+
+        try {
+          if (!selector) {
+            throw new Error("Selector is not ready yet.");
+          }
+          let selection = null;
+          if (typeof selector.getSelection === "function") {
+            selection = await selector.getSelection();
+          }
+          let files = normalizeFiles(selection);
+          if (!files.length && selectedFromEvent.length) files = selectedFromEvent;
+          if (!files.length) {
+            outEl.value = JSON.stringify({ getSelection: selection, onSelectCallback: selectedFromEvent }, null, 2);
+            throw new Error("No files found in current selection.");
+          }
+
+          const rows = [];
+          for (const file of files) {
+            const fileId = String(file.id);
+            const title = String(file.title || file.name || "");
+            // eslint-disable-next-line no-await-in-loop
+            const link = await createPublicLink(fileId, title);
+            rows.push({ fileId, title, link, source: "public-share" });
+          }
+
+          outEl.value = JSON.stringify(rows, null, 2);
+          setStatus("Done");
+        } catch (error) {
+          outEl.value = String(error?.message || error);
+          setStatus("Failed");
+        } finally {
+          runBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

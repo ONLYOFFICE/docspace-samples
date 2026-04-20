@@ -44,7 +44,7 @@ def create_webhook(name, uri):
         'triggers': 'FileUploaded',
     }
 
-    response = requests.post(url, json=body, headers=HEADERS)
+    response = requests.post(url, json=body, headers=HEADERS, timeout=30)
     if response.status_code == 200:
         return unwrap_response(response.json())
 
@@ -54,7 +54,7 @@ def create_webhook(name, uri):
 
 def list_webhooks():
     url = f'{API_HOST}/api/2.0/settings/webhook'
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return unwrap_response(response.json())
@@ -75,7 +75,7 @@ def update_webhook(webhook_id, name, uri):
         'triggers': 'RoomCreated',
     }
 
-    response = requests.put(url, json=body, headers=HEADERS)
+    response = requests.put(url, json=body, headers=HEADERS, timeout=30)
     if response.status_code == 200:
         return unwrap_response(response.json())
 
@@ -90,7 +90,7 @@ def get_webhook_logs(config_id):
         'count': 10,
         'startIndex': 0,
     }
-    response = requests.get(url, params=params, headers=HEADERS)
+    response = requests.get(url, params=params, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return unwrap_response(response.json())
@@ -113,7 +113,7 @@ def pick_failed_log(logs):
 
 def retry_webhook(log_id):
     url = f'{API_HOST}/api/2.0/settings/webhook/{log_id}/retry'
-    response = requests.put(url, headers=HEADERS)
+    response = requests.put(url, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return unwrap_response(response.json())
@@ -124,7 +124,7 @@ def retry_webhook(log_id):
 
 def delete_webhook(webhook_id):
     url = f'{API_HOST}/api/2.0/settings/webhook/{webhook_id}'
-    response = requests.delete(url, headers=HEADERS)
+    response = requests.delete(url, headers=HEADERS, timeout=30)
 
     if response.status_code == 200:
         return unwrap_response(response.json())

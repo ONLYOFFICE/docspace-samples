@@ -1,4 +1,4 @@
-﻿
+
 /*
 Example: Create a virtual data room (VDR) with a watermark
 
@@ -20,6 +20,12 @@ const HEADERS = {
 };
 
 // Step 1: Create a Virtual Data Room with a text watermark
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function createVdrRoom(roomTitle, roomDescription) {
   const url = `${API_HOST}/api/2.0/files/rooms`;
   const data = {
@@ -34,7 +40,7 @@ function createVdrRoom(roomTitle, roomDescription) {
     },
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(data),

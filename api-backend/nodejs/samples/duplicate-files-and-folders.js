@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Duplicate files and folders
 
 This example demonstrates how to duplicate one or more files and folders in ONLYOFFICE DocSpace using the API. 
@@ -23,6 +23,12 @@ const FILE_IDS = [111111, 222222];
 const FOLDER_IDS = [333333, 444444];
 
 // Step 1: Duplicate specified files and folders
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function duplicateFilesAndFolders(fileIds, folderIds) {
   const url = `${API_HOST}/api/2.0/files/fileops/duplicate`;
   const data = {
@@ -30,7 +36,7 @@ function duplicateFilesAndFolders(fileIds, folderIds) {
     folderIds: folderIds,
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(data),

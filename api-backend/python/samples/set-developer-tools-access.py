@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Set developer tools access
 
 This example demonstrates how to configure Developer Tools access settings in ONLYOFFICE DocSpace. You can allow full access or limit it for regular users.
@@ -20,7 +20,7 @@ def set_devtools_access(limited=True):
   url = f'{API_HOST}/api/2.0/settings/devtoolsaccess'
   payload = { 'limitedAccessForUsers': limited }
 
-  response = requests.post(url, headers=HEADERS, json=payload)
+  response = requests.post(url, headers=HEADERS, json=payload, timeout=30)
 
   if response.status_code == 200:
     data = response.json().get('response', {})

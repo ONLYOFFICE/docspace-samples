@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Update user role
 
 This example demonstrates how to automate user onboarding in ONLYOFFICE DocSpace using the API.
@@ -22,17 +22,23 @@ const HEADERS = {
 };
 
 // Step 1: Create a new user
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function createUser(firstName, lastName, email) {
   const url = `${API_HOST}/api/2.0/people`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify({ firstName, lastName, email }),
   });
 
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`User creation failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`User creation failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
 
@@ -45,11 +51,11 @@ async function createUser(firstName, lastName, email) {
 // Step 2: Retrieve a user by ID
 async function getUser(userId) {
   const url = `${API_HOST}/api/2.0/people/${userId}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`User retrieval failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`User retrieval failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
 
@@ -61,15 +67,15 @@ async function getUser(userId) {
 // Step 3: Update user role
 async function updateUserRole(userId, role) {
   const url = `${API_HOST}/api/2.0/people/${userId}`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify({ role }),
   });
 
   if (!res.ok) {
-    const t = await res.text();
-    console.log(`User role update failed. Status code: ${res.status}, Message: ${t}`);
+    const text = await res.text();
+    console.log(`User role update failed. Status code: ${res.status}, Message: ${text}`);
     return null;
   }
 

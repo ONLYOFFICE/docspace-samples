@@ -1,10 +1,16 @@
 <!--
-Example: Set config
+Example: Set config constructor
 
-This example demonstrates how to update the configuration of the embedded DocSpace frame using the JavaScript SDK.
+Build a TFrameConfig payload, choose SDK initializer, preview JSON, and apply updates.
 
 Using methods:
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
+- DocSpace.SDK.initViewer (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initviewer)
+- DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
+- DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
+- DocSpace.SDK.initSystem (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initsystem)
+- DocSpace.SDK.initFrame (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initframe)
 - manager.setConfig (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#setconfig)
 -->
 
@@ -13,48 +19,947 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Set config" />
-    <meta name="example-description" content="Update configuration of the embedded frame." />
+    <meta name="example-title" content="Set Config" />
+    <meta name="example-description" content="Choose an SDK initializer, build the configuration interactively, preview the resulting JSON, and apply the changes to the embedded frame." />
     <meta name="example-group" content="basic" />
-    <title>Set config</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Set Config</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
       })();
     </script>
+    <style>
+      .ex-set-config {
+        overflow: hidden;
+      }
+      .ex-set-config .result-split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(380px, 1fr);
+        align-items: stretch;
+        height: calc(100vh - var(--sdk-banner-h, 90px));
+        padding: 16px;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .ex-set-config .result-split__frame {
+        min-width: 0;
+      }
+      .ex-set-config .frame-wrap iframe {
+        width: min(100%, 980px);
+      }
+      .ex-set-config .result-split__panel {
+        height: 100%;
+        max-height: none;
+        overflow: auto;
+      }
+      .ex-set-config .result-split__panel .field {
+        flex: 0 0 auto;
+        margin-bottom: 10px;
+      }
+      .ex-set-config .quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 12px;
+      }
+      .ex-set-config .toggle-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 10px;
+      }
+      .ex-set-config .field.field-compact {
+        margin-bottom: 0;
+      }
+      .ex-set-config .opt-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 40px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #fff;
+        padding: 0 12px;
+        font-size: 13px;
+        color: #0f172a;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      }
+      .ex-set-config .opt-toggle:hover {
+        border-color: #b9c5d6;
+        background: #f9fbff;
+      }
+      .ex-set-config .opt-toggle__label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #0f172a;
+      }
+      .ex-set-config .opt-switch {
+        position: relative;
+        width: 38px;
+        height: 22px;
+        flex: 0 0 auto;
+      }
+      .ex-set-config .opt-switch input[type="checkbox"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        margin: 0;
+        cursor: pointer;
+      }
+      .ex-set-config .opt-switch__track {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #cbd5e1;
+        transition: background 0.18s ease;
+      }
+      .ex-set-config .opt-switch__track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+        transition: transform 0.18s ease;
+      }
+      .ex-set-config .opt-switch input[type="checkbox"]:checked + .opt-switch__track {
+        background: #1976d2;
+      }
+      .ex-set-config .opt-switch input[type="checkbox"]:checked + .opt-switch__track::after {
+        transform: translateX(16px);
+      }
+      .ex-set-config .opt-switch input[type="checkbox"]:focus-visible + .opt-switch__track {
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.22);
+      }
+      .ex-set-config .hint {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .ex-set-config .output {
+        min-height: 150px;
+      }
+      .ex-set-config .payload-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .ex-set-config .payload-head .btn {
+        height: 30px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
+      .ex-set-config #payloadOut {
+        min-height: 320px;
+        resize: vertical;
+      }
+      .ex-set-config #usageOut {
+        min-height: 280px;
+        resize: vertical;
+      }
+      @media (max-width: 1180px) {
+        .ex-set-config {
+          overflow: auto;
+        }
+        .ex-set-config .result-split {
+          grid-template-columns: 1fr;
+          height: auto;
+          padding: 12px;
+          overflow: visible;
+        }
+      }
+    </style>
   </head>
 
   <body class="ex-set-config">
-    <div class="top-bar">
-      <button class="btn" id="btn" type="button">Set config</button>
-      <span class="status" id="status"></span>
-    </div>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <div class="frame-wrap">
+          <iframe id="ds-frame"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <button class="btn" id="applyBtn" type="button" disabled>Apply Config</button>
+          <span class="status" id="status">Loading SDK...</span>
+        </div>
+      </div>
 
-    <div class="frame-wrap">
-      <iframe id="ds-frame"></iframe>
+      <div class="result-split__panel card">
+        <div class="field">
+          <label for="preset">Preset</label>
+          <select id="preset">
+            <option value="">Custom</option>
+            <option value="managerDefault">Manager: default</option>
+            <option value="managerCompact">Manager: compact</option>
+            <option value="viewerPublic">Viewer: public link</option>
+            <option value="editorWork">Editor: working mode</option>
+            <option value="fileSelector">File selector</option>
+            <option value="roomSelector">Room selector</option>
+          </select>
+          <div class="hint">Choose a preset or keep Custom and configure manually.</div>
+        </div>
+
+        <div class="quick-grid">
+          <div class="field">
+            <label for="initMethod">Initializer</label>
+            <select id="initMethod">
+              <option value="initManager">initManager</option>
+              <option value="initViewer">initViewer</option>
+              <option value="initEditor">initEditor</option>
+              <option value="initRoomSelector">initRoomSelector</option>
+              <option value="initFileSelector">initFileSelector</option>
+              <option value="initSystem">initSystem</option>
+              <option value="initFrame">initFrame</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="mode">Mode (for initFrame)</label>
+            <select id="mode">
+              <option value="manager">manager</option>
+              <option value="viewer">viewer</option>
+              <option value="editor">editor</option>
+              <option value="room-selector">room-selector</option>
+              <option value="file-selector">file-selector</option>
+              <option value="system">system</option>
+              <option value="public-room">public-room</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="idValue">id</label>
+            <input id="idValue" type="text" placeholder="fileId or roomId" />
+            <div class="hint" id="idHint">Use demo IDs when available.</div>
+          </div>
+
+          <div class="field">
+            <label for="locale">locale</label>
+            <input id="locale" type="text" value="en-US" placeholder="e.g. en-US" />
+          </div>
+
+          <div class="field">
+            <label for="width">width</label>
+            <input id="width" type="text" value="92%" placeholder="92% or 960px" />
+          </div>
+
+          <div class="field">
+            <label for="height">height</label>
+            <input id="height" type="text" value="520px" placeholder="520px or 80vh" />
+          </div>
+
+          <div class="field" style="grid-column: 1 / -1;">
+            <label for="theme">theme</label>
+            <select id="theme">
+              <option value="">Do not change</option>
+              <option value="Base">Base</option>
+              <option value="Dark">Dark</option>
+              <option value="System">System</option>
+            </select>
+          </div>
+        </div>
+
+        <details id="advancedOptions">
+          <summary style="cursor:pointer;font-weight:600;color:#111;margin:4px 0 12px;">Advanced options</summary>
+          <div class="quick-grid">
+            <div class="field">
+              <label for="rootPath">Root path</label>
+              <input id="rootPath" type="text" placeholder="/rooms/shared/2625423" />
+            </div>
+
+            <div class="field">
+              <label for="requestToken">Request token</label>
+              <input id="requestToken" type="text" placeholder="Optional token" />
+            </div>
+
+            <div class="field">
+              <label for="viewAs">View mode</label>
+              <select id="viewAs">
+                <option value="">Do not change</option>
+                <option value="row">row</option>
+                <option value="table">table</option>
+                <option value="tile">card (tile)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="selectorType">Selector type</label>
+              <select id="selectorType">
+                <option value="">Do not change</option>
+                <option value="all">all</option>
+                <option value="roomsOnly">roomsOnly</option>
+                <option value="userFolderOnly">userFolderOnly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="hint" style="margin:8px 0 6px;">UI toggles</div>
+          <div class="toggle-grid">
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show header</span><span class="opt-switch"><input id="showHeader" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show left menu</span><span class="opt-switch"><input id="showMenu" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show filter</span><span class="opt-switch"><input id="showFilter" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Enable search</span><span class="opt-switch"><input id="withSearch" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show breadcrumbs</span><span class="opt-switch"><input id="withBreadCrumbs" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Selector header</span><span class="opt-switch"><input id="showSelectorHeader" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Selector cancel button</span><span class="opt-switch"><input id="showSelectorCancel" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show settings</span><span class="opt-switch"><input id="showSettings" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show sign out</span><span class="opt-switch"><input id="showSignOut" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Show section title</span><span class="opt-switch"><input id="showTitle" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Info panel button</span><span class="opt-switch"><input id="infoPanelVisible" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+            <div class="field field-compact"><label class="opt-toggle"><span class="opt-toggle__label">Disable loader</span><span class="opt-switch"><input id="noLoader" type="checkbox" /><span class="opt-switch__track"></span></span></label></div>
+          </div>
+
+          <div class="field">
+            <label for="extraJson">extra JSON (optional)</label>
+            <textarea id="extraJson" placeholder='{"buttonColor":"#4caf50"}'></textarea>
+          </div>
+        </details>
+
+        <div class="field">
+          <div class="payload-head">
+            <label for="payloadOut">Payload preview</label>
+            <button class="btn secondary" id="copyPayloadBtn" type="button">Copy JSON</button>
+          </div>
+          <textarea class="output" id="payloadOut" readonly></textarea>
+        </div>
+
+        <div class="field">
+          <div class="payload-head">
+            <label for="usageOut">Usage preview</label>
+            <button class="btn secondary" id="copyUsageBtn" type="button">Copy example</button>
+          </div>
+          <textarea class="output" id="usageOut" readonly></textarea>
+        </div>
+      </div>
     </div>
 
     <script>
-      const btn = document.getElementById("btn");
+      const frameId = "ds-frame";
+      const portalBase = (document.querySelector("base") && document.querySelector("base").href) || window.location.origin;
+      const src = portalBase.replace(/\/+$/, "");
 
-      const manager = DocSpace.SDK.initManager({
-        frameId: "ds-frame",
-        width: "900px",
-        height: "520px",
-        theme: "base"
+      const applyBtn = document.getElementById("applyBtn");
+      const statusEl = document.getElementById("status");
+      const payloadOut = document.getElementById("payloadOut");
+      const copyPayloadBtn = document.getElementById("copyPayloadBtn");
+      const usageOut = document.getElementById("usageOut");
+      const copyUsageBtn = document.getElementById("copyUsageBtn");
+      const idHintEl = document.getElementById("idHint");
+      const advancedOptionsEl = document.getElementById("advancedOptions");
+
+      const initMethodEl = document.getElementById("initMethod");
+      const presetEl = document.getElementById("preset");
+      const modeEl = document.getElementById("mode");
+      const idValueEl = document.getElementById("idValue");
+      const widthEl = document.getElementById("width");
+      const heightEl = document.getElementById("height");
+      const themeEl = document.getElementById("theme");
+      const localeEl = document.getElementById("locale");
+      const rootPathEl = document.getElementById("rootPath");
+      const requestTokenEl = document.getElementById("requestToken");
+      const viewAsEl = document.getElementById("viewAs");
+      const selectorTypeEl = document.getElementById("selectorType");
+      const showHeaderEl = document.getElementById("showHeader");
+      const showMenuEl = document.getElementById("showMenu");
+      const showFilterEl = document.getElementById("showFilter");
+      const withSearchEl = document.getElementById("withSearch");
+      const withBreadCrumbsEl = document.getElementById("withBreadCrumbs");
+      const showSelectorHeaderEl = document.getElementById("showSelectorHeader");
+      const showSelectorCancelEl = document.getElementById("showSelectorCancel");
+      const showSettingsEl = document.getElementById("showSettings");
+      const showSignOutEl = document.getElementById("showSignOut");
+      const showTitleEl = document.getElementById("showTitle");
+      const infoPanelVisibleEl = document.getElementById("infoPanelVisible");
+      const noLoaderEl = document.getElementById("noLoader");
+      const extraJsonEl = document.getElementById("extraJson");
+
+      const demoSession = window.__demoConfig && window.__demoConfig.active ? window.__demoConfig.session : null;
+      const demoFiles = demoSession && demoSession.files ? demoSession.files : null;
+      const demoFileId = demoFiles
+        ? String(
+            demoFiles.docx ||
+            demoFiles.xlsx ||
+            demoFiles.pptx ||
+            demoFiles.pdfForm ||
+            demoFiles.pdfTemplate ||
+            ""
+          )
+        : "";
+
+      let instance = null;
+      let needsInit = true;
+      let sdkReady = false;
+      let allowedConfigKeys = new Set();
+
+      const MODE_ALLOWED_FIELDS = {
+        manager: [
+          "rootPath", "requestToken", "viewAs",
+          "showHeader", "showMenu", "showFilter",
+          "withSearch", "showSettings", "showSignOut",
+          "showTitle", "infoPanelVisible", "noLoader"
+        ],
+        viewer: [
+          "id", "requestToken", "showHeader", "showTitle", "noLoader"
+        ],
+        editor: [
+          "id", "requestToken", "showHeader", "noLoader"
+        ],
+        "room-selector": [
+          "id", "requestToken", "showSelectorHeader", "showSelectorCancel",
+          "withSearch", "withBreadCrumbs", "noLoader"
+        ],
+        "file-selector": [
+          "id", "requestToken", "selectorType", "showSelectorHeader",
+          "showSelectorCancel", "withSearch", "withBreadCrumbs", "noLoader"
+        ],
+        system: [
+          "requestToken", "noLoader"
+        ],
+        "public-room": [
+          "id", "requestToken", "showHeader", "showTitle", "noLoader"
+        ]
+      };
+
+      function triValue(el) {
+        if (!el) return undefined;
+        if (el.type === "checkbox") return Boolean(el.checked);
+        if (!el.value) return undefined;
+        return el.value === "true";
+      }
+
+      function setStatus(text, kind) {
+        statusEl.textContent = text;
+        statusEl.className = kind ? "status " + kind : "status";
+      }
+
+      function normalizeTheme(value) {
+        const raw = String(value || "").trim().toLowerCase();
+        if (!raw) return "";
+        if (raw === "base") return "Base";
+        if (raw === "dark") return "Dark";
+        if (raw === "system" || raw === "auto") return "System";
+        return String(value || "").trim();
+      }
+
+      function isValidSize(value) {
+        const v = String(value || "").trim();
+        if (!v) return true;
+        if (/^(auto)$/i.test(v)) return true;
+        if (/^\d+(\.\d+)?(px|%|vh|vw|rem|em)$/i.test(v)) return true;
+        if (/^calc\(.+\)$/i.test(v)) return true;
+        return false;
+      }
+
+      function setSelectValue(el, value) {
+        const normalized = String(value || "").toLowerCase();
+        const options = Array.from(el.options || []);
+        const target = options.find((o) => String(o.value || "").toLowerCase() === normalized);
+        if (target) el.value = target.value;
+      }
+
+      function setTri(el, value) {
+        if (el && el.type === "checkbox") {
+          el.checked = Boolean(value);
+          return;
+        }
+        if (value === undefined || value === null || value === "") {
+          el.value = "";
+          return;
+        }
+        el.value = value ? "true" : "false";
+      }
+
+      function clearAdvancedValues() {
+        rootPathEl.value = "/rooms/shared";
+        requestTokenEl.value = "";
+        viewAsEl.value = "table";
+        selectorTypeEl.value = "all";
+        setTri(showHeaderEl, true);
+        setTri(showMenuEl, true);
+        setTri(showFilterEl, true);
+        setTri(withSearchEl, true);
+        setTri(withBreadCrumbsEl, true);
+        setTri(showSelectorHeaderEl, true);
+        setTri(showSelectorCancelEl, true);
+        setTri(showSettingsEl, true);
+        setTri(showSignOutEl, false);
+        setTri(showTitleEl, true);
+        setTri(infoPanelVisibleEl, true);
+        setTri(noLoaderEl, false);
+      }
+
+      function getEffectiveMode() {
+        const method = initMethodEl.value;
+        if (method === "initFrame") return modeEl.value;
+        if (method === "initManager") return "manager";
+        if (method === "initViewer") return "viewer";
+        if (method === "initEditor") return "editor";
+        if (method === "initRoomSelector") return "room-selector";
+        if (method === "initFileSelector") return "file-selector";
+        if (method === "initSystem") return "system";
+        return "manager";
+      }
+
+      function getAllowedKeysForCurrentMode() {
+        const mode = getEffectiveMode();
+        const common = ["width", "height", "theme", "locale"];
+        const modeSpecific = MODE_ALLOWED_FIELDS[mode] || [];
+        return new Set(common.concat(modeSpecific));
+      }
+
+      function showField(el, visible) {
+        const field = el && typeof el.closest === "function" ? el.closest(".field") : null;
+        if (!field) return;
+        field.style.display = visible ? "" : "none";
+      }
+
+      function applyDemoIdsByMethod() {
+        const method = initMethodEl.value;
+        if (method === "initEditor" || method === "initViewer") {
+          if (demoFileId) idValueEl.value = demoFileId;
+        } else if (method === "initFrame") {
+          const frameMode = modeEl.value;
+          if ((frameMode === "editor" || frameMode === "viewer" || frameMode === "public-room") && demoFileId) {
+            idValueEl.value = demoFileId;
+          }
+        }
+      }
+
+      function updateDemoHint() {
+        if (demoFileId) {
+          const parts = [];
+          if (demoFileId) parts.push("fileId: " + demoFileId);
+          idHintEl.textContent = "Demo data detected: " + parts.join(" | ");
+        } else {
+          idHintEl.textContent = "No demo session data. Enter IDs manually.";
+        }
+      }
+
+      function applyPreset() {
+        const p = presetEl.value;
+        if (!p) return;
+
+        clearAdvancedValues();
+        extraJsonEl.value = "";
+        widthEl.value = "100%";
+        heightEl.value = "520px";
+        localeEl.value = "en-US";
+        idValueEl.value = "";
+        themeEl.value = "System";
+
+        if (p === "managerDefault") {
+          initMethodEl.value = "initManager";
+          modeEl.value = "manager";
+          setSelectValue(themeEl, "System");
+          setTri(showMenuEl, true);
+          setTri(showFilterEl, true);
+          setTri(withSearchEl, true);
+        } else if (p === "managerCompact") {
+          initMethodEl.value = "initManager";
+          modeEl.value = "manager";
+          setSelectValue(themeEl, "Base");
+          setTri(showMenuEl, false);
+          setTri(showHeaderEl, false);
+          setTri(showFilterEl, false);
+          setTri(withSearchEl, false);
+          setTri(withBreadCrumbsEl, false);
+        } else if (p === "viewerPublic") {
+          initMethodEl.value = "initViewer";
+          modeEl.value = "viewer";
+          setSelectValue(themeEl, "System");
+          setTri(showHeaderEl, false);
+          setTri(showTitleEl, true);
+        } else if (p === "editorWork") {
+          initMethodEl.value = "initEditor";
+          modeEl.value = "editor";
+          setSelectValue(themeEl, "System");
+          setTri(showHeaderEl, true);
+        } else if (p === "fileSelector") {
+          initMethodEl.value = "initFileSelector";
+          modeEl.value = "file-selector";
+          setSelectValue(selectorTypeEl, "all");
+          setTri(showSelectorHeaderEl, true);
+          setTri(showSelectorCancelEl, true);
+          setTri(withSearchEl, true);
+          setTri(withBreadCrumbsEl, true);
+        } else if (p === "roomSelector") {
+          initMethodEl.value = "initRoomSelector";
+          modeEl.value = "room-selector";
+          setTri(showSelectorHeaderEl, true);
+          setTri(showSelectorCancelEl, true);
+          setTri(withSearchEl, true);
+        }
+        applyDemoIdsByMethod();
+      }
+
+      function updateFieldVisibility() {
+        const method = initMethodEl.value;
+        allowedConfigKeys = getAllowedKeysForCurrentMode();
+
+        showField(modeEl, method === "initFrame");
+        showField(idValueEl, allowedConfigKeys.has("id"));
+        showField(rootPathEl, allowedConfigKeys.has("rootPath"));
+        showField(requestTokenEl, allowedConfigKeys.has("requestToken"));
+        showField(viewAsEl, allowedConfigKeys.has("viewAs"));
+        showField(selectorTypeEl, allowedConfigKeys.has("selectorType"));
+        showField(showHeaderEl, allowedConfigKeys.has("showHeader"));
+        showField(showMenuEl, allowedConfigKeys.has("showMenu"));
+        showField(showFilterEl, allowedConfigKeys.has("showFilter"));
+        showField(withSearchEl, allowedConfigKeys.has("withSearch"));
+        showField(withBreadCrumbsEl, allowedConfigKeys.has("withBreadCrumbs"));
+        showField(showSelectorHeaderEl, allowedConfigKeys.has("showSelectorHeader"));
+        showField(showSelectorCancelEl, allowedConfigKeys.has("showSelectorCancel"));
+        showField(showSettingsEl, allowedConfigKeys.has("showSettings"));
+        showField(showSignOutEl, allowedConfigKeys.has("showSignOut"));
+        showField(showTitleEl, allowedConfigKeys.has("showTitle"));
+        showField(infoPanelVisibleEl, allowedConfigKeys.has("infoPanelVisible"));
+        showField(noLoaderEl, allowedConfigKeys.has("noLoader"));
+
+        if (idHintEl) idHintEl.style.display = allowedConfigKeys.has("id") ? "" : "none";
+
+        const advancedVisible =
+          allowedConfigKeys.has("rootPath") ||
+          allowedConfigKeys.has("requestToken") ||
+          allowedConfigKeys.has("viewAs") ||
+          allowedConfigKeys.has("selectorType") ||
+          allowedConfigKeys.has("showHeader") ||
+          allowedConfigKeys.has("showMenu") ||
+          allowedConfigKeys.has("showFilter") ||
+          allowedConfigKeys.has("withSearch") ||
+          allowedConfigKeys.has("withBreadCrumbs") ||
+          allowedConfigKeys.has("showSelectorHeader") ||
+          allowedConfigKeys.has("showSelectorCancel") ||
+          allowedConfigKeys.has("showSettings") ||
+          allowedConfigKeys.has("showSignOut") ||
+          allowedConfigKeys.has("showTitle") ||
+          allowedConfigKeys.has("infoPanelVisible") ||
+          allowedConfigKeys.has("noLoader");
+
+        if (advancedOptionsEl) {
+          advancedOptionsEl.style.display = advancedVisible ? "" : "none";
+          if (!advancedVisible) advancedOptionsEl.open = false;
+        }
+      }
+
+      function buildConfig(includeCore) {
+        const config = {};
+        const initMethod = initMethodEl.value;
+
+        if (includeCore) {
+          config.frameId = frameId;
+          config.src = src;
+          if (initMethod === "initFrame") config.mode = modeEl.value;
+        }
+
+        const width = widthEl.value.trim();
+        const height = heightEl.value.trim();
+        const theme = normalizeTheme(themeEl.value);
+        const locale = localeEl.value.trim();
+        const rootPath = rootPathEl.value.trim();
+        const requestToken = requestTokenEl.value.trim();
+        const idValue = idValueEl.value.trim();
+        const viewAs = viewAsEl.value.trim();
+        const selectorType = selectorTypeEl.value.trim();
+
+        if (!isValidSize(width)) return { config, error: "width format is invalid. Use px, %, vh, vw, rem, em, auto, or calc(...)." };
+        if (!isValidSize(height)) return { config, error: "height format is invalid. Use px, %, vh, vw, rem, em, auto, or calc(...)." };
+
+        if (width && allowedConfigKeys.has("width")) config.width = width;
+        if (height && allowedConfigKeys.has("height")) config.height = height;
+        if (theme && allowedConfigKeys.has("theme")) config.theme = theme;
+        if (locale && allowedConfigKeys.has("locale")) config.locale = locale;
+        if (rootPath && allowedConfigKeys.has("rootPath")) config.rootPath = rootPath;
+        if (requestToken && allowedConfigKeys.has("requestToken")) config.requestToken = requestToken;
+        if (idValue && allowedConfigKeys.has("id")) config.id = idValue;
+        if (viewAs && allowedConfigKeys.has("viewAs")) config.viewAs = viewAs;
+        if (selectorType && allowedConfigKeys.has("selectorType")) config.selectorType = selectorType;
+
+        [
+          ["showHeader", showHeaderEl],
+          ["showMenu", showMenuEl],
+          ["showFilter", showFilterEl],
+          ["withSearch", withSearchEl],
+          ["withBreadCrumbs", withBreadCrumbsEl],
+          ["showSelectorHeader", showSelectorHeaderEl],
+          ["showSelectorCancel", showSelectorCancelEl],
+          ["showSettings", showSettingsEl],
+          ["showSignOut", showSignOutEl],
+          ["showTitle", showTitleEl],
+          ["infoPanelVisible", infoPanelVisibleEl],
+          ["noLoader", noLoaderEl]
+        ].forEach(([key, el]) => {
+          const v = triValue(el);
+          if (v !== undefined && allowedConfigKeys.has(key)) config[key] = v;
+        });
+
+        const rawExtra = extraJsonEl.value.trim();
+        if (rawExtra) {
+          try {
+            const extra = JSON.parse(rawExtra);
+            if (!extra || typeof extra !== "object" || Array.isArray(extra)) {
+              return { config, error: "extra JSON must be an object" };
+            }
+            Object.assign(config, extra);
+          } catch (error) {
+            return { config, error: "extra JSON is invalid" };
+          }
+        }
+
+        return { config, error: "" };
+      }
+
+      function buildUsageSnippet() {
+        const method = initMethodEl.value;
+        const built = buildConfig(true);
+        if (built.error) {
+          return "// Fix config errors to generate example code.";
+        }
+
+        const cfg = Object.assign({}, built.config);
+        const helperLines = [];
+        const rootPath = cfg.rootPath ? String(cfg.rootPath) : "";
+        const roomMatch = rootPath.match(/\/rooms\/shared\/([^\/]+)/);
+        if (roomMatch && roomMatch[1]) helperLines.push('const roomId = "' + roomMatch[1] + '";');
+        if (cfg.id !== undefined && cfg.id !== null && String(cfg.id).trim()) {
+          helperLines.push('const targetId = "' + String(cfg.id) + '";');
+        }
+
+        let configStr = JSON.stringify(cfg, null, 2);
+        configStr = configStr.replace(/\n}$/, ",\n  events: {\n    onAppReady,\n  }\n}");
+
+        const lines = [];
+        if (helperLines.length) {
+          lines.push(...helperLines);
+          lines.push("");
+        }
+        lines.push(
+          "function onAppReady() {",
+          '  const frame = DocSpace.SDK.frames["' + frameId + '"];',
+          '  console.log("' + method + ' ready", frame);'
+        );
+        lines.push("}", "", "const config = " + configStr + ";", "", "const docSpace = DocSpace.SDK." + method + "(config);");
+        return lines.join("\n");
+      }
+
+      function renderPreview() {
+        const built = buildConfig(false);
+        payloadOut.value = JSON.stringify(built.config, null, 2);
+        usageOut.value = buildUsageSnippet();
+        if (built.error) {
+          setStatus(built.error, "err");
+          return;
+        }
+        if (needsInit) {
+          setStatus("Mode changed. Click Apply Config.", "");
+          return;
+        }
+        setStatus("Ready to setConfig.", "");
+      }
+
+      function createInstance() {
+        const method = initMethodEl.value;
+        const built = buildConfig(true);
+        payloadOut.value = JSON.stringify(built.config, null, 2);
+
+        if (built.error) {
+          setStatus(built.error, "err");
+          return false;
+        }
+
+        const initFn = DocSpace.SDK && DocSpace.SDK[method];
+        if (typeof initFn !== "function") {
+          setStatus("Initializer " + method + " is not available in SDK.", "err");
+          return false;
+        }
+
+        try {
+          setStatus("Initializing " + method + "...", "");
+          sdkReady = false;
+          instance = initFn.call(DocSpace.SDK, Object.assign({}, built.config, {
+            events: {
+              onAppReady: function () {
+                sdkReady = true;
+                needsInit = false;
+                applyBtn.disabled = false;
+                setStatus(method + " ready.", "ok");
+                applyManagerViewModeIfSelected().then(function (applied) {
+                  if (applied) setStatus(method + " ready. View mode updated.", "ok");
+                });
+              },
+              onAppError: function () {
+                setStatus("SDK app error. Check selected mode/params.", "err");
+              }
+            }
+          }));
+          return true;
+        } catch (error) {
+          setStatus(e && e.message ? e.message : "Initialization failed.", "err");
+          return false;
+        }
+      }
+
+      async function applyManagerViewModeIfSelected() {
+        const mode = getEffectiveMode();
+        const viewMode = String(viewAsEl.value || "").trim();
+        if (mode !== "manager" || !viewMode) return false;
+        if (!instance || typeof instance.setListView !== "function") return false;
+
+        try {
+          await instance.setListView(viewMode);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      applyBtn.addEventListener("click", async function () {
+        if (!instance || needsInit) {
+          createInstance();
+          return;
+        }
+
+        const built = buildConfig(false);
+        payloadOut.value = JSON.stringify(built.config, null, 2);
+        if (built.error) {
+          setStatus(built.error, "err");
+          return;
+        }
+        if (!Object.keys(built.config).length) {
+          setStatus("Add at least one config field.", "err");
+          return;
+        }
+
+        try {
+          setStatus("Applying setConfig...", "");
+          await instance.setConfig(built.config);
+          const viewApplied = await applyManagerViewModeIfSelected();
+          setStatus(viewApplied ? "Config applied. View mode updated." : "Config applied.", "ok");
+        } catch (error) {
+          setStatus(e && e.message ? e.message : "setConfig failed.", "err");
+        }
       });
 
-      btn.onclick = async () => {
-        try {
-          await manager.setConfig({ width: '50%' });
-        } catch (e) {
-          alert(e?.message || e);
+      [
+        presetEl,
+        initMethodEl,
+        modeEl,
+        idValueEl,
+        widthEl,
+        heightEl,
+        themeEl,
+        localeEl,
+        rootPathEl,
+        requestTokenEl,
+        viewAsEl,
+        selectorTypeEl,
+        showHeaderEl,
+        showMenuEl,
+        showFilterEl,
+        withSearchEl,
+        withBreadCrumbsEl,
+        showSelectorHeaderEl,
+        showSelectorCancelEl,
+        showSettingsEl,
+        showSignOutEl,
+        showTitleEl,
+        infoPanelVisibleEl,
+        noLoaderEl,
+        extraJsonEl
+      ].forEach(function (el) {
+        el.addEventListener("input", renderPreview);
+        el.addEventListener("change", renderPreview);
+      });
+
+      presetEl.addEventListener("change", function () {
+        applyPreset();
+        needsInit = true;
+        updateFieldVisibility();
+        renderPreview();
+      });
+
+      initMethodEl.addEventListener("change", function () {
+        needsInit = true;
+        applyDemoIdsByMethod();
+        updateFieldVisibility();
+        renderPreview();
+      });
+
+      modeEl.addEventListener("change", function () {
+        needsInit = true;
+        applyDemoIdsByMethod();
+        updateFieldVisibility();
+        renderPreview();
+      });
+
+      copyPayloadBtn.addEventListener("click", async function () {
+        const text = String(payloadOut.value || "").trim();
+        if (!text) {
+          setStatus("Payload is empty.", "err");
+          return;
         }
-      };
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "readonly");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+          setStatus("Payload copied to clipboard.", "ok");
+        } catch (error) {
+          setStatus("Failed to copy payload.", "err");
+        }
+      });
+
+      copyUsageBtn.addEventListener("click", async function () {
+        const text = String(usageOut.value || "").trim();
+        if (!text) {
+          setStatus("Usage preview is empty.", "err");
+          return;
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "readonly");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+          setStatus("Usage example copied.", "ok");
+        } catch (error) {
+          setStatus("Failed to copy usage example.", "err");
+        }
+      });
+
+      applyBtn.disabled = false;
+      presetEl.value = "managerDefault";
+      applyPreset();
+      updateDemoHint();
+      applyDemoIdsByMethod();
+      updateFieldVisibility();
+      renderPreview();
+      createInstance();
     </script>
   </body>
 </html>

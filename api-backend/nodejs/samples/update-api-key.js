@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Update an API Key
 
 This example demonstrates how to update an existing API key in DocSpace using the API.
@@ -17,6 +17,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Update an API key
 async function updateApiKey(keyId, newName, newPermissions, isActive = true) {
@@ -27,7 +33,7 @@ async function updateApiKey(keyId, newName, newPermissions, isActive = true) {
     isActive: isActive,
   };
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(payload),

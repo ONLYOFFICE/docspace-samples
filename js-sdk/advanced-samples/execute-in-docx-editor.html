@@ -1,16 +1,13 @@
 <!--
 Example: Execute a command in an editor
 
-This example demonstrates how to:
-1) pick a file via the SDK file selector,
-2) open that file in a hidden editor frame,
-3) run editor automation via `executeInEditor` and save the result.
-
-This is useful for export/automation scenarios (e.g., filling a .docx programmatically).
+Pick a .docx file via the file selector, then click Write & Save to run
+editor automation via executeInEditor in a hidden editor frame.
 
 Using methods:
 - DocSpace.SDK.initFileSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initfileselector)
 - DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
+- editor.executeInEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#executeInEditor)
 -->
 
 <!DOCTYPE html>
@@ -18,17 +15,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Execute in DOCX editor" />
-    <meta
-      name="example-description"
-      content="Pick a .docx file, open it in a hidden editor, run executeInEditor to insert text, and save."
-    />
+    <meta name="example-title" content="Insert Text into a DOCX File" />
+    <meta name="example-description" content="Select a .docx file, programmatically insert a text paragraph via the editor API, and save — the editor runs in the background with no UI shown." />
     <meta name="example-group" content="advanced" />
-    <title>Execute in DOCX editor</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Insert Text into a DOCX File</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -37,282 +31,204 @@ Using methods:
   </head>
 
   <body class="ex-execute-in-hidden-editor">
-    <div class="wrap">
-      <iframe id="ds-selector" class="frame"></iframe>
-    </div>
-
-    <iframe id="ds-hidden-editor" class="hidden-frame" title="Editor frame"></iframe>
-
-    <div class="panel">
-      <div class="row">
-        <div class="kv">
-          <div class="k">Selected</div>
-          <div class="v" id="selectedTitle">None</div>
+    <div class="result-split">
+      <div class="result-split__frame">
+        <!-- Step 1: file selector -->
+        <div class="frame-wrap" id="selectorWrap">
+          <iframe id="ds-selector"></iframe>
         </div>
-        <div class="kv">
-          <div class="k">File ID</div>
-          <div class="v" id="selectedId">-</div>
+        <!-- Step 2: editor shown after Write & Save -->
+        <div class="frame-wrap" id="editorWrap" style="display:none">
+          <iframe id="ds-hidden-editor"></iframe>
+        </div>
+        <div class="bottom-bar">
+          <button id="backBtn" type="button" class="btn btn--secondary" style="display:none">← Select another file</button>
+          <span class="status" id="hint">Select a .docx file</span>
         </div>
       </div>
 
-      <div class="grid">
-        <div>
+      <div class="result-split__panel card" style="flex:0 0 360px;min-height:520px">
+        <div class="field" style="flex:0 0 auto">
+          <label>Selected file ID</label>
+          <input id="selectedId" type="text" readonly placeholder="— select a file —" />
+        </div>
+
+        <div class="field" style="flex:0 0 auto;margin-top:10px">
           <label for="mode">Mode</label>
           <select id="mode">
             <option value="append">Append paragraphs</option>
-            <option value="replace">Replace document (best effort)</option>
+            <option value="replace">Replace document</option>
           </select>
         </div>
+
+        <div class="field" style="flex:1;display:flex;flex-direction:column;margin-top:10px">
+          <label for="text">Text <span style="color:#9ca3af;font-weight:400">(each line = paragraph)</span></label>
+          <textarea id="text" style="flex:1;resize:none;font-family:ui-monospace,monospace;font-size:12px" placeholder="Hello from executeInEditor!&#10;This paragraph was added in a hidden editor."></textarea>
+        </div>
+
+        <div class="actions" style="flex:0 0 auto;margin-top:12px">
+          <button id="run" type="button" class="btn" disabled>Write &amp; Save</button>
+          <span class="status" id="actionStatus"></span>
+        </div>
       </div>
-
-      <label for="text">Text (each line becomes a paragraph)</label>
-      <textarea id="text" placeholder="Hello from executeInEditor!"></textarea>
-
-      <div class="muted">
-        Note: the editor automation below targets the text document API. For best results, pick a <code>.docx</code> file.
-      </div>
-    </div>
-
-    <div class="bar">
-      <button id="pick" type="button" class="btn">Pick file</button>
-      <button id="run" type="button" class="btn" disabled>Write &amp; Save</button>
-      <button id="toggleHidden" type="button" class="btn secondary">Show editor</button>
-      <button id="reset" type="button" class="btn secondary">Reset</button>
-      <span class="status" id="hint">Select a file</span>
     </div>
 
     <script>
-      const hint = document.getElementById("hint");
-      const pick = document.getElementById("pick");
-      const run = document.getElementById("run");
-      const toggleHidden = document.getElementById("toggleHidden");
-      const reset = document.getElementById("reset");
+      const hint         = document.getElementById("hint");
+      const selectedIdEl = document.getElementById("selectedId");
+      const modeEl       = document.getElementById("mode");
+      const textEl       = document.getElementById("text");
+      const run          = document.getElementById("run");
+      const actionStatus = document.getElementById("actionStatus");
+      const selectorWrap = document.getElementById("selectorWrap");
+      const editorWrap   = document.getElementById("editorWrap");
+      const backBtn      = document.getElementById("backBtn");
 
-      const selectedTitle = document.getElementById("selectedTitle");
-      const selectedId = document.getElementById("selectedId");
-
-      const modeEl = document.getElementById("mode");
-      const textEl = document.getElementById("text");
-
-      const hiddenFrame = document.getElementById("ds-hidden-editor");
-
-      let selectorInstance = null;
       let editorInstance = null;
-      let selected = null; // { id, title, raw }
-      let hiddenVisible = false;
-      const AUTO_CLOSE_DELAY_MS = 8000;
+      let selected = null;
 
-      function setHint(v) {
-        hint.textContent = v;
+      function setHint(text)   { hint.textContent = text; }
+      function setStatus(text) { actionStatus.textContent = text; }
+
+      function showSelector() {
+        selectorWrap.style.display = "";
+        editorWrap.style.display   = "none";
+        backBtn.style.display      = "none";
       }
 
-      function getText() {
-        return String(textEl.value || "");
+      function showEditor() {
+        selectorWrap.style.display = "none";
+        editorWrap.style.display   = "";
+        backBtn.style.display      = "";
       }
 
-      function updateUi() {
-        selectedTitle.textContent = selected?.title || "None";
-        selectedId.textContent = selected?.id ? String(selected.id) : "-";
+      function updateUI() {
+        selectedIdEl.value = selected?.id ? String(selected.id) : "";
         run.disabled = !selected?.id;
       }
 
       function destroyEditor() {
         if (editorInstance && typeof editorInstance.destroyFrame === "function") {
-          try {
-            editorInstance.destroyFrame();
-          } catch {}
+          try { editorInstance.destroyFrame(); } catch {}
         }
         editorInstance = null;
       }
 
-      function destroySelector() {
-        if (selectorInstance && typeof selectorInstance.destroyFrame === "function") {
-          try {
-            selectorInstance.destroyFrame();
-          } catch {}
+      // File selector
+      DocSpace.SDK.initFileSelector({
+        frameId: "ds-selector",
+        width: "700px",
+        height: "520px",
+        theme: "base",
+        events: {
+          onSelectCallback: (data) => {
+            const item = Array.isArray(data) ? data[0] : data;
+            const id = item?.id ?? null;
+            if (!id) return;
+            selected = { id: String(id), title: item?.title || item?.name || `File ${id}` };
+            setHint(`Selected: ${selected.title}`);
+            setStatus("");
+            updateUI();
+          },
+          onAppError: () => setHint("Selector error")
         }
-        selectorInstance = null;
-      }
+      });
 
-      function openSelector() {
-        destroySelector();
-        setHint("Select a file...");
-
-        selectorInstance = DocSpace.SDK.initFileSelector({
-          frameId: "ds-selector",
-          width: "900px",
-          height: "520px",
-          theme: "base",
-          events: {
-            onSelectCallback: (e) => {
-              const item = Array.isArray(e) ? e[0] : e;
-              if (!item) return;
-
-              const id = item?.id ?? item?.fileId ?? null;
-              const title = item?.title || item?.name || (id ? `File ${id}` : "File");
-              selected = { id: id ? String(id) : "", title: String(title), raw: item };
-
-              setHint("Ready");
-              updateUi();
-              console.log("[selector] selected:", item);
-            },
-            onAppError: (err) => {
-              console.error("Selector error", err);
-              setHint("Error");
-            }
-          }
-        });
-      }
+      backBtn.onclick = () => {
+        destroyEditor();
+        showSelector();
+        setHint(selected ? `Selected: ${selected.title}` : "Select a .docx file");
+        setStatus("");
+      };
 
       function buildDocxCommand(text, mode) {
         const payloadText = JSON.stringify(String(text ?? ""));
         const payloadMode = JSON.stringify(String(mode ?? "append"));
         return new Function(
           "editorInstance",
-          `
-            try {
-              const text = ${payloadText};
-              const mode = ${payloadMode};
-              const connector = editorInstance?.createConnector?.();
-              if (!connector?.callCommand) {
-                console.error("connector.callCommand is not available", connector);
-                return;
-              }
+          `try {
+            const text = ${payloadText};
+            const mode = ${payloadMode};
+            const connector = editorInstance?.createConnector?.();
+            if (!connector?.callCommand) return;
 
-              Asc.scope.text = text;
-              Asc.scope.mode = mode;
-              connector.callCommand(function () {
-                try {
-                  const doc = Api.GetDocument && Api.GetDocument();
-                  if (!doc) {
-                    console.error("Api.GetDocument is not available (not a text document editor).");
-                    return;
-                  }
+            Asc.scope.text = text;
+            Asc.scope.mode = mode;
+            connector.callCommand(function () {
+              try {
+                const doc = Api.GetDocument && Api.GetDocument();
+                if (!doc) return;
 
-                  const mode = String(Asc.scope.mode || "append").toLowerCase();
-                  const raw = String(Asc.scope.text || "");
-                  const normalized = raw.replace(/\\r\\n/g, "\\n");
-                  const lines = normalized.split("\\n");
+                const mode = String(Asc.scope.mode || "append").toLowerCase();
+                const lines = String(Asc.scope.text || "").replace(/\\r\\n/g, "\\n").split("\\n");
 
-                  function pushParagraph(line) {
-                    const p = Api.CreateParagraph();
-                    p.AddText(line);
-                    if (typeof doc.Push === "function") {
-                      doc.Push(p);
-                    } else if (typeof doc.InsertContent === "function") {
-                      doc.InsertContent([p], true);
-                    }
-                  }
-
-                  if (mode === "replace") {
-                    if (typeof doc.RemoveAllElements === "function") {
-                      doc.RemoveAllElements();
-                    } else if (typeof doc.GetElement === "function") {
-                      const first = doc.GetElement(0);
-                      if (first && typeof first.RemoveAllElements === "function") first.RemoveAllElements();
-                    }
-                  }
-
-                  const hasAny = lines.some((l) => String(l).trim() !== "");
-                  if (!hasAny) {
-                    pushParagraph("No text");
-                    Api.Save();
-                    return;
-                  }
-
-                  for (let i = 0; i < lines.length; i += 1) {
-                    pushParagraph(String(lines[i] ?? ""));
-                  }
-                  Api.Save();
-                } catch (err) {
-                  console.error("DOCX command failed", err);
+                function pushParagraph(line) {
+                  const p = Api.CreateParagraph();
+                  p.AddText(line);
+                  if (typeof doc.Push === "function") doc.Push(p);
+                  else if (typeof doc.InsertContent === "function") doc.InsertContent([p], true);
                 }
-              });
-            } catch (e) {
-              console.error("Failed to build DOCX command", e);
-            }
-          `
+
+                if (mode === "replace") {
+                  if (typeof doc.RemoveAllElements === "function") doc.RemoveAllElements();
+                }
+
+                if (!lines.some(l => String(l).trim())) { pushParagraph("No text"); Api.Save(); return; }
+                for (const line of lines) pushParagraph(String(line));
+                Api.Save();
+              } catch (error) { console.error("DOCX command failed", error); }
+            });
+          } catch (error) { console.error("executeInEditor build failed", error); }`
         );
       }
 
-      async function runHiddenWriteAndSave() {
+      run.onclick = () => {
         if (!selected?.id) return;
-
-        const text = getText();
-        const mode = String(modeEl.value || "append");
-
         destroyEditor();
-        setHint("Opening hidden editor...");
+        run.disabled = true;
+        setStatus("Opening editor…");
+        showEditor();
+        setHint("Loading editor…");
 
         editorInstance = DocSpace.SDK.initEditor({
           id: selected.id,
           frameId: "ds-hidden-editor",
-          width: "1px",
-          height: "1px",
+          width: "700px",
+          height: "520px",
           theme: "base",
           events: {
             onAppReady: () => {
-              setHint("Executing...");
-
+              setHint("Executing command…");
+              setStatus("Executing…");
               const frame = DocSpace?.SDK?.frames?.["ds-hidden-editor"];
               if (!frame || typeof frame.executeInEditor !== "function") {
-                console.error("SDK frame.executeInEditor is not available", frame);
-                setHint("executeInEditor not available");
-                destroyEditor();
+                setStatus("executeInEditor not available");
+                setHint("Error");
+                run.disabled = false;
                 return;
               }
-
               try {
-                frame.executeInEditor(buildDocxCommand(text, mode));
-                setHint("Command sent. Saving...");
-              } catch (e) {
-                console.error(e);
-                setHint("Execute failed");
+                frame.executeInEditor(buildDocxCommand(textEl.value, modeEl.value));
+                setStatus("Done");
+                setHint("Saved");
+              } catch (error) {
+                setStatus("Execute failed: " + (error?.message || String(error)));
               }
-
-              setTimeout(() => {
-                destroyEditor();
-                setHint("Done (editor closed).");
-              }, AUTO_CLOSE_DELAY_MS);
+              run.disabled = false;
             },
             onAppError: (e) => {
-              console.error("Editor error", e);
-              setHint("Editor error");
-              setTimeout(() => destroyEditor(), 1500);
+              setStatus("Editor error");
+              setHint("Error");
+              destroyEditor();
+              showSelector();
+              run.disabled = false;
             }
           }
         });
-      }
+      };
 
-      function toggleEditorVisibility() {
-        hiddenVisible = !hiddenVisible;
-        if (hiddenVisible) {
-          hiddenFrame.classList.remove("hidden-frame");
-          hiddenFrame.classList.add("visible-hidden-frame");
-          toggleHidden.textContent = "Hide editor";
-        } else {
-          hiddenFrame.classList.remove("visible-hidden-frame");
-          hiddenFrame.classList.add("hidden-frame");
-          toggleHidden.textContent = "Show editor";
-        }
-      }
-
-      function doReset() {
-        destroyEditor();
-        selected = null;
-        modeEl.value = "append";
-        textEl.value = "Hello from executeInEditor!\nThis paragraph was added in a hidden editor.";
-        setHint("Select a file");
-        updateUi();
-      }
-
-      pick.onclick = openSelector;
-      run.onclick = runHiddenWriteAndSave;
-      toggleHidden.onclick = toggleEditorVisibility;
-      reset.onclick = doReset;
-
-      doReset();
-      openSelector();
+      textEl.value = "Hello from executeInEditor!\nThis paragraph was added in a hidden editor.";
+      updateUI();
     </script>
   </body>
 </html>

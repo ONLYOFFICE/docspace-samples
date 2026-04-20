@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Manage groups
 
 This example demonstrates how to manage groups in ONLYOFFICE DocSpace using the API.
@@ -33,7 +33,7 @@ def create_group(group_name, manager_id, member_ids):
     'groupManager': manager_id,
     'members': member_ids
   }
-  response = requests.post(url, json=data, headers=HEADERS)
+  response = requests.post(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     group_id = response.json()['response']['id']
     print('Group created successfully:', group_id)
@@ -44,7 +44,7 @@ def create_group(group_name, manager_id, member_ids):
 # Step 2: Retrieve group by ID
 def get_group_by_id(group_id):
   url = f'{API_HOST}/api/2.0/group/{group_id}'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     group = response.json()
     print(group)
@@ -58,7 +58,7 @@ def update_group(group_id, new_group_name):
   data = {
     'groupName': new_group_name
   }
-  response = requests.put(url, json=data, headers=HEADERS)
+  response = requests.put(url, json=data, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     group_id = response.json()['response']['id']
     print('Group updated successfully:', group_id)
@@ -69,7 +69,7 @@ def update_group(group_id, new_group_name):
 # Step 4: Delete a group
 def delete_group(group_id):
   url = f'{API_HOST}/api/2.0/group/{group_id}'
-  response = requests.delete(url, headers=HEADERS)
+  response = requests.delete(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     print(f"Group {group_id} deleted successfully.")
   else:

@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Remove members from a group
 
 This example demonstrates how to remove one or more members from a group in ONLYOFFICE DocSpace using the API.
@@ -24,7 +24,7 @@ def remove_group_members(group_id, members):
   url = f'{API_HOST}/api/2.0/group/{group_id}/members'
   data = { 'members': members }
 
-  response = requests.delete(url, json=data, headers=headers)
+  response = requests.delete(url, json=data, headers=headers, timeout=30)
 
   if response.status_code == 200:
     print(f'Members removed from group {group_id}: {members}')

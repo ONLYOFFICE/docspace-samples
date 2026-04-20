@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Invite user with welcome message
 
 This example demonstrates how to invite a user to ONLYOFFICE DocSpace using the API,check their registration status,
@@ -14,15 +14,21 @@ Using methods:
 const API_HOST = 'https://yourportal.onlyoffice.com';
 const API_KEY = 'YOUR_TOKEN';
 const HEADERS = { Authorization: API_KEY };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Get invitation link for a specific employee type
 function getInviteLink(employeeType = 'Guest') {
   const url = `${API_HOST}/api/2.0/portal/users/invite/${employeeType}`;
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Invite link retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Invite link retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })
@@ -40,11 +46,11 @@ function getInviteLink(employeeType = 'Guest') {
 // Step 2: Check if the user is active
 function checkUserStatus(userId) {
   const url = `${API_HOST}/api/2.0/portal/users/${userId}`;
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`User info retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`User info retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })
@@ -68,13 +74,13 @@ function sendCongratulations(userId, key = 'welcome_guest') {
   const params = new URLSearchParams({ Userid: userId, Key: key });
   const url = `${API_HOST}/api/2.0/portal/sendcongratulations?${params.toString()}`;
 
-  return fetch(url, { method: 'POST', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'POST', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) {
         console.log('Congratulations message sent successfully.');
       } else {
-        return res.text().then((t) => {
-          console.log(`Congratulations send failed. Status code: ${res.status}, Message: ${t}`);
+        return res.text().then((text) => {
+          console.log(`Congratulations send failed. Status code: ${res.status}, Message: ${text}`);
         });
       }
     })

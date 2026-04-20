@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Create a room and invite a user
 
 This example demonstrates how to programmatically create a new room in ONLYOFFICE DocSpace and invite a user to it via email with specific access permissions.
@@ -19,6 +19,12 @@ const HEADERS = {
 };
 
 // Step 1: Create a new room
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function createRoom(title) {
   const url = `${API_HOST}/api/2.0/files/rooms`;
   const data = {
@@ -26,7 +32,7 @@ function createRoom(title) {
     roomType: 2, // Type 2 = collaboration room
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(data),
@@ -58,7 +64,7 @@ function inviteUserToRoom(roomId, email, access) {
     message: 'You have been invited to a room',
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(data),

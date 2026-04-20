@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Restore file to previous version
 
 This example demonstrates how to retrieve the edit history of a file in ONLYOFFICE DocSpace and restore it to a specific previous version using the API.
@@ -18,9 +18,15 @@ const HEADERS = {
 };
 
 // Step 1: Get file version history
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function getFileVersions(fileId) {
   const url = `${API_HOST}/api/2.0/files/file/${fileId}/edit/history`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (!res.ok) {
     const text = await res.text();
@@ -41,7 +47,7 @@ async function getFileVersions(fileId) {
 async function restoreFileVersion(fileId, versionNumber) {
   const params = new URLSearchParams({ version: String(versionNumber) });
   const url = `${API_HOST}/api/2.0/files/file/${fileId}/restoreversion?${params}`;
-  const res = await fetch(url, { method: 'GET', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'GET', headers: HEADERS });
 
   if (res.ok) {
     console.log(`File restored to version ${versionNumber}`);
@@ -53,12 +59,12 @@ async function restoreFileVersion(fileId, versionNumber) {
 
 // Run the flow
 (async () => {
-  const file_id = 1569862; // Replace with your file ID
-  const versions = await getFileVersions(file_id);
+  const fileId = 1569862; // Replace with your file ID
+  const versions = await getFileVersions(fileId);
 
   if (versions && versions.length > 1) {
     const target_version = versions[0].version;
-    await restoreFileVersion(file_id, target_version);
+    await restoreFileVersion(fileId, target_version);
   } else {
     console.log('No previous versions available for restore.');
   }

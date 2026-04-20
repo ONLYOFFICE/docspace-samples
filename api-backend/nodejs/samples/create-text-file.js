@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Create a text file
 
 This example demonstrates how to create a `.txt` file in a specified folder in ONLYOFFICE DocSpace using the API. 
@@ -19,6 +19,12 @@ const HEADERS = {
 };
 
 // Step 1: Create a text file in a folder
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function createTextFile(folderId, title, content) {
   const url = `${API_HOST}/api/2.0/files/${folderId}/text`;
   const data = {
@@ -26,15 +32,15 @@ function createTextFile(folderId, title, content) {
     content: content,
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(data),
   })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`File creation failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`File creation failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: List groups managed by a user
 
 This example demonstrates how to retrieve the list of groups in ONLYOFFICE DocSpace that are managed by a specific user.
@@ -18,6 +18,12 @@ const HEADERS = {
 };
 
 // Step 1: Get groups managed by a specific user
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function getManagedGroups(managerId) {
   const params = new URLSearchParams({
     manager: 'True',       // return groups where the given user is a manager
@@ -26,11 +32,11 @@ function getManagedGroups(managerId) {
 
   const url = `${API_HOST}/api/2.0/group?${params.toString()}`;
 
-  return fetch(url, { method: 'GET', headers: HEADERS })
+  return fetchWithTimeout(url, { method: 'GET', headers: HEADERS })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`Managed groups retrieval failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`Managed groups retrieval failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })

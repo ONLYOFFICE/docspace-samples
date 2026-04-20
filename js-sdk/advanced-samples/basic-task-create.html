@@ -13,14 +13,14 @@ Using methods:
   <head>
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
-    <meta name="example-title" content="Task Create with DocSpace Room" />
-    <meta name="example-description" content="Create a task and attach a DocSpace room link using the room selector." />
+    <meta name="example-title" content="Create Task with Room Link" />
+    <meta name="example-description" content="Create a task and attach a DocSpace room link to it using the embedded room selector." />
     <meta name="example-group" content="advanced" />
-    <title>Task Create</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Create Task with Room Link</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -88,7 +88,7 @@ Using methods:
           showSelectorCancel: true,
           events: {
             onSelectCallback: (e) => {
-              const item = Array.isArray(e) ? e[0] : e;
+              const item = e && typeof e === "object" ? e : null;
               if (!item || !item.id) return;
               selected = { id: String(item.id), title: item.title || item.label || "Room" };
               modal.close("ok");
@@ -102,7 +102,13 @@ Using methods:
         destroySelector();
         if (!selected) return;
         const link = `{PORTAL_SRC}/rooms/shared/${selected.id}/filter?folder=${selected.id}`;
-        roomHint.innerHTML = `<a href="${link}" target="_blank">${selected.title}</a>`;
+        roomHint.textContent = "";
+        const anchor = document.createElement("a");
+        anchor.href = link;
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
+        anchor.textContent = selected.title;
+        roomHint.appendChild(anchor);
         updateState();
       });
 

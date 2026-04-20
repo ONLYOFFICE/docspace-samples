@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Create an API Key
 
 This example demonstrates how to programmatically generate an API key in ONLYOFFICE DocSpace with specific permissions and an expiration period. 
@@ -17,6 +17,12 @@ const HEADERS = {
   Authorization: API_KEY,
   'Content-Type': 'application/json',
 };
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 
 // Step 1: Create an API key
 function createApiKey(name, permissions, expiresInDays) {
@@ -27,24 +33,27 @@ function createApiKey(name, permissions, expiresInDays) {
     expiresInDays: expiresInDays,
   };
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(payload),
   })
     .then((res) => {
       if (res.status === 200) return res.json();
-      return res.text().then((t) => {
-        console.log(`API key creation failed. Status code: ${res.status}, Message: ${t}`);
+      return res.text().then((text) => {
+        console.log(`API key creation failed. Status code: ${res.status}, Message: ${text}`);
         return null;
       });
     })
     .then((data) => {
       if (!data) return;
       const resp = data.response || {};
+      const maskedKey = resp.key
+        ? `${resp.key.slice(0, 4)}${'*'.repeat(Math.max(0, resp.key.length - 8))}${resp.key.slice(-4)}`
+        : '(not returned)';
       console.log('API Key created successfully:');
       console.log(`• Name: ${resp.name}`);
-      console.log(`• Key: ${resp.key}`);
+      console.log(`• Key: ${maskedKey}`);
       console.log(`• Postfix: ${resp.keyPostfix}`);
       console.log(`• Permissions: ${resp.permissions}`);
       console.log(`• Expires: ${resp.expiresAt}`);

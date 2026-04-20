@@ -2,15 +2,15 @@
 Example: Create a PDF form template from scratch
 
 Flow:
-1) Pick a destination folder.
+1) Pick a room.
 2) Enter a file name (must end with .pdf).
 3) Provide a JSON array of fields to insert (each field gets a FormKey).
 4) Click "Create template" to create a new PDF and insert form fields via executeInEditor.
 
 Using methods:
+- DocSpace.SDK.initRoomSelector (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initroomselector)
 - DocSpace.SDK.initManager (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initmanager)
 - manager.createFile (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#createfile)
-- manager.getSelection (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDKInstance/#getselection)
 - DocSpace.SDK.initEditor (https://api.onlyoffice.com/docspace/javascript-sdk/usage-sdk/classes/SDK/#initeditor)
 -->
 
@@ -20,20 +20,17 @@ Using methods:
     <base href="{PORTAL_SRC}/" />
     <meta charset="UTF-8" />
 
-    <meta name="example-title" content="Create PDF form template" />
-    <meta
-      name="example-description"
-      content="Create a new fillable PDF form template, insert form fields (FormKey), and save using executeInEditor."
-    />
+    <meta name="example-title" content="Create PDF Form Template" />
+    <meta name="example-description" content="Create a new fillable PDF, add form fields with custom FormKeys via the editor API, and save the result as a reusable template." />
     <meta name="example-group" content="advanced" />
 
-    <title>Create PDF form template</title>
-    <script src="{PORTAL_SRC}/static/scripts/sdk/2.1.0/api.js"></script>
+    <title>Create PDF Form Template</title>
+    <script src="{PORTAL_SRC}/static/scripts/sdk/2.0.0/api.js"></script>
 
     <!-- App styles -->
     <script>
       (function () {
-        var link = document.createElement("link");
+        const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = new URL("../assets/css/style.css", window.location.href).toString();
         document.head.appendChild(link);
@@ -41,103 +38,88 @@ Using methods:
     </script>
   </head>
 
-  <body class="ex-batch-fill-from-template-pdf">
-    <div class="panel" style="margin-bottom: 12px;">
-      <details open>
-        <summary><b>How to use</b></summary>
-        <ol class="muted" style="margin: 10px 0 0 18px; line-height: 1.5;">
-          <li>Open the destination picker and select a folder.</li>
-          <li>Click <b>Use selected folder</b>.</li>
-          <li>Set <b>Template file name</b> (must end with <code>.pdf</code>).</li>
-          <li>Define fields in JSON (each field gets a <b>FormKey</b>).</li>
-          <li>Click <b>Create template</b>.</li>
-        </ol>
-        <div class="muted" style="margin-top: 8px;">
-          This creates a new PDF and inserts ONLYOFFICE form fields (text, checkbox, date, picture) using editor commands.
-        </div>
-      </details>
-    </div>
-
-    <div class="wrap">
-      <iframe id="ds-destination-picker" class="frame"></iframe>
-    </div>
-
-    <iframe id="ds-manager-frame" class="hidden-frame" title="Manager frame"></iframe>
-    <iframe id="ds-hidden-editor" class="hidden-frame" title="Editor frame"></iframe>
-
-    <div class="panel">
-      <div class="row">
-        <div class="kv">
-          <div class="k">Destination folderId</div>
-          <div class="v" id="destFolderId">None</div>
-        </div>
-          <div class="kv">
-            <div class="k">Manager</div>
-            <div class="v" id="managerState">Loading...</div>
-          </div>
+  <body class="ex-create-pdf-form-template">
+    <div class="page ex-create-pdf-form-template__layout">
+      <div class="ex-create-pdf-form-template__left">
+        <div class="frame-wrap">
+          <iframe id="ds-destination-picker"></iframe>
         </div>
 
-      <div class="grid">
-        <div>
-          <div class="field">
-            <label for="fileName">Template file name</label>
-            <input id="fileName" type="text" value="New_Form_Template.pdf" autocomplete="off" />
-          </div>
-          <div class="muted">Must end with <code>.pdf</code>.</div>
-        </div>
-        <div>
-          <label>Actions</label>
-          <div class="actions-row" style="margin-top: 6px;">
-            <button id="useDest" type="button" class="btn-secondary">Use selected folder</button>
-            <button id="create" type="button" class="btn" disabled>Create template</button>
-            <button id="toggleHidden" type="button" class="btn-secondary">Show editor</button>
-          </div>
-          <span class="status" id="hint" style="margin-top: 10px;">Select a folder</span>
+        <div class="bottom-bar">
+          <input id="fileName" type="text" value="New_Form_Template.pdf" autocomplete="off" />
+          <button id="create" type="button" class="btn" disabled>Create template</button>
+          <span class="status" id="hint">Select a room</span>
         </div>
       </div>
 
-      <div class="field">
-        <label for="fields">Fields (JSON array)</label>
-        <textarea id="fields" placeholder='[{"type":"text","label":"First name","key":"FirstName"}]'></textarea>
-      </div>
-      <div class="muted" style="margin-top: 8px;">
-        Supported types: <code>text</code>, <code>checkbox</code>, <code>date</code>, <code>picture</code>.
-        Each field should have <code>key</code> (this becomes <b>FormKey</b>).
-      </div>
+      <div class="card ex-create-pdf-form-template__side">
+        <div class="ex-create-pdf-form-template__meta">
+          <div class="ex-create-pdf-form-template__kv">
+            <div class="ex-create-pdf-form-template__k">Selected roomId</div>
+            <div class="ex-create-pdf-form-template__v" id="destFolderId">None</div>
+          </div>
+          <div class="ex-create-pdf-form-template__kv">
+            <div class="ex-create-pdf-form-template__k">Manager</div>
+            <div class="ex-create-pdf-form-template__v" id="managerState">Loading...</div>
+          </div>
+        </div>
 
-      <div class="box" style="margin-top: 12px;">
-        <h3>Log</h3>
         <div class="field">
+          <label for="fields">Fields (JSON array)</label>
+          <textarea id="fields" placeholder='[{"type":"text","label":"First name","key":"FirstName"}]'></textarea>
+          <div class="ex-create-pdf-form-template__muted">
+            Supported types: <code>text</code>, <code>checkbox</code>, <code>date</code>, <code>picture</code>.
+            Each field should have <code>key</code> (this becomes <b>FormKey</b>).
+          </div>
+        </div>
+
+        <div class="field ex-create-pdf-form-template__log-field">
+          <label for="log">Log</label>
           <textarea id="log" class="output" readonly placeholder="Progress log..."></textarea>
         </div>
       </div>
     </div>
+
+    <!-- Hidden manager frame for executing SDK methods -->
+    <div style="position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden">
+      <div id="ds-manager-frame"></div>
+    </div>
+    <iframe id="ds-hidden-editor" class="hidden-frame" title="Editor frame"></iframe>
 
     <script>
       const destFolderIdEl = document.getElementById("destFolderId");
       const managerStateEl = document.getElementById("managerState");
       const fileNameEl = document.getElementById("fileName");
       const fieldsEl = document.getElementById("fields");
-      const useDestBtn = document.getElementById("useDest");
       const createBtn = document.getElementById("create");
-      const toggleHiddenBtn = document.getElementById("toggleHidden");
       const hintEl = document.getElementById("hint");
       const logEl = document.getElementById("log");
-      const hiddenFrame = document.getElementById("ds-hidden-editor");
 
       let manager = null;
       let picker = null;
       let editorInstance = null;
       let managerReady = false;
       let destFolderId = "";
-      let hiddenVisible = false;
 
-      function setHint(v) {
-        hintEl.textContent = String(v ?? "");
+      function extractId(data) {
+        if (!data || typeof data !== "object") return "";
+        if (Array.isArray(data)) {
+          const first = data[0];
+          return first?.id ? String(first.id).trim() : "";
+        }
+        if (data.id != null && String(data.id).trim()) return String(data.id).trim();
+        if (Array.isArray(data.items) && data.items[0]?.id != null) return String(data.items[0].id).trim();
+        if (data.item?.id != null) return String(data.item.id).trim();
+        if (data.selected?.id != null) return String(data.selected.id).trim();
+        return "";
       }
 
-      function logLine(v) {
-        const line = String(v ?? "");
+      function setHint(text) {
+        hintEl.textContent = String(text ?? "");
+      }
+
+      function logLine(text) {
+        const line = String(text ?? "");
         logEl.value = (logEl.value ? logEl.value + "\n" : "") + line;
         logEl.scrollTop = logEl.scrollHeight;
       }
@@ -157,16 +139,16 @@ Using methods:
       }
 
       function getCreatedFileId(res) {
-        const id = res?.id ?? res?.fileId ?? res?.entryId ?? res?.documentId ?? "";
+        const id = res?.id ?? "";
         return id ? String(id).trim() : "";
       }
 
       function parseFields() {
         const raw = String(fieldsEl.value || "").trim();
         if (!raw) return [];
-        const v = JSON.parse(raw);
-        if (!Array.isArray(v)) throw new Error("Fields must be a JSON array");
-        return v;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("Fields must be a JSON array");
+        return parsed;
       }
 
       function buildCreatePdfFormCommand(fields) {
@@ -199,15 +181,15 @@ Using methods:
                   }
 
                   for (let i = 0; i < fields.length; i += 1) {
-                    const f = fields[i] || {};
-                    const type = String(f.type || "text");
-                    const key = String(f.key || "").trim();
-                    const label = String(f.label || "").trim();
-                    const placeholder = String(f.placeholder || "").trim();
-                    const required = !!f.required;
+                    const field = fields[i] || {};
+                    const type = String(field.type || "text");
+                    const key = String(field.key || "").trim();
+                    const label = String(field.label || "").trim();
+                    const placeholder = String(field.placeholder || "").trim();
+                    const required = !!field.required;
 
                     if (!key) {
-                      console.warn("Skip field without key", f);
+                      console.warn("Skip field without key", field);
                       continue;
                     }
 
@@ -226,9 +208,9 @@ Using methods:
                         key,
                         required: required || false,
                         placeholder: placeholder || "",
-                        comb: !!f.comb,
-                        maxCharacters: f.maxCharacters ? Number(f.maxCharacters) : undefined,
-                        multiLine: !!f.multiLine,
+                        comb: !!field.comb,
+                        maxCharacters: field.maxCharacters ? Number(field.maxCharacters) : undefined,
+                        multiLine: !!field.multiLine,
                         autoFit: true
                       });
                     }
@@ -238,12 +220,12 @@ Using methods:
                   }
 
                   Api.Save();
-                } catch (e) {
-                  console.error("Failed to build PDF form", e);
+                } catch (error) {
+                  console.error("Failed to build PDF form", error);
                 }
               });
-            } catch (e) {
-              console.error("Failed to build command", e);
+            } catch (error) {
+              console.error("Failed to build command", error);
             }
           `
         );
@@ -270,8 +252,8 @@ Using methods:
 
                 try {
                   frame.executeInEditor(buildCreatePdfFormCommand(fields));
-                } catch (e) {
-                  reject(e);
+                } catch (error) {
+                  reject(error);
                   destroyEditor();
                   return;
                 }
@@ -290,19 +272,6 @@ Using methods:
         });
       }
 
-      function toggleEditorVisibility() {
-        hiddenVisible = !hiddenVisible;
-        if (hiddenVisible) {
-          hiddenFrame.classList.remove("hidden-frame");
-          hiddenFrame.classList.add("visible-hidden-frame");
-          toggleHiddenBtn.textContent = "Hide editor";
-        } else {
-          hiddenFrame.classList.remove("visible-hidden-frame");
-          hiddenFrame.classList.add("hidden-frame");
-          toggleHiddenBtn.textContent = "Show editor";
-        }
-      }
-
       function initHiddenManager() {
         managerReady = false;
         managerStateEl.textContent = "Loading...";
@@ -318,8 +287,7 @@ Using methods:
               managerStateEl.textContent = "Ready";
               updateUi();
             },
-            onAppError: (e) => {
-              console.error("Manager error", e);
+            onAppError: () => {
               managerReady = false;
               managerStateEl.textContent = "Error";
               setHint("Manager error");
@@ -330,29 +298,25 @@ Using methods:
       }
 
       function initDestinationPicker() {
-        picker = DocSpace.SDK.initManager({
+        picker = DocSpace.SDK.initRoomSelector({
           frameId: "ds-destination-picker",
-          width: "900px",
-          height: "520px",
+          width: "960px",
+          height: "600px",
           theme: "base",
-          selectorType: "folder"
+          events: {
+            onSelectCallback: (selection) => {
+              const id = extractId(selection);
+              if (!id) return;
+              destFolderId = id;
+              setHint("Room selected");
+              updateUi();
+            },
+            onAppError: () => {
+              setHint("Selector error");
+            }
+          }
         });
       }
-
-      useDestBtn.onclick = async () => {
-        if (!picker || typeof picker.getSelection !== "function") return;
-        try {
-          const sel = await picker.getSelection();
-          const item = Array.isArray(sel) ? sel[0] : sel;
-          const id = item?.folderId ?? item?.id ?? null;
-          if (!id) throw new Error("No folder selected");
-          destFolderId = String(id);
-          setHint("Destination selected");
-          updateUi();
-        } catch (e) {
-          setHint("Select a folder in the picker");
-        }
-      };
 
       fileNameEl.addEventListener("input", updateUi);
 
@@ -366,24 +330,24 @@ Using methods:
           return;
         }
         if (!destFolderId) {
-          setHint("Select destination folder");
+          setHint("Select a room");
           return;
         }
 
         let fields = [];
         try {
           fields = parseFields();
-        } catch (e) {
+        } catch (error) {
           setHint("Invalid JSON");
-          logLine("ERROR: " + String(e?.message || e));
+          logLine("ERROR: " + String(error?.message || error));
           return;
         }
 
         setHint("Creating .pdf...");
         createBtn.disabled = true;
         try {
-          const res = await manager.createFile(String(destFolderId), fileName);
-          const createdId = getCreatedFileId(res);
+          const createdFile = await manager.createFile(String(destFolderId), fileName);
+          const createdId = getCreatedFileId(createdFile);
           if (!createdId) throw new Error("Created file id not found in response");
           logLine("Created: " + fileName + " (" + createdId + ")");
 
@@ -391,16 +355,13 @@ Using methods:
           await openHiddenEditorAndRun(createdId, fields);
           logLine("OK");
           setHint("Done");
-        } catch (e) {
-          console.error(e);
-          logLine("ERROR: " + String(e?.message || e));
+        } catch (error) {
+          logLine("ERROR: " + String(error?.message || error));
           setHint("Error");
         } finally {
           updateUi();
         }
       };
-
-      toggleHiddenBtn.onclick = toggleEditorVisibility;
 
       fieldsEl.value = JSON.stringify(
         [

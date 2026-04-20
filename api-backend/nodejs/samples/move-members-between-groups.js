@@ -1,4 +1,4 @@
-﻿/*
+/*
 Example: Move members between groups
 
 This example demonstrates how to move all members from one group to another in ONLYOFFICE DocSpace using the API.
@@ -18,9 +18,15 @@ const HEADERS = {
 };
 
 // Step 1: Move members from one group to another
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function moveGroupMembers(fromGroupId, toGroupId) {
   const url = `${API_HOST}/api/2.0/group/${fromGroupId}/members/${toGroupId}`;
-  const res = await fetch(url, { method: 'PUT', headers: HEADERS });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers: HEADERS });
 
   if (!res.ok) {
     const text = await res.text();

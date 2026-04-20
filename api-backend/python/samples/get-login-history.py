@@ -1,4 +1,4 @@
-﻿'''
+'''
 Example: Get login history
 
 This example automates the retrieval of the last login events in ONLYOFFICE DocSpace.
@@ -23,7 +23,7 @@ HEADERS = {
 
 def get_last_login_users():
   url = f'https://{API_HOST}/api/2.0/security/audit/login/last'
-  response = requests.get(url, headers=HEADERS)
+  response = requests.get(url, headers=HEADERS, timeout=30)
   if response.status_code == 200:
     res = response.json()
     user_ids = list(set(map(lambda user: user["userId"], res["response"])))
